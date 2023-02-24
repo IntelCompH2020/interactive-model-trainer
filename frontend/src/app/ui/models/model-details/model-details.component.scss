@@ -1,0 +1,40 @@
+table {
+  & th {
+      position: relative;
+
+      & mat-icon {
+          position: absolute;
+          margin: auto 0;
+          font-size: .95em;
+      }
+  }
+
+  // & td {
+  //     & input {
+  //         text-align: center;
+  //         width: 100%;
+  //     }
+
+  //     & select {
+  //         width: 100%;
+  //         background-color: white;
+  //         border: none;
+  //         cursor: pointer;
+  //     }
+  // }
+}
+
+.vertical-table {
+
+  td {
+    border-top: none !important;
+  }
+}
+
+// div[mat-dialog-title] {
+//   border-bottom: 1px solid $border-color;
+// }
+
+// mat-dialog-actions {
+//   border-top: 1px solid $border-color;
+// }

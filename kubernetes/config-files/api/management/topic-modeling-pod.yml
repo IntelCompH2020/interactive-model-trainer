@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: imt-train
+  labels:
+    app: imt-train
+spec:
+  containers:
+    - name: imt-train-models
+      image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-topic-modeling-api:0.0.10
+      imagePullPolicy: "IfNotPresent"
+      volumeMounts:
+        - name: imt-mng-models-data
+          mountPath: /data/models
+        - name: imt-mng-corpus-data
+          mountPath: /data/datasets
+        - name: imt-mng-wordlist-data
+          mountPath: /data/wordlists
+        - name: imt-mng-topic-modeling-data
+          mountPath: /data/topic-modeling
+  restartPolicy: Never
+  volumes:
+    - name: imt-mng-wordlist-data
+      persistentVolumeClaim:
+        claimName: imt-wordlists-volume-claim
+    - name: imt-mng-corpus-data
+      persistentVolumeClaim:
+        claimName: imt-corpus-volume-claim
+    - name: imt-mng-models-data
+      persistentVolumeClaim:
+        claimName: imt-models-volume-claim
+    - name: imt-mng-topic-modeling-data
+      persistentVolumeClaim:
+        claimName: imt-topic-modeling-volume-claim
+  imagePullSecrets:
+    - name: bsc-docker-reg-credentials

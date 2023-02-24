@@ -1,0 +1,22 @@
+.user-listing-filters {
+	margin: 1em 0;
+  
+	.filter-actions {
+	  display: flex;
+	}
+  
+	.toggle {
+	  font-weight: 400;
+	  height: 49px;
+	  min-height: 53.59px;
+	  background-color: white;
+	  border-radius: 0.4em;
+	  border: 1px solid #e0e0e0;
+	}
+  }
+  
+  :host ::ng-deep .mat-form-field-wrapper {
+	padding-bottom: 0;
+	margin: 1em 0 !important;
+  }
+  

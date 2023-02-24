@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: imt-train
+  labels:
+    app: imt-train
+spec:
+  containers:
+    - name: imt-train-models
+      image: test-sleep
+      imagePullPolicy: "IfNotPresent"
+      volumeMounts:
+        - name: imt-mng-models-data
+          mountPath: /data/models
+        - name: imt-mng-corpus-data
+          mountPath: /data/datasets
+        - name: imt-mng-wordlist-data
+          mountPath: /data/wordlists
+        - name: imt-training-temp-conf
+          mountPath: /data/temp/conf
+  restartPolicy: Never
+  volumes:
+    - name: imt-training-temp-conf
+      hostPath:
+        path: ΧΧΧΧΧ/wordlist_docker/wordlists
+        type: Directory
+    - name: imt-mng-wordlist-data
+      hostPath:
+        path: ΧΧΧΧΧ/wordlist_docker/wordlists
+        type: Directory
+    - name: imt-mng-corpus-data
+      hostPath:
+        path: ΧΧΧΧΧ/corpus_docker/datasets
+        type: Directory
+    - name: imt-mng-models-data
+      hostPath:
+        path: ΧΧΧΧΧ/models_docker/models
+        type: Directory

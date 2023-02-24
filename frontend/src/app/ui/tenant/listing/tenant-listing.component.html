@@ -1,0 +1,36 @@
+<div class="row tenant-listing m-0">
+	<div class="col-md-8 offset-md-2">
+
+		<h4>{{'APP.TENANT-LISTING.TITLE' | translate}}</h4>
+
+		<div class="col-12 p-0 filter-row">
+			<app-user-settings-selector [key]="userSettingsKey" [lookup]="lookup"
+				(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings">
+			</app-user-settings-selector>
+		</div>
+		<div class="col-12 p-0 filter-row">
+			<app-tenant-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)">
+			</app-tenant-listing-filters>
+		</div>
+
+		<app-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements"
+			[offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items"
+			[externalSorting]="true" (rowActivated)="onRowActivated($event)" (pageLoad)="alterPage($event)"
+			(columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)">
+		</app-listing>
+
+		<button mat-fab class="mat-fab-file-bottom" matTooltip="{{'APP.TENANT-LISTING.GENERATE-REPORT' | translate}}"
+			(click)="createBlueprintRequest()">
+			<mat-icon class="mat-24">file_copy</mat-icon>
+		</button>
+		<button mat-fab class="mat-fab-file-bottom-right"
+			matTooltip="{{'APP.TENANT-LISTING.GENERATE-AND-DOWNLOAD-REPORT' | translate}}"
+			(click)="createAndDownloadBlueprintRequest()">
+			<mat-icon class="mat-24">content_copy</mat-icon>
+		</button>
+		<button *ngIf="authService.hasPermission(authService.permissionEnum.EditTenant)" mat-fab
+			class="mat-fab-bottom-right" (click)="onNewItem()">
+			<mat-icon class="mat-24">add</mat-icon>
+		</button>
+	</div>
+</div>

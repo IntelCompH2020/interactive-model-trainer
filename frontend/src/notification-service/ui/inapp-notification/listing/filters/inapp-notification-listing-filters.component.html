@@ -1,0 +1,30 @@
+<div class="inapp-notification-listing-filters">
+	<mat-expansion-panel class="expansion-panel" [(expanded)]="panelExpanded" [disabled]="true">
+		<mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
+			<div class="row w-100">
+				<app-text-filter class="col-auto" [(value)]="filter.like" (valueChange)="onFilterChange()"></app-text-filter>
+				<div class="filter-actions col-auto ml-auto">
+					<button mat-button color="primary" (click)="panelExpanded = !panelExpanded" [disableRipple]="true">
+						{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FILTER.MORE-FILTERS' | translate}}
+						<mat-icon *ngIf="panelExpanded">keyboard_arrow_up</mat-icon>
+						<mat-icon *ngIf="!panelExpanded">keyboard_arrow_down</mat-icon>
+					</button>
+				</div>
+			</div>
+		</mat-expansion-panel-header>
+		<div class="row">
+			<mat-form-field class="col-md-3">
+				<mat-label>{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FILTER.TRACKING-STATE' | translate}}</mat-label>
+				<mat-select [(ngModel)]="trackingState">
+					<mat-option *ngIf="trackingState !== null"></mat-option>
+					<mat-option *ngFor="let trackingState of trackingStates" [value]="trackingState">{{enumUtils.toNotificationInAppTrackingString(trackingState)}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<div class="col-md-3 d-flex justify-content-center align-items-center">
+				<mat-slide-toggle [(ngModel)]="isActive" class="toggle col-auto w-100">
+					{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FILTER.SHOW-INACTIVE' | translate}}
+				</mat-slide-toggle>
+			</div>
+		</div>
+	</mat-expansion-panel>
+</div>

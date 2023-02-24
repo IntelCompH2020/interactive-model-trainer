@@ -1,0 +1,12 @@
+<div class="row user-roles-editor">
+	<mat-form-field class="col-md-12">
+		<mat-label>{{'USER-SERVICE.USER-EDITOR.FIELDS.ROLES' | translate}}</mat-label>
+		<mat-select  name="roles" [(ngModel)]="selectedUserRoles" multiple required>
+			<mat-option *ngFor="let userRoleValue of userRoleValues" [value]="userRoleValue">{{appEnumUtils.toRoleTypeString(userRoleValue)}}</mat-option>
+		</mat-select>
+	</mat-form-field>
+</div>
+<div class="row editor-actions">
+	<div class="col-auto"><button mat-raised-button color="primary" (click)="saveClaims()" type="submit">{{'USER-SERVICE.USER-EDITOR.ACTIONS.SAVE' | translate}}</button></div>
+	<div class="col-auto"><button mat-raised-button color="primary" (click)="cancel()" type="button">{{'USER-SERVICE.USER-EDITOR.ACTIONS.CANCEL' | translate}}</button></div>
+</div>

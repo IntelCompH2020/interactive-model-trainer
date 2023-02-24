@@ -1,0 +1,88 @@
+<!-- <div mat-dialog-title>
+    
+</div> -->
+
+<mat-dialog-content>
+    <div class="row mt-3" [formGroup]="formGroup">
+        <div class="col-5">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.NAME-PLACEHOLDER'
+                    | translate}}</mat-label>
+                <input formControlName="name" type="text" matInput>
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="col-7">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.DESCRIPTION-PLACEHOLDER'
+                    | translate}}</mat-label>
+                <textarea rows="4" formControlName="description" matInput></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="row align-items-end justify-content-between">
+        <mat-form-field appearance="outline" class="col-3 pb-0 mb-0">
+            <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.TERM'
+                | translate}}</mat-label>
+            <input (keyup.enter)="attemptEquivalenceInsert()" [(ngModel)]="term" [ngModelOptions]="{standalone: true}"
+                type="text" matInput
+                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.TERM-PLACEHOLDER' | translate"
+                value="vegetable">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="col-3 pb-0 mb-0">
+            <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.EQUIVALENCE'
+                | translate}}</mat-label>
+            <input (keyup.enter)="attemptEquivalenceInsert()" [(ngModel)]="equivalence"
+                [ngModelOptions]="{standalone: true}" type="text" matInput
+                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.EQUIVALENCE-PLACEHOLDER' | translate"
+                value="growing">
+        </mat-form-field>
+
+        <div class="col-12 col-lg-auto" [matTooltipShowDelay]="400" matTooltipPosition="above"
+            [matTooltip]="((term && equivalence)? 'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.ADD-EQUIVALENCE' :'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.ADD-EQUIVALENCE-HINT') | translate">
+            <button mat-icon-button [disabled]="!term || !equivalence"
+                (click)="addEquivalence(term, equivalence); term = null; equivalence = null;">
+                <mat-icon>
+                    arrow_right_alt
+                </mat-icon>
+            </button>
+        </div>
+        <div class="col">
+            <div class="equivalences-container p-1 bg-white">
+                <mat-chip-list aria-label="Keyword Selected">
+                    <mat-chip *ngFor="let item of equivalencies; let index = index">
+                        {{item.term}} : {{item.equivalence}}
+                        <button matChipRemove (click)="removeEquivalence(index)">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </mat-chip>
+                </mat-chip-list>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-auto">
+            <mat-checkbox (change)="onPrivateChange($event)"
+                [checked]="isPrivate">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.PRIVATE'
+                | translate}}</mat-checkbox>
+        </div>
+    </div>
+
+    <div class="mb-2"></div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <div class="col-auto">
+        <button mat-button
+            (click)="close()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.CANCEL'
+            | translate}}</button>
+    </div>
+    <div class="col-auto">
+        <button mat-raised-button [disabled]="!valid" color="accent"
+            (click)="submit()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCIES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.SUBMIT'
+            | translate}}</button>
+    </div>
+</mat-dialog-actions>

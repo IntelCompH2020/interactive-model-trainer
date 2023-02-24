@@ -1,0 +1,16 @@
+
+$border-color: #dee2e6 ;
+
+.td-border-right{
+    border-right:1px solid $border-color;
+}
+
+
+.table{
+    border: 1px solid $border-color !important;
+}
+
+:host ::ng-deep .padding-margin-none.mat-form-field-appearance-outline .mat-form-field-wrapper{
+    margin: 0px !important;
+    padding: 0px !important;
+}

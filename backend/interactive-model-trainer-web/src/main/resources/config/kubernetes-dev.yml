@@ -1,0 +1,31 @@
+kubernetes:
+  kubeConfPath: classpath:kubernetes/kube-config
+  services:
+    manageLists:
+      deploymentName: management
+      containerName: imt-mng-wordlist
+    manageCorpus:
+      deploymentName: management
+      containerName: imt-mng-corpus
+    manageModels:
+      deploymentName: management
+      containerName: imt-mng-models
+  jobs:
+    trainModels:
+      jobName: training
+      containerName: imt-train-models
+    resetModel:
+      jobName: resetTM
+      containerName: imt-reset-model
+  deployments:
+    management:
+      path: classpath:kubernetes/management/deployment.yml
+      deploymentLabelSelector: app=imt-mng
+      podLabelSelector: app=imt-mng
+  pods:
+    training:
+      path: classpath:kubernetes/training/pod.yml
+      podLabelSelector: app=imt-training
+    resetTM:
+      path: classpath:kubernetes/resetTM
+      podLabelSelector: app=imt-resetTM

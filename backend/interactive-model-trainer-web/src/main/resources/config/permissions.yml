@@ -1,0 +1,39 @@
+permissions:
+  extendedClaims: [ ]
+  policies:
+    # Users
+    BrowseUser:
+      roles:
+        - superuser
+        - tenantadmin
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: false
+    EditUser:
+      roles:
+        - admin
+        - superuser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteUser:
+      roles:
+        - superuser
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # ViewPage Permissions
+    ViewUsersPage:
+      roles:
+        - superuser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DownloadReport:
+      roles:
+        - superuser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false

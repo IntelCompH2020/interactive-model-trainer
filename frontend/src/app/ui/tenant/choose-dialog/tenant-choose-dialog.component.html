@@ -1,0 +1,25 @@
+<div class="tenant-choose-dialog">
+	<h1 mat-dialog-title appDraggable dragTarget=".mat-dialog-container" class="dialog-title-move"> {{'APP.TENANT-CHOOSE-DIALOG.TITLE' | translate}}</h1>
+	<mat-dialog-content>
+		<form *ngIf="formGroup" class="dialog-form" (ngSubmit)="formSubmit()" [formGroup]="formGroup">
+			<div class="row">
+				<mat-form-field appearance="fill" class="col-md-12">
+					<mat-label>{{'APP.TENANT-CHOOSE-DIALOG.FIELDS.TENANT-CODE' | translate}}</mat-label>
+					<mat-select formControlName="tenantCode">
+						<mat-option *ngFor="let tenant of data.tenants" [value]="tenant.code">
+							{{tenant.code}}
+						</mat-option>
+					</mat-select>
+					<mat-error *ngIf="formGroup.get('tenantCode').hasError('backendError')">{{formGroup.get('tenantCode').getError('backendError')?.message}}</mat-error>
+					<mat-error *ngIf="formGroup.get('tenantCode').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-12 pt-2">
+				<div class="row editor-actions">
+					<div class="col"><button mat-raised-button color="button" (click)="cancel()" type="button">{{'APP.EDITOR-ACTIONS.BACK' | translate}}</button></div>
+					<div class="col-auto"><button mat-raised-button color="primary" (click)="save()" type="primary">{{'APP.TENANT-CHOOSE-DIALOG.ACTIONS.SUBMIT' | translate}}</button></div>
+				</div>
+			</div>
+		</form>
+	</mat-dialog-content>
+</div>

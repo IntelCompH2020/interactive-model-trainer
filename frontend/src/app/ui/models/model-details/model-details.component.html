@@ -1,0 +1,22 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.MODELS-COMPONENT.MODEL-DETAILS-COMPONENT.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <table *ngIf="paramsReady" class="table round-table shadow-table vertical-table mt-3">
+    <tr *ngFor="let param of params">
+      <th class="table-head-gray">
+        {{param.name}}
+        <mat-icon *ngIf="param.tooltip" [matTooltip]="param.tooltip" matTooltipPosition="above"
+          color="accent">info</mat-icon>
+      </th>
+      <td class="bg-white">{{param.value}}</td>
+    </tr>
+  </table>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

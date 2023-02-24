@@ -1,0 +1,72 @@
+<div class="row notification-template-listing">
+	<div class="col-md-8 offset-md-2">
+		<mat-card>
+			<mat-card-title>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.TITLE' | translate}}</mat-card-title>
+			<!-- <mat-card-title *ngIf="!isNew">{{notificationEnumUtils.toNotificationEventInResponseToString(formGroup.get('inResponseTo').value)}}</mat-card-title> -->
+			<mat-card-content>
+				<div class="row" *ngIf="filtersFormGroup" [formGroup]="filtersFormGroup">
+					<mat-form-field class="col-md-4">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.NOTIFICATION-TYPE' | translate}}</mat-label>
+						<mat-select formControlName="notificationType">
+							<mat-option *ngFor="let notificationType of notificationTypesEnumValues" [value]="notificationType">{{notificationEnumUtils.toNotificationTypeString(notificationType)}}</mat-option>
+						</mat-select>
+						<mat-error *ngIf="filtersFormGroup.get('notificationType').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+					<mat-form-field class="col-md-4">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.NOTIFICATION-CHANNEL' | translate}}</mat-label>
+						<mat-select formControlName="channel">
+							<mat-option *ngFor="let notificationChannel of notificationChannelEnumValues" [value]="notificationChannel">{{notificationEnumUtils.toNotificationChannelString(notificationChannel)}}</mat-option>
+						</mat-select>
+						<mat-error *ngIf="filtersFormGroup.get('channel').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+					<mat-form-field class="col-md-4">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+						<mat-select formControlName="language">
+							<mat-option *ngFor="let language of languageEnumValues" [value]="language">{{appEnumUtils.toLanguageTypeString(language)}}</mat-option>
+						</mat-select>
+						<mat-error *ngIf="filtersFormGroup.get('language').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+				</div>
+				<div class="row" *ngIf="notificationTemplates?.length > 0">
+					<mat-accordion class="col-12 headers-align">
+						<mat-expansion-panel *ngFor="let notificationTemplate of notificationTemplates">
+							<mat-expansion-panel-header class="align-items-center">
+								<mat-panel-title>{{notificationEnumUtils.toNotificationTemplateKindString(notificationTemplate.kind)}}</mat-panel-title>
+								<mat-panel-description>{{notificationTemplate.description}}</mat-panel-description>
+								<button mat-icon-button *ngIf="notificationTemplate.id" (click)="askToDelete(notificationTemplate.id, $event)" matTooltip="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.DELETE' | translate}}">
+									<mat-icon>delete</mat-icon>
+								</button>
+								<button mat-icon-button *ngIf="notificationTemplate.id && notificationTemplate.kind !== notificationTemplateKindEnum.Primary" (click)="updateKind(notificationTemplate.id, notificationTemplateKindEnum.Primary, $event)" matTooltip="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-PRIMARY' | translate}}">
+									<mat-icon>star</mat-icon>
+								</button>
+								<button mat-icon-button *ngIf="notificationTemplate.id && notificationTemplate.kind !== notificationTemplateKindEnum.Secondary" (click)="updateKind(notificationTemplate.id, notificationTemplateKindEnum.Secondary, $event)" matTooltip="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-SECONDARY' | translate}}">
+									<mat-icon>star_half</mat-icon>
+								</button>
+								<button mat-icon-button *ngIf="notificationTemplate.id && notificationTemplate.kind !== notificationTemplateKindEnum.Draft" (click)="updateKind(notificationTemplate.id, notificationTemplateKindEnum.Draft, $event)" matTooltip="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-DRAFT' | translate}}">
+									<mat-icon>star_border</mat-icon>
+								</button>
+								<button mat-icon-button (click)="cloneItem(notificationTemplate, $event)" matTooltip="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.CLONE' | translate}}">
+									<mat-icon>file_copy</mat-icon>
+								</button>
+							</mat-expansion-panel-header>
+							<ng-template matExpansionPanelContent>
+								<app-notification-template-editor [notificationTemplate]="notificationTemplate" (onUpdateKind)="updateKind(notificationTemplate.id, $event)" (onDeleteTemplate)="delete(notificationTemplate.id)" (onPersist)="onPersist()"></app-notification-template-editor>
+							</ng-template>
+						</mat-expansion-panel>
+					</mat-accordion>
+				</div>
+				<div class="row" *ngIf="notificationTemplates?.length === 0">
+					<div class="col-12 align-self-center">
+						<h4>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.NO-TEMPLATE-AVAILABLE' | translate}}</h4>
+					</div>
+				</div>
+				<div class="row listing-actions">
+					<div class="col"></div>
+					<!-- <div class="col-auto" *ngIf="authService.hasPermission(authService.permissionEnum.EditNotificationEventRule) && !isDeleted"><button mat-raised-button color="primary" (click)="save()" type="submit">{{'NOTIFICATION-SERVICE.NOTIFICATION-EVENT-RULE-EDITOR.ACTIONS.SAVE' | translate}}</button></div>
+						<div class="col-auto" *ngIf="authService.hasPermission(authService.permissionEnum.DeleteNotificationEventRule) && !this.isDeleted && !isNew"><button mat-raised-button color="primary" type="button" (click)="delete()">{{'NOTIFICATION-SERVICE.NOTIFICATION-EVENT-RULE-EDITOR.ACTIONS.DELETE' | translate}}</button></div> -->
+					<!-- <div class="col-auto"><button mat-raised-button color="primary" (click)="cancel()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-EVENT-RULE-EDITOR.ACTIONS.CANCEL' | translate}}</button></div> -->
+				</div>
+			</mat-card-content>
+		</mat-card>
+	</div>
+</div>

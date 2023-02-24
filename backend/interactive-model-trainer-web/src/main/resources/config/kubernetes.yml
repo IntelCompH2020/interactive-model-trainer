@@ -1,0 +1,4 @@
+kubernetes:
+  enabled: ${KUBERNERES_ENABLED}
+  namespace: ${KUBERNERES_NAMESPACE}
+  waitForRunningPodInMilliseconds: 5000

@@ -1,0 +1,36 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.MODELS-COMPONENT.TOPIC-SELECTION-MODAL.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <mat-spinner color="accent" diameter="30" *ngIf="loading"></mat-spinner>
+  <table *ngIf="!loading" class="table round-table shadow-table mt-3">
+    <thead class="table-head-gray">
+      <tr>
+        <th>
+          <mat-checkbox (change)="selectAllTopics()" [checked]="allTopicsSelected()"></mat-checkbox>
+        </th>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ID' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.LABEL' | translate}}</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white">
+      <tr *ngFor="let topic of topics">
+        <td>
+          <mat-checkbox (change)="selectTopic(topic)" [checked]="topicSelected(topic)"></mat-checkbox>
+        </td>
+        <td>{{topic.id}}</td>
+        <td>{{topic.label}}</td>
+      </tr>
+    </tbody>
+  </table>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="cancel()">{{'APP.COMMONS.CANCEL' | translate}}</button>
+  </div>
+  <div class="col-auto">
+    <button mat-raised-button color="accent" [disabled]="!valid()" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

@@ -1,0 +1,84 @@
+<!-- <div mat-dialog-title>
+    
+</div> -->
+
+<mat-dialog-content>
+    <div class="row mt-3" [formGroup]="formGroup">
+        <div class="col-5">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.NAME-PLACEHOLDER'
+                    | translate}}</mat-label>
+                <input type="text" formControlName="name" matInput>
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="col-7">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.DESCRIPTION-PLACEHOLDER'
+                    | translate}}</mat-label>
+                <textarea rows="4" formControlName="description" matInput></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="row align-items-end justify-content-between">
+        <div class="col-12 col-lg-auto">
+            <h6 class="text-center">
+                {{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.NEW-STOPWORD' |
+                translate}}</h6>
+            <mat-form-field appearance="outline" class="pb-0 mb-0">
+                <input type="text" (keyup.enter)="addStopword(currentStopword); currentStopword = null;"
+                    [ngModelOptions]="{standalone: true}" [(ngModel)]="currentStopword" matInput
+                    [placeholder]="'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.NEW-STOPWORD-PLACEHOLDER' | translate">
+            </mat-form-field>
+        </div>
+
+        <div class="col-12 col-lg-auto" [matTooltipShowDelay]="400" matTooltipPosition="above"
+            [matTooltip]="(currentStopword?.length ? 'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.ADD-STOPWORD' :'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.ADD-STOPWORD-HINT') | translate">
+            <button mat-icon-button [disabled]="!currentStopword?.length"
+                (click)="addStopword(currentStopword); currentStopword = null;">
+                <mat-icon>
+                    arrow_right_alt
+                </mat-icon>
+            </button>
+        </div>
+        <div class="col">
+            <div class="keywords-container p-1 bg-white">
+                <mat-chip-list aria-label="Stopword Selected">
+                    <mat-chip *ngFor="let item of stopwords; let index = index">
+                        {{item}}
+                        <button matChipRemove (click)="removeStopword(index)">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </mat-chip>
+                </mat-chip-list>
+            </div>
+            <mat-error
+                *ngIf="stopWordsFormArray?.touched  && stopWordsFormArray?.errors?.atLeastItems">{{'COMMONS.VALIDATION.REQUIRED'
+                | translate}}</mat-error>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-auto">
+            <mat-checkbox (change)="onPrivateChange($event)"
+                [checked]="isPrivate">{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.PRIVATE'
+                | translate}}</mat-checkbox>
+        </div>
+    </div>
+
+    <div class="mb-2"></div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <div class="col-auto">
+        <button mat-button
+            (click)="close()">{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.CANCEL'
+            | translate}}</button>
+    </div>
+    <div class="col-auto">
+        <button mat-raised-button [disabled]="!valid" color="accent"
+            (click)="submit()">{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.SUBMIT'
+            | translate}}</button>
+    </div>
+</mat-dialog-actions>

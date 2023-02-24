@@ -1,0 +1,25 @@
+kubernetes:
+  kubeConfPath: /management-config/kube-config
+  services:
+    manageLists:
+      deploymentName: management
+      containerName: imt-mng-wordlist
+    manageCorpus:
+      deploymentName: management
+      containerName: imt-mng-corpus
+    manageModels:
+      deploymentName: management
+      containerName: imt-mng-models
+  jobs:
+    trainModels:
+      jobName: training
+      containerName: imt-train-models
+  deployments:
+    management:
+      path: /management-config/management-deployment.yml
+      deploymentLabelSelector: app=imt-mng
+      podLabelSelector: app=imt-mng
+  pods:
+    training:
+      path: /management-config/topic-modeling-pod.yml
+      podLabelSelector: app=imt-train

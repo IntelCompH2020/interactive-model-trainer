@@ -1,0 +1,13 @@
+keycloak-resources:
+  authorities:
+    user:
+      parent: beba276b-5e9e-42b6-8012-8d2653312818
+      namingStrategy: "tenantuser:{tenantCode}"
+      title: tenantuser
+    admin:
+      parent: 4432316d-75e3-410d-9934-590b95e76e44
+      namingStrategy: "tenantadmin:{tenantCode}"
+      title: tenantadmin
+  tenantGroupsNamingStrategy: "tenant-{tenantCode}"
+  guestsGroup: efa9cea5-0c7f-4c83-afb1-cc4ec9b2f1ee
+  administratorsGroup: 14d8f80a-6f88-4ad4-a42d-3e5023bac7b3

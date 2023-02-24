@@ -1,0 +1,57 @@
+<div class="notification-listing-filters">
+	<mat-expansion-panel class="expansion-panel" [(expanded)]="panelExpanded" [disabled]="true">
+		<mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
+			<div class="row w-100">
+				<mat-form-field class="col-auto">
+					<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.TYPE' | translate}}</mat-label>
+					<mat-select [(ngModel)]="type" multiple>
+						<mat-option *ngFor="let notificationType of notificationTypeEnumValues" [value]="notificationType">{{enumUtils.toNotificationTypeString(notificationType)}}</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<div class="filter-actions col-auto ml-auto">
+					<button mat-button color="primary" (click)="panelExpanded = !panelExpanded" [disableRipple]="true">
+						{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.MORE-FILTERS' | translate}}
+						<mat-icon *ngIf="panelExpanded">keyboard_arrow_up</mat-icon>
+						<mat-icon *ngIf="!panelExpanded">keyboard_arrow_down</mat-icon>
+					</button>
+				</div>
+			</div>
+		</mat-expansion-panel-header>
+		<div class="row">
+			<div class="col-auto d-flex align-items-center">
+				<mat-slide-toggle [(ngModel)]="isActive" class="toggle col-auto w-100">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.SHOW-INACTIVE' | translate}}
+				</mat-slide-toggle>
+			</div>
+			<mat-form-field class="col-auto">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.CONTACT-TYPE' | translate}}</mat-label>
+				<mat-select [(ngModel)]="contactType" multiple>
+					<mat-option *ngFor="let contactType of contactTypeEnumValues" [value]="contactType">{{enumUtils.toContactTypeString(contactType)}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field class="col-auto">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.NOTIFY-STATE' | translate}}</mat-label>
+				<mat-select [(ngModel)]="state" multiple>
+					<mat-option *ngFor="let notifyState of notifyStateEnumValues" [value]="notifyState">{{enumUtils.toNotificationNotifyStateString(notifyState)}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field class="col-auto">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.TRACKING-STATE' | translate}}</mat-label>
+				<mat-select [(ngModel)]="trackingState" multiple>
+					<mat-option *ngFor="let trackingState of trackingStateEnumValues" [value]="trackingState">{{enumUtils.toNotificationTrackingStateString(trackingState)}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field class="col-auto">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.TRACKING-PROCESS' | translate}}</mat-label>
+				<mat-select [(ngModel)]="trackingProcess" multiple>
+					<mat-option *ngFor="let trackingProcess of trackingProcessEnumValues" [value]="trackingProcess">{{enumUtils.toNotificationTrackingProcessString(trackingProcess)}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field class="col-auto">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.USERS' | translate}}</mat-label>
+				<app-multiple-auto-complete [(ngModel)]="users" [configuration]="userMultipleAutocompleteConfiguration">
+				</app-multiple-auto-complete>
+			</mat-form-field>
+		</div>
+	</mat-expansion-panel>
+</div>

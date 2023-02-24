@@ -1,0 +1,117 @@
+<div class="col-12 pt-3" [formGroup]="formGroup">
+    <div class="row">
+        <div class="col-auto">
+            <mat-form-field appearance="outline">
+                <input formControlName="tag" type="text" matInput [placeholder]="'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.TAG-PLACEHOLDER' | translate">
+            </mat-form-field>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <div class="row align-items-center">
+                <div class="col">
+                    <span>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.CORPUS' | translate}}</span>
+                </div>
+                <div class="col-auto">
+                    <mat-form-field appearance="outline">
+                        <input formControlName="corpusId" type="text" matInput value="Semantic Scholar">
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col">
+                    <span>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.FILE' | translate}}</span>
+                </div>
+                <div class="col-auto">
+                    <mat-form-field appearance="outline">
+                        <input type="text" matInput value="corpus.feather">
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <h6>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.FILE-OVERVIEW' | translate}}</h6>
+            <div class="bg-white p-1" style="min-height: 12rem; border: 1px solid black; border-radius: 3px;">
+                ...
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row align-items-center mt-3 mb-3">
+        <div class="col-auto">
+            <button mat-stroked-button>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.LOAD-FILE' | translate}}</button>
+        </div>
+        <div class="col-auto">
+            <mat-form-field appearance="outline" class="padding-margin-none">
+                <input type="text" matInput readonly>
+            </mat-form-field>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox formControlName="private">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.PRIVATE' | translate}}</mat-checkbox>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox (ngModelChange)="updateAdvanced($event)" [ngModelOptions]="{standalone: true}" [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.ADVANCED-OPTIONS' | translate}}</mat-checkbox>
+        </div>
+    </div>
+
+    <ng-container *ngIf="advanced">
+        <div class="row mt-4">
+            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.TYPE' | translate}}</div>
+            <div class="col-auto">
+                <mat-form-field>
+                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.TYPE-PLACEHOLDER' | translate}}</mat-label>
+                    <mat-select formControlName="type">
+                        <mat-option [value]="item" *ngFor="let item of availableTypes">
+                            {{enumUtils.toDomainModelTypeString(item)}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="col-auto">
+                <mat-form-field>
+                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.CLASS-PLACEHOLDER' | translate}}</mat-label>
+                    <mat-select formControlName="subtype">
+                        <mat-option [value]="item" *ngFor="let item of availableSubTypes">
+                            {{enumUtils.toDomainModelSubtypeString(item)}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.NUMBER-OF-HEADS' | translate}}</div>
+            <div class="col-auto">
+                <mat-form-field appearance="outline">
+                    <input type="number" matInput formControlName="numberOfHeads">
+                </mat-form-field>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.DEPTH' | translate}}</div>
+            <div class="col-auto">
+                <mat-form-field appearance="outline">
+                    <input type="number" matInput formControlName="depth">
+                </mat-form-field>
+            </div>
+        </div>
+    </ng-container>
+
+
+    <div class="row justify-content-end">
+        <div class="col-auto">
+            <button mat-button (click)="close()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.CANCEL' | translate}}</button>
+        </div>
+        <div class="col-auto">
+            <button mat-raised-button color="accent" (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG.SUBMIT' | translate}}</button>
+        </div>
+    </div>
+</div>

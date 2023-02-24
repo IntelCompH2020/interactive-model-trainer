@@ -1,0 +1,3 @@
+server:
+  port: ${WEB_PORT}
+  forward-headers-strategy: NONE

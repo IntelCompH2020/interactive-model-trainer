@@ -1,0 +1,57 @@
+<thead class="table-head-gray">
+    <tr>
+        <th>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.FIELD' | translate}}</th>
+        <th>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.TYPE' | translate}}</th>
+    </tr>
+</thead>
+<tbody class="bg-white" cdkDropList [id]="'parent'" cdkDropListSortingDisabled
+    [cdkDropListConnectedTo]="connectedDroplists">
+
+    <ng-container *ngFor="let field of corpus.fields;">
+        <tr *ngIf="field.originalFields.length > 1" class="cursor-pointer">
+            <td [ngClass]="{'text-left font-weight-bold': true, 'action-indicator-disabled': currentUnmergeParent.length != 0 && currentUnmergeParent !== field.name}" 
+                cdkDropList [id]="getDroplistIdFromFieldName(field.name)">
+                {{field.name}}
+            </td>
+            <td>
+                {{field.type}}
+            </td>
+
+        </tr>
+        <ng-container *ngIf="field.originalFields.length > 1">
+            <ng-container *ngFor="let originalField of field.originalFields">
+                <tr class="cursor-grab" 
+                    [cdkDragData]="originalField" cdkDrag 
+                    (cdkDragDropped)="onFieldUnMerge($event)"
+                    (cdkDragStarted)="onUnmergeDragStart($event)">
+                    <span class="un-merge-indicator indicator" *cdkDragPlaceholder>remove</span>
+                    <div class="field-drag-preview" *cdkDragPreview>
+                        {{originalField.name}} - <i class="font-weight-light">{{originalField.corpusName}}</i>
+                    </div>
+                    <td>
+                        {{originalField.name}} - <i class="font-weight-light">{{originalField.corpusName}}</i>
+                    </td>
+                    <td>
+                        {{originalField.type}}
+                    </td>
+                </tr>
+            </ng-container>
+        </ng-container>
+        <tr *ngIf="field.originalFields.length == 1" class="cursor-grab" 
+            [cdkDragData]="field.originalFields[0]" cdkDrag (cdkDragDropped)="onFieldMerge($event)">
+            <span class="merge-indicator indicator" *cdkDragPlaceholder>add</span>
+            <div class="field-drag-preview" *cdkDragPreview>
+                {{field.name}} - <i>{{field.originalFields[0].corpusName}}</i>
+            </div>
+            <td [ngClass]="{'text-left font-weight-bold': true, 'action-indicator-disabled': currentUnmergeParent.length != 0}"
+                cdkDropList [id]="getDroplistIdFromFieldName(field.name)">
+                {{field.name}} - <i>{{field.originalFields[0].corpusName}}</i>
+            </td>
+            <td>
+                {{field.type}}
+            </td>
+
+        </tr>
+    </ng-container>
+
+</tbody>

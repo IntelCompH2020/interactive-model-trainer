@@ -1,0 +1,25 @@
+<table *ngFor="let row of paramRows; trackBy: trackByIndex" class="table" [formGroup]="formGroup">
+  <thead class="table-head-gray">
+    <tr>
+      <th *ngFor="let param of row.parameters; trackBy: trackByIndex">
+        {{param.displayName | translate}}
+        <mat-icon *ngIf="param.tooltip" [matTooltip]="translate.instant(param.tooltip)" matTooltipPosition="above"
+          color="accent">info</mat-icon>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="bg-white">
+    <tr>
+      <td *ngFor="let param of row.parameters; trackBy: trackByIndex">
+        <input *ngIf="param.type == 'number'" matInput [type]="param.type" [formControlName]="param.name"
+          [min]="param.validation?.min" [max]="param.validation?.max" [step]="param.validation?.step || null" />
+        <input *ngIf="param.type == 'string'" matInput [type]="param.type" [formControlName]="param.name" />
+        <select *ngIf="param.type == 'select'" matInput [formControlName]="param.name">
+          <option *ngFor="let option of param.validation?.options; trackBy: trackByItem" [value]="option.value">
+            {{option.displayName | translate}}
+          </option>
+        </select>
+      </td>
+    </tr>
+  </tbody>
+</table>

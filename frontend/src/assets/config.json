@@ -1,0 +1,67 @@
+{
+	"production": false,
+	"version": "-dev",
+	"defaultTheme": 2,
+	"defaultLanguage": 0,
+	"defaultCulture": "en-US",
+	"defaultTimezone": "UTC",
+	"inAppNotificationsCountInterval": "30",
+	"userSettingsVersion": "1",
+	"idp_service": {
+		"enabled": true,
+		"address": "ΧΧΧΧΧ",
+		"realm": "ΧΧΧΧΧ",
+		"flow": "ΧΧΧΧΧ",
+		"clientId": "ΧΧΧΧΧ",
+		"redirectUri": "ΧΧΧΧΧ",
+		"scope": "ΧΧΧΧΧ"
+	},
+	"notification_service": {
+		"enabled": true,
+		"address": "ΧΧΧΧΧ"
+	},
+	"app_service": {
+		"enabled": true,
+		"address": "ΧΧΧΧΧ"
+	},
+	"logging": {
+		"enabled": true,
+		"logLevels": ["debug", "info", "warning", "error"]
+	},
+	"globalErrorHandling": {
+		"transmitLogs": true,
+		"appName": "coreApp"
+	},
+	"footerUrls":{
+		"twitter":"#",
+		"facebook":"#",
+		"termsOfUse":"#",
+		"privacyPolicy":"#"
+	},
+	"services": [
+		{
+			"title": "APP.LANGUAGE-TOKENS.STI-VIEWER",
+			"description": "APP.LANGUAGE-TOKENS.STI-VIEWER-DESCRIPTION",
+			"img": "../../../assets/images/stiviewer.png",
+			"href":"#"
+		},
+		{
+			"title": "APP.LANGUAGE-TOKENS.DOCUMENT-EXPLORER",
+			"description": "APP.LANGUAGE-TOKENS.DOCUMENT-EXPLORER-DESCRIPTION",
+			"img": "../../../assets/images/documentexplorer.png",
+			"href":"#"
+		},
+		{
+			"title": "APP.LANGUAGE-TOKENS.INTERACTIVE-MODEL-TRAINER",
+			"description": "APP.LANGUAGE-TOKENS.INTERACTIVE-MODEL-TRAINER-DESCRIPTION",
+			"img": "../../../assets/images/interactivemodel.png",
+			"href":"#"
+		},
+		{
+			"title": "APP.LANGUAGE-TOKENS.INTELCOMP-DATA-CATALOGUE",
+			"description": "APP.LANGUAGE-TOKENS.INTELCOMP-DATA-CATALOGUE-DESCRIPTION",
+			"img": "../../../assets/images/datacatalogue.png",
+			"href":"#"
+		}
+	]
+}

@@ -1,0 +1,21 @@
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-auto d-flex justify-content-center">
+        <button mat-fab disabled *ngIf="matIconName else textContainer" class="cursor-unset">
+            <mat-icon>{{matIconName}}</mat-icon>
+        </button>
+
+        <ng-template #textContainer>
+            <div class="text-container">
+            {{iconText}}
+            </div>
+        </ng-template>
+    </div>
+    <div class="col">
+        <h5>{{title}}</h5>
+        <p class="text-muted">
+            <small>
+                {{description}}
+            </small>
+        </p>
+    </div>
+</div>

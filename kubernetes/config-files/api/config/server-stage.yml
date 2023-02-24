@@ -1,0 +1,10 @@
+server:
+  forward-headers-strategy: FRAMEWORK
+  ssl:
+    enabled: false
+    key-store-type: PKCS12
+    key-store: 
+    key-store-password: 
+    key-alias: 
+  error:
+    include-message: always

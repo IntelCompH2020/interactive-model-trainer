@@ -1,0 +1,21 @@
+.listing-component {}
+
+.listing-component-row-cursor {
+	.datatable-body-row {
+		cursor: pointer;
+
+	}
+}
+
+app-listing {
+	button {
+		border: 1px solid darkgray;
+		border-radius: .5em !important;
+		box-shadow: none;
+		margin-right: 1em;
+
+		&:disabled {
+			opacity: 0.4; 
+		}
+	}
+}

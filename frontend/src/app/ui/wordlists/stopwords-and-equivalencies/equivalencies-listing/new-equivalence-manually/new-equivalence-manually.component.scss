@@ -1,0 +1,14 @@
+
+$border-color: #dee2e6 ;
+
+:host ::ng-deep .padding-margin-none.mat-form-field-appearance-outline .mat-form-field-wrapper{
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.equivalences-container{
+    border: 1px solid black;
+    border-radius: 3px;
+    overflow-y: auto;
+    height: 10rem;
+}

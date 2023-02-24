@@ -1,0 +1,16 @@
+.recent-item{
+    border-bottom: 2px solid #c7c7cc;
+}
+
+.actions-grid{
+    display: grid;
+    gap: 7rem;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+
+@media screen and (max-width: 768px) {
+    .actions-grid{
+        grid-template-columns: 1fr;
+    }   
+}

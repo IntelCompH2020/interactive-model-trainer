@@ -1,0 +1,10 @@
+$border-color: #dee2e6;
+
+app-model-parameters-table {
+    display: contents;
+}
+
+:host ::ng-deep .padding-margin-none.mat-form-field-appearance-outline .mat-form-field-wrapper {
+    margin: 0px !important;
+    padding: 0px !important;
+}

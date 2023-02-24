@@ -1,0 +1,6 @@
+web:
+  cors:
+    allowed-origins:
+      [
+        ΧΧΧΧΧ
+      ]

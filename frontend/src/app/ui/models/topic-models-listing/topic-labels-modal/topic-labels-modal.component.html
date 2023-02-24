@@ -1,0 +1,43 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.MODELS-COMPONENT.TOPIC-SELECTION-MODAL.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <mat-spinner color="accent" diameter="30" *ngIf="loading"></mat-spinner>
+  <table *ngIf="!loading" class="table round-table shadow-table mt-3">
+    <thead class="table-head-gray">
+      <tr>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ID' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.LABEL' | translate}}</th>
+        <th>
+          New Label
+        </th>
+      </tr>
+    </thead>
+    <tbody class="bg-white" [formGroup]="formGroup">
+      <tr *ngFor="let topic of topics; index as i">
+        <td>{{topic.id}}</td>
+        <td>{{topic.label}}</td>
+        <td>
+          <input mat-input [formControl]="labelsInputs.controls[i]">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-stroked-button
+      [disabled]="loading"
+      (click)="fileInput.click()">{{'APP.MODELS-COMPONENT.TOPIC-SELECTION-MODAL.FILE' | translate}}</button>
+  </div>
+  <input #fileInput type="file" accept=".txt" hidden (change)="onFileSelected($event.target.files)">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="cancel()">{{'APP.COMMONS.CANCEL' | translate}}</button>
+  </div>
+  <div class="col-auto">
+    <button mat-raised-button color="accent" [disabled]="!valid()" (click)="close()">{{'APP.COMMONS.OK' |
+      translate}}</button>
+  </div>
+</mat-dialog-actions>

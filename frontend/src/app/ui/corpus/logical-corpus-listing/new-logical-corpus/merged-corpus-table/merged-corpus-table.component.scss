@@ -1,0 +1,37 @@
+.field-drag-preview {
+  background-color: white;
+  padding: 1em;
+  -webkit-box-shadow: 0px 0px 20px 2px rgba(0,0,0,0.4); 
+  box-shadow: 0px 0px 20px 2px rgba(0,0,0,0.4);
+  border: 1px solid lightgray;
+  border-radius: .5em;
+}
+
+tbody>.cdk-drag-placeholder {
+  display: none !important;
+}
+
+.action-indicator-disabled>.cdk-drag-placeholder {
+  display: none !important;
+}
+
+.merge-indicator {
+  background-color: green;
+}
+
+.un-merge-indicator {
+  background-color: red;
+}
+
+.indicator {
+  color: white;
+  padding: .3em .45em;
+  border-radius: .3em;
+  margin-left: 1em;
+  display: inline-block;
+  font-size: .9em;
+  line-height: 70%;
+  opacity: .65;
+  position: absolute;
+  transform: translateY(.25em);
+}

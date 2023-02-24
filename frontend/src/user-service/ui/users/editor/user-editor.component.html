@@ -1,0 +1,75 @@
+<div class="row user-editor" [formGroup]="formGroup">
+	<div class="col-md-12">
+		<mat-card>
+			<mat-card-title *ngIf="isNew">{{'USER-SERVICE.USER-EDITOR.TITLE.NEW' | translate}}</mat-card-title>
+			<mat-card-title *ngIf="!isNew">{{formGroup.get('name').value}}</mat-card-title>
+			<mat-card-content>
+				<div class="row">
+					<mat-tab-group mat-stretch-tabs dynamicHeight class="col-12">
+						<mat-tab label="{{'USER-SERVICE.USER-EDITOR.USER-TAB' | translate}}">
+							<form (ngSubmit)="formSubmit()" [formGroup]="formGroup">
+								<div class="row tab-container">
+									<mat-form-field class="col-md-12">
+										<mat-label>{{'USER-SERVICE.USER-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+										<input matInput type="text" name="user-name" formControlName="name" required>
+										<mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{user.validationErrorModel.getError('Name')}}</mat-error>
+										<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+									<mat-form-field class="col-md-4">
+										<mat-label>{{'USER-SERVICE.USER-EDITOR.FIELDS.TIMEZONE' | translate}}</mat-label>
+										<input matInput autocomplete="nope" [matAutocomplete]="timezoneAuto" type="text" name="timezone" [formControl]="formGroup.get('profile').get('timezone')" required>
+										<mat-error *ngIf="formGroup.get('profile.timezone').hasError('backendError')">{{user.validationErrorModel.getError('Timezone')}}</mat-error>
+										<mat-error *ngIf="formGroup.get('profile.timezone').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-autocomplete autoActiveFirstOption #timezoneAuto="matAutocomplete">
+											<mat-option *ngFor="let timezone of filteredTimezones" class="option" [value]="timezone">{{timezone | timezoneInfoDisplay}}</mat-option>
+										</mat-autocomplete>
+									</mat-form-field>
+									<mat-form-field class="col-md-4">
+										<mat-label>{{'USER-SERVICE.USER-EDITOR.FIELDS.CULTURE' | translate}}</mat-label>
+										<input matInput autocomplete="nope" [matAutocomplete]="cultureAuto" type="text" name="culture" [formControl]="formGroup.get('profile').get('culture')" required>
+										<mat-error *ngIf="formGroup.get('profile.culture').hasError('backendError')">{{user.validationErrorModel.getError('Culture')}}</mat-error>
+										<mat-error *ngIf="formGroup.get('profile.culture').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-autocomplete autoActiveFirstOption #cultureAuto="matAutocomplete">
+											<mat-option *ngFor="let culture of filteredCultures" [value]="culture.name">{{culture | cultureInfoDisplay}}</mat-option>
+										</mat-autocomplete>
+									</mat-form-field>
+									<mat-form-field class="col-md-4">
+										<mat-label>{{'USER-SERVICE.USER-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+										<mat-select name="language" [formControl]="formGroup.get('profile').get('language')" required>
+											<mat-option *ngFor="let languageType of languageTypeValues" [value]="languageService.getLanguageValue(languageType)">{{appEnumUtils.toLanguageTypeString(languageType)}}</mat-option>
+										</mat-select>
+										<mat-error *ngIf="formGroup.get('profile.language').hasError('backendError')">{{user.validationErrorModel.getError('Language')}}</mat-error>
+										<mat-error *ngIf="formGroup.get('profile.language').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+									<mat-form-field *ngFor="let control of formGroup.get('contacts')['controls']" class="col-md-4">
+										<mat-label>{{getHtmlElementContactInfoTypePlaceholder(control.get('type').value)}}</mat-label>
+										<input matInput [type]="control.get('type').value === contactInfoTypeEnum.Email ? 'email': 'text'" name="getHtmlElementContactInfoTypeName(control.get('type').value)" [formControl]="control.get('value')">
+										<mat-icon matSuffix *ngIf="control.get('type').value === contactInfoTypeEnum.Email">email</mat-icon>
+										<mat-icon matSuffix *ngIf="control.get('type').value === contactInfoTypeEnum.LandLinePhone">phone</mat-icon>
+										<mat-icon matSuffix *ngIf="control.get('type').value === contactInfoTypeEnum.MobilePhone">smartphone</mat-icon>
+										<mat-error *ngIf="control.get('value').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-error *ngIf="control.get('value').hasError('pattern')">{{'COMMONS.VALIDATION.PHONE' | translate}}</mat-error>
+										<mat-error *ngIf="control.get('value').hasError('email')">{{'COMMONS.VALIDATION.EMAIL' | translate}}</mat-error>
+										<mat-error *ngIf="control.get('value').hasError('backendError')">{{control.get('value').getError('backendError')?.message}}</mat-error>
+									</mat-form-field>
+								</div>
+								<div class="row editor-actions">
+									<div class="col"></div>
+									<div class="col-auto" *ngIf="this.canEdit && !isDeleted"><button mat-raised-button color="primary" (click)="save()" type="submit">{{'USER-SERVICE.USER-EDITOR.ACTIONS.SAVE' | translate}}</button></div>
+									<div class="col-auto" *ngIf="this.canDelete && !isDeleted && !isNew"><button mat-raised-button color="primary" type="button" (click)="delete()">{{'USER-SERVICE.USER-EDITOR.ACTIONS.DELETE' | translate}}</button></div>
+									<div class="col-auto"><button mat-raised-button color="primary" (click)="cancel()" type="button">{{'USER-SERVICE.USER-EDITOR.ACTIONS.CANCEL' | translate}}</button></div>
+								</div>
+							</form>
+						</mat-tab>
+						<mat-tab *ngIf="editorModel.id" label="{{'USER-SERVICE.USER-EDITOR.ROLES-TAB' | translate}}">
+							<app-user-roles-editor *ngIf="editorModel.id" [userId]="editorModel.id"></app-user-roles-editor>
+						</mat-tab>
+						 <mat-tab *ngIf="editorModel.id" label="{{'USER-SERVICE.USER-EDITOR.CREDENTIALS-TAB' | translate}}">
+							<app-user-credentials-editor *ngIf="editorModel.id" [userId]="editorModel.id"></app-user-credentials-editor>
+						</mat-tab> 
+					</mat-tab-group>
+				</div>
+			</mat-card-content>
+		</mat-card>
+	</div>
+</div>

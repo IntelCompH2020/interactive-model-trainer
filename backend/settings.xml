@@ -1,0 +1,9 @@
+<settings>
+	<servers>
+		<server>
+			<id>cite-maven</id>
+			<username>${server.username}</username>
+			<password>${server.password}</password>
+		</server>
+	</servers>
+</settings>

@@ -1,0 +1,3 @@
+web:
+  cors:
+    allowed-origins: [ http://localhost, http://localhost:40000 ]

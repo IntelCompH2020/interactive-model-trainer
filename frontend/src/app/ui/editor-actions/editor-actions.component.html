@@ -1,0 +1,6 @@
+<div class="row editor-actions">
+	<div class="col"></div>
+	<div class="col-auto" *ngIf="canDeleteEntity"><button mat-raised-button color="primary" type="button" (click)="delete()">{{'APP.EDITOR-ACTIONS.DELETE' | translate}}</button></div>
+	<div class="col-auto" *ngIf="canSaveEntity"><button mat-raised-button color="primary" (click)="save()" type="submit">{{'APP.EDITOR-ACTIONS.SAVE' | translate}}</button></div>
+	<div class="col-auto"><button mat-raised-button color="primary" (click)="cancel()" type="button">{{'APP.EDITOR-ACTIONS.BACK' | translate}}</button></div>
+</div>

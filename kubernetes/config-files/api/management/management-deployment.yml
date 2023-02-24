@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imt-mng
+  labels:
+    app: imt-mng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: imt-mng
+  template:
+    metadata:
+      labels:
+        app: imt-mng
+    spec:
+      containers:
+        - name: imt-mng-wordlist
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-wordlists-api:0.0.9
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-wordlist-data
+              mountPath: /data/wordlists
+            - name: imt-mng-wordlist-data
+              mountPath: /data/temp
+        - name: imt-mng-corpus
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-corpus-api:0.0.9
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-corpus-data
+              mountPath: /data/datasets
+            - name: imt-mng-corpus-data
+              mountPath: /data/temp
+        - name: imt-mng-models
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-models-api:0.0.9
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-models-data
+              mountPath: /data/models
+            - name: imt-mng-models-data
+              mountPath: /data/temp
+      volumes:
+        - name: imt-mng-wordlist-data
+          persistentVolumeClaim:
+            claimName: imt-wordlists-volume-claim
+        - name: imt-mng-corpus-data
+          persistentVolumeClaim:
+            claimName: imt-corpus-volume-claim
+        - name: imt-mng-models-data
+          persistentVolumeClaim:
+            claimName: imt-models-volume-claim
+      imagePullSecrets:
+        - name: bsc-docker-reg-credentials

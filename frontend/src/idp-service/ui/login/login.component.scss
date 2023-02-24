@@ -1,0 +1,51 @@
+.login-component {
+	padding-top: 2em;
+
+	.sign-in {
+		padding-top: 1em;
+    	padding-bottom: 1em;
+	}
+
+	.register-div {
+		padding-top: 1em;
+		padding-bottom: 1em;
+		width: 100%;
+		margin: 0;
+	}
+
+	.register-item {
+		display: flex;
+		justify-content: center;
+	}
+
+	.primary-register-item {
+		width: 300px;
+    	min-height: 60px;
+    	font-size: 1.3em;
+    	white-space: normal;
+    	line-height: 1.3;
+    	padding: 16px 22px;	
+	}
+
+	.primary-register-item-div {
+		margin-top: auto;
+		margin-bottom: auto;
+	}
+
+	.card-register {
+		margin-top: 1em;
+	}
+
+	.signInCodePasswordButton {
+		display: table;
+		margin: 0 auto;
+		padding: 0.5em 1.2em;
+    	font-size: 17px !important;
+		width: 260px;
+		height: 50px;
+	}
+
+	.basic-login-card, .direct-login-card {
+		margin: 1em auto;
+	}
+}

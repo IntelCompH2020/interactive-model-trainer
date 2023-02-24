@@ -1,0 +1,18 @@
+<div class="listing-settings-dialog">
+	<h2 mat-dialog-title>{{'COMMONS.LISTING-COMPONENT.SETTINGS.TITLE' | translate}}</h2>
+	<mat-dialog-content>
+		<div cdkFocusRegionstart>
+			<mat-selection-list [(ngModel)]="visibleColumns">
+				<mat-list-option *ngFor="let column of availableColumns" [value]="column.prop" checkboxPosition="before" color="accent">
+					<div>
+						<div class="list-item-text">{{getColumnName(column)}}</div>
+					</div>
+				</mat-list-option>
+			</mat-selection-list>
+		</div>
+	</mat-dialog-content>
+	<mat-dialog-actions>
+		<button mat-button color="accent" (click)="apply()">{{'COMMONS.LISTING-COMPONENT.SETTINGS.APPLY' | translate}}</button>
+		<button mat-button color="accent" (click)="dialogRef.close()">{{'COMMONS.LISTING-COMPONENT.SETTINGS.CLOSE' | translate}}</button>
+	</mat-dialog-actions>
+</div>

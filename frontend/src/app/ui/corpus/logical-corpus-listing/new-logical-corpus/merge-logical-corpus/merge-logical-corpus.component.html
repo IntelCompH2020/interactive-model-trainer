@@ -1,0 +1,26 @@
+<div class="col-12">
+    <div class="row">
+        <div class="col-auto">
+            <span class="h5">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.MERGE-DIALOG.TITLE' | translate}}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 table-container pt-3">
+            <table 
+                app-merged-corpus-table 
+                [corpusSubject]="mergedFieldsDataSubject" 
+                (change)="onMergeEvent($event)" 
+                class="table text-center"></table>
+        </div>
+    </div>
+
+    <div class="row justify-content-end mt-2">
+        <div class="col-auto">
+            <button mat-button (click)="cancel()"> {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.MERGE-DIALOG.CANCEL' | translate}}</button>
+        </div>
+        <div class="col-auto">
+            <button mat-raised-button color="accent" (click)="merge()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.MERGE-DIALOG.MERGE' | translate}}</button>
+        </div>
+    </div>
+</div>

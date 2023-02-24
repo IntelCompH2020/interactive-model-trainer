@@ -1,0 +1,165 @@
+<div class="row m-0 h-100">
+    <div class="col-12 col-lg-8 pr-5 pt-3 pb-3">
+        <router-outlet (activate)="onAttach($event)"></router-outlet>
+    </div>
+
+    <div class="col background-gray">
+        <div class="row details-sticky pb-2">
+            <div class="col-12">
+                <ng-container *ngIf="modelSelected else noneSelected">
+                    <div class="row justify-content-between pt-2 pb-2 align-items-center background-gray-dark">
+                        <div class="col-auto">
+                            <h5 class="mb-0">
+                                {{modelTitle}}
+                            </h5>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-icon-button (click)="onEdit()" [disabled]="curatingModel || selectedModelType == ModelType.Domain">
+                                <mat-icon>
+                                    edit
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="onDelete()" [disabled]="curatingModel || selectedModelType == ModelType.Domain">
+                                <mat-icon>
+                                    delete
+                                </mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                    <h5 class="mt-2">
+                        {{'APP.MODELS-COMPONENT.DETAILS' | translate}}
+                    </h5>
+                    <div class="row mt-2 mb-2" *ngFor="let item of modelDetails">
+                        <div class="col-6">
+                            {{item.label | translate}}
+                        </div> 
+                        <div *ngIf="!item.button" class="col-6">
+                            {{item.value}}
+                        </div>
+                        <div *ngIf="item.button" class="col-6">
+                            <button mat-raised-button color="accent" [disabled]="trainingParamsLoading" (click)="item.action()">
+                                {{item.value | translate}}
+                                <mat-icon *ngIf="trainingParamsLoading">
+                                    <mat-spinner color="accent" diameter="20"></mat-spinner>
+                                </mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                   
+                    <div class="row justify-content-center mt-4 mb-4">
+                        <!-- <div class="col-auto">
+                            <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                {{'APP.MODELS-COMPONENT.RETRAIN' | translate}}
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                {{'APP.MODELS-COMPONENT.EVALUATE' | translate}}
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                {{'APP.MODELS-COMPONENT.CURATE' | translate}}
+                            </button>
+                        </div> -->
+                        <div class="col-auto">
+                            <button mat-raised-button color="accent" [disabled]="curatingModel" class="rounded-button" [matMenuTriggerFor]="newModelMenu">
+                                {{'APP.MODELS-COMPONENT.CURATE' | translate}}
+                                <mat-icon>
+                                    arrow_drop_down
+                                </mat-icon>
+                                <mat-icon *ngIf="curatingModel">
+                                    <mat-spinner color="accent" diameter="20"></mat-spinner>
+                                </mat-icon>
+                            </button>
+                            <mat-menu #newModelMenu="matMenu">
+                                <button mat-menu-item (click)="onSetLabels()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPICS' | translate}}</button>
+                                <button mat-menu-item (click)="showSimilarTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.SHOW-SIMILAR-TOPICS' | translate}}</button>
+                                <button mat-menu-item (click)="onFuseTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.FUSE-TOPICS' | translate}}</button>
+                                <button mat-menu-item (click)="onSortTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.SORT-TOPICS' | translate}}</button>
+                                <button mat-menu-item (click)="onDeleteTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.DELETE-TOPICS' | translate}}</button>
+                            </mat-menu>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-raised-button (click)="showPyLDAvis()" color="accent" class="rounded-button">
+                                {{'APP.MODELS-COMPONENT.LDA-VIS' | translate}}
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-raised-button (click)="onReset()" [disabled]="topicModelReseting || curatingModel" color="accent" class="rounded-button">
+                                {{'APP.MODELS-COMPONENT.RESET' | translate}}
+                                <mat-icon *ngIf="topicModelReseting">
+                                    <mat-spinner color="accent" diameter="20"></mat-spinner>
+                                </mat-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <ng-container *ngIf="topicSelected">
+                        <div class="row justify-content-between pt-2 pb-2 align-items-center background-gray-dark">
+                            <div class="col-auto">
+                                <h5 class="mb-0">
+                                    {{topicTitle}}
+                                </h5>
+                            </div>
+                            <div class="col-auto">
+                                <button mat-icon-button (click)="onEditTopic()">
+                                    <mat-icon>
+                                        edit
+                                    </mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="onDeleteTopic()">
+                                    <mat-icon>
+                                        delete
+                                    </mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <h5 class="mt-2">
+                            {{'APP.MODELS-COMPONENT.DETAILS' | translate}}
+                        </h5>
+                        <div class="row mt-2 mb-2" *ngFor="let item of topicDetails">
+                            <div class="col-6">
+                                {{item.label | translate}}
+                            </div> 
+                            <div *ngIf="!item.button" class="col-6">
+                                {{item.value}}
+                            </div>
+                            <div *ngIf="item.button" class="col-6">
+                                <button mat-raised-button color="accent" (click)="item.action()">{{item.value | translate}}</button>
+                            </div>
+                        </div>
+                       
+                        <!-- <div class="row justify-content-center mt-4">
+                            
+                            <div class="col-auto">
+    
+                                <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                    {{'APP.MODELS-COMPONENT.RETRAIN' | translate}}
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                    {{'APP.MODELS-COMPONENT.EVALUATE' | translate}}
+                                </button>
+                            </div>
+                            <div class="col-auto" *ngIf="domainModel">
+                                <button mat-raised-button color="accent" class="button-rounded-padding rounded-button">
+                                    {{'APP.MODELS-COMPONENT.CURATE' | translate}}
+                                </button>
+                            </div>
+                        </div> -->
+                    </ng-container>
+                </ng-container>
+
+                <ng-template #noneSelected>
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                        <h6>{{'APP.MODELS-COMPONENT.NONE-SELECTED' | translate}}</h6>
+                    </div>
+                </ng-template>
+            </div>
+           
+        </div>
+    </div>
+
+</div>

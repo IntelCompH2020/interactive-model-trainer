@@ -1,0 +1,28 @@
+.inapp-notification-listing {
+	//   padding-top: 1em;
+  
+	.toggle-row {
+	  min-height: 56px;
+	}
+  
+	.preview-btn {
+	  color: rgb(193, 202, 211);
+	}
+  
+	.preview-btn-active {
+	  color: black;
+	}
+  
+	.view-mode-toggle-container {
+	  padding-left: 30px;
+	}
+  
+	.mat-fab-bottom-right {
+	  top: auto !important;
+	  right: 20px !important;
+	  bottom: 10px !important;
+	  left: auto !important;
+	  position: fixed !important;
+	}
+  }
+  

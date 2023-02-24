@@ -1,0 +1,13 @@
+error-thesaurus:
+  hash-conflict:
+    code: 100
+    message: there is a hash conflict for the item modifed. please reload to get the latest changes
+  forbidden:
+    code: 101
+    message: insufficient rights
+  system-error:
+    code: 102
+    message: an unexpected system error occured
+  model-validation:
+    code: 106
+    message: validation error

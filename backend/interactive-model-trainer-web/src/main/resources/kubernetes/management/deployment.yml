@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imt-mng
+  labels:
+    app: imt-mng
+spec:
+  replicas: 3 # Set 3 deployment replicas
+  selector:
+    matchLabels:
+      app: imt-mng
+  template:
+    metadata:
+      labels:
+        app: imt-mng
+    spec:
+      containers:
+        - name: imt-mng-wordlist
+          image: mng-lsts # Docker image
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-wordlist-data
+              mountPath: /data/wordlists
+            - name: imt-mng-wordlist-temp
+              mountPath: /data/temp
+        - name: imt-mng-corpus
+          image: mng-corpus # Docker image
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-corpus-data
+              mountPath: /data/datasets
+            - name: imt-mng-corpus-temp
+              mountPath: /data/temp
+        - name: imt-mng-models
+          image: mng-mdls # Docker image
+          command: ["tail", "-f", "/dev/null" ]
+          imagePullPolicy: "IfNotPresent"
+          volumeMounts:
+            - name: imt-mng-models-data
+              mountPath: /data/models
+            - name: imt-mng-models-temp
+              mountPath: /data/temp
+      volumes:
+        - name: imt-mng-wordlist-data
+          hostPath:
+            path: ΧΧΧΧΧ/wordlist_docker/wordlists
+            type: Directory
+        - name: imt-mng-corpus-data
+          hostPath:
+            path: ΧΧΧΧΧ/corpus_docker/datasets
+            type: Directory
+        - name: imt-mng-models-data
+          hostPath:
+            path: ΧΧΧΧΧ/models_docker/models
+            type: Directory
+        - name: imt-mng-wordlist-temp
+          hostPath:
+            path: ΧΧΧΧΧ/wordlist_docker/temp
+            type: Directory
+        - name: imt-mng-corpus-temp
+          hostPath:
+            path: ΧΧΧΧΧ/corpus_docker/temp
+            type: Directory
+        - name: imt-mng-models-temp
+          hostPath:
+            path: ΧΧΧΧΧ/models_docker/temp
+            type: Directory

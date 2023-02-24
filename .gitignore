@@ -1,0 +1,6 @@
+playground/.mvn/
+target
+.idea
+*.iml
+logs/
+.vs

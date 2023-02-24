@@ -1,0 +1,42 @@
+$border-color: #dee2e6;
+
+.table {
+    border: 1px solid $border-color !important;
+}
+
+table {
+    & th {
+        text-align: center;
+        max-width: 10vw !important;
+        position: relative;
+
+        & mat-icon {
+            position: absolute;
+            margin: auto 0;
+            font-size: .95em;
+        }
+    }
+
+    & td {
+        text-align: center;
+        max-width: 12vw !important;
+        border-left: 1px solid $border-color !important;
+        min-width: 10vw;
+
+        &:first-child {
+            border-left: none;
+        }
+
+        & input {
+            text-align: center;
+            width: 100%;
+        }
+
+        & select {
+            width: 100%;
+            background-color: white;
+            border: none;
+            cursor: pointer;
+        }
+    }
+}

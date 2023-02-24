@@ -1,0 +1,12 @@
+<div class="fab-container">
+	<button mat-fab class="fab-toggler" (click)="onToggleFab()">
+		<i class="material-icons" [@fabToggler]="{value: fabTogglerState}">add</i>
+	</button>
+	<div [@speedDialStagger]="_options.length">
+		<button *ngFor="let option of _options; let i = index" mat-mini-fab class="fab-secondary" (click)="optionClicked(i)" color="secondary" matTooltip="{{option.description}}" matTooltipPosition="left" matTooltipClass="speed-dial-tooltip">
+			<i class="material-icons">{{option.icon}}</i>
+		</button>
+	</div>
+</div>
+<div id="fab-dismiss" *ngIf="fabTogglerState==='active'" (click)="onToggleFab()">
+</div>

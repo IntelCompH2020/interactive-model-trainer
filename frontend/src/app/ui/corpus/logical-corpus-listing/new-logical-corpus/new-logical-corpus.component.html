@@ -1,0 +1,113 @@
+<!-- <div mat-dialog-title>
+    
+</div> -->
+
+<mat-dialog-content>
+    <div class="row mt-3" [formGroup]="formGroup">
+        <div class="col-5">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.NAME' |
+                    translate}}</mat-label>
+                <input type="text" matInput formControlName="name">
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="col-7">
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.DESCRIPTION' |
+                    translate}}</mat-label>
+                <textarea matInput formControlName="description" rows="3"></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 table-container">
+            <table class="table text-center">
+                <thead class="table-head-gray">
+                    <tr>
+                        <th class="td-border-right">
+                            {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.CORPUS' |
+                            translate}}</th>
+                        <th>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.FIELD' |
+                            translate}}</th>
+                        <th>{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.TYPE' |
+                            translate}}</th>
+                        <th [formGroup]="selectAllFormGroup">
+                            {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TABLE.SELECT-FIELDS'
+                            | translate}}
+                            <mat-checkbox #checkboxAll class="pr-2" formControlName="selectAll"
+                                (change)="onAllFieldsSelection(checkboxAll.checked)"></mat-checkbox>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white">
+                    <ng-container *ngFor="let corpus of corporaArray.controls">
+                        <tr *ngFor="let field of corpus.get('corpusSelections')?.controls; let first = first">
+
+                            <td style="vertical-align: middle;" align="center" class="td-border-right"
+                                [attr.rowspan]="corpus.get('corpusSelections')?.controls.length" *ngIf="first">
+                                {{corpus.value.corpusName}}
+                            </td>
+
+                            <td>
+                                {{field.value.name}}
+                            </td>
+                            <td>
+                                {{field.value.type}}
+                            </td>
+                            <td>
+                                <mat-checkbox #checkbox [formControl]="field.get('selected')"
+                                    (change)="onFieldSelection(checkbox.checked)"></mat-checkbox>
+                            </td>
+
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <ng-container *ngIf="corporaArray.controls.length == 0">
+                <p class="text-center">{{'APP.COMMONS.NO-DATA' | translate}}</p>
+            </ng-container>
+        </div>
+    </div>
+
+    <div class="row align-items-center mb-4 mt-2">
+        <div class="col-auto">
+            <button mat-stroked-button [matMenuTriggerFor]="corporaMenu"
+                [disabled]="!availableCorpora?.length">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.ADD-CORPUS'
+                | translate}}</button>
+            <mat-menu #corporaMenu="matMenu">
+                <button mat-menu-item *ngFor="let item of availableCorpora"
+                    (click)="addCorpus(item)">{{item.name}}</button>
+            </mat-menu>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox (change)="onPrivateChange($event)"
+                [checked]="isPrivate">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.PRIVATE'
+                | translate}}</mat-checkbox>
+        </div>
+        <div class="col-auto">
+            <mat-checkbox
+                formControlName="combineFields">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.COMBINE-FIELDS'
+                | translate}}</mat-checkbox>
+        </div>
+    </div>
+
+    <div class="mb-2"></div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <div class="col-auto">
+        <button mat-button
+            (click)="close()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.CANCEL' |
+            translate}}</button>
+    </div>
+    <div class="col-auto">
+        <button mat-raised-button color="accent" (click)="mergeCorpus()"
+            [disabled]="!canMerge()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.SUBMIT'
+            | translate}}</button>
+    </div>
+</mat-dialog-actions>

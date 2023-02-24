@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.4</version>
+	</parent>
+
+	<groupId>gr.cite</groupId>
+	<artifactId>interactive-model-trainer-parent</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0.0</version>
+	<name>Interactive Model Trainer Parent</name>
+
+	<properties>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+	</properties>
+
+	<modules>
+		<module>interactive-model-trainer</module>
+		<module>interactive-model-trainer-web</module>
+	</modules>
+
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>cache</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>cors-web</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>data-tools</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>exceptions</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>exceptions-web</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>field-set</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>logging</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>oidc-authn</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite</groupId>
+				<artifactId>oidc-authz</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite.intelcomp</groupId>
+				<artifactId>interactive-model-trainer</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>gr.cite.intelcomp</groupId>
+				<artifactId>interactive-model-trainer-web</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains</groupId>
+				<artifactId>annotations</artifactId>
+				<version>23.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jdk8</artifactId>
+				<version>2.13.3</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>2.13.3</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<!--<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>-->
+
+	<profiles>
+		<profile>
+			<id>cite-dev</id>
+			<repositories>
+				<repository>
+					<id>cite-maven</id>
+					<name>CITE Maven Repository</name>
+					<url>https://crepo.cite.gr/repository/cite-maven/</url>
+				</repository>
+			</repositories>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+	</profiles>
+
+</project>

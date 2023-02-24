@@ -1,0 +1,46 @@
+<div class="row inapp-notification-listing">
+	<div class="col-12">
+		<div class="row page-title">
+			<div class="col-auto pl-5 pr-0 align-self-center">
+				<i class="fa fa-2x fa-envelope-open-o accent-color"></i>
+			</div>
+			<!-- <div class="col-auto ml-auto mt-3 align-self-center">
+				<button mat-raised-button color="accent" *ngIf="authService.hasAnyPermission([authService.permissionEnum.EditDocument, authService.permissionEnum.DeferredAffiliation])" [routerLink]=" ['./new'] ">
+					<mat-icon class="mb-1 mr-2">add</mat-icon>{{'COMMONS.ACTIONS.NEW' | translate}}
+				</button>
+			</div> -->
+			<div class="col-auto p-0 user-settings-selector">
+				<app-user-settings-selector [key]="userSettingsKey" [lookup]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"></app-user-settings-selector>
+			</div>
+		</div>
+
+		<div class="row toggle-row">
+			<div class="col-auto align-self-center view-mode-toggle-container">
+				<button mat-icon-button class="preview-btn" [ngClass]="{'preview-btn-active': isPreviewList}" (click)="togglePreviewMode(true)" matTooltip="{{'APP.DOCUMENT-LISTING.PREVIEW.LIST' | translate}}">
+					<mat-icon>view_module</mat-icon>
+				</button>
+				<button mat-icon-button class="preview-btn" [ngClass]="{'preview-btn-active': !isPreviewList}" (click)="togglePreviewMode(false)" matTooltip="{{'APP.DOCUMENT-LISTING.PREVIEW.TABLE' | translate}}">
+					<mat-icon>table_chart</mat-icon>
+				</button>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-12 filter-row">
+				<app-inapp-notification-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)"></app-inapp-notification-listing-filters>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-12 col-center-align">
+				<app-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)" (pageLoad)="onPageLoad($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)">
+				</app-listing>
+
+				<ng-template #readColumnTemplate ngx-datatable-cell-template let-row="row">
+					<mat-icon *ngIf="row.trackingState === notificationInAppTrackingEnum.Delivered" mat-list-icon>drafts</mat-icon>
+					<mat-icon *ngIf="row.trackingState === notificationInAppTrackingEnum.Stored" mat-list-icon>mail</mat-icon>
+				</ng-template>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,7 @@
+web:
+  security:
+    idp:
+      resource:
+        token-type: JWT #| opaque
+        jwt:
+          issuer-uri: ΧΧΧΧΧ

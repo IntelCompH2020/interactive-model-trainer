@@ -1,0 +1,64 @@
+training-parameters:
+  params-by-trainer:
+    mallet: ["TM.ntopics", "MalletTM.alpha", "MalletTM.num_iterations", "MalletTM.optimize_interval", "MalletTM.doc_topic_thr", "MalletTM.num_threads", "TM.thetas_thr", "MalletTM.token_regexp", "MalletTM.num_iterations_inf", MalletTM.labels]
+    prodLDA: []
+    ctm: []
+    sparkLDA: []
+    hierarchical: ["Hierarchical.thr", "Hierarchical.htm"]
+  params-catalog:
+    '[TM.ntopics]':
+      name: "TM.ntopics"
+      type: "NUMBER"
+      defaultValue: 25
+      min: 1
+      max: 1000
+    '[MalletTM.alpha]':
+      name: "MalletTM.alpha"
+      type: "NUMBER"
+      defaultValue: 5
+      min: 1
+      max: 1000
+    '[MalletTM.num_iterations]':
+      name: "MalletTM.num_iterations"
+      type: "NUMBER"
+      defaultValue: 1000
+      min: 1
+      max: 10000
+    '[MalletTM.optimize_interval]':
+      name: "MalletTM.optimize_interval"
+      type: "NUMBER"
+      defaultValue: 10
+      min: 0
+      max: 1000
+    '[MalletTM.doc_topic_thr]':
+      name: "MalletTM.doc_topic_thr"
+      type: "NUMBER"
+      defaultValue: 0
+      min: 0
+      max: 1000
+    '[MalletTM.num_threads]':
+      name: "MalletTM.num_threads"
+      type: "NUMBER"
+      defaultValue: 4
+      min: 1
+      max: 128
+    '[TM.thetas_thr]':
+      name: "TM.thetas_thr"
+      type: "NUMBER"
+      defaultValue: 0.003
+      min: 0.001
+      max: 1
+    '[MalletTM.token_regexp]':
+      name: "MalletTM.token_regexp"
+      type: "STRING"
+      defaultValue: "[\\p{L}\\p{N}][\\p{L}\\p{N}\\p{P}]*\\p{L}"
+    '[MalletTM.num_iterations_inf]':
+      name: "MalletTM.num_iterations_inf"
+      type: "NUMBER"
+      defaultValue: 100
+      min: 1
+      max: 10000
+    '[MalletTM.labels]':
+      name: "MalletTM.labels"
+      type: "STRING"
+      defaultValue: "wiki_categories.json"

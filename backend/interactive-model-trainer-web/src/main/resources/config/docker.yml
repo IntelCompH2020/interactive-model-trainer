@@ -1,0 +1,30 @@
+docker:
+  enabled: ${DOCKER_ENABLED}
+  host: ${DOCKER_HOST}
+  services:
+    manageLists:
+      image: mng-lsts
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists, 
+          ${DOCKER_WORKSPACE}\wordlist_docker\temp:/data/temp
+    manageCorpus:
+      image: mng-corpus
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets,
+          ${DOCKER_WORKSPACE}\corpus_docker\temp:/data/temp
+    manageModels:
+      image: mng-mdls
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models,
+          ${DOCKER_WORKSPACE}\models_docker\temp:/data/temp
+  jobs:
+    trainModels:
+      image: topicmodeling
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models,
+          ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,
+          ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets
+    resetModel:
+      image: mng-mdls-tasks
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models

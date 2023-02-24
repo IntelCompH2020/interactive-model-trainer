@@ -1,0 +1,147 @@
+@use '@angular/material' as mat;
+@import '../node_modules/@angular/material/theming';
+@import 'app/ui/misc/navigation/navigation.component.scss';
+
+
+$app-blue-theme-primary-palette: (
+    50 : #f4f4f4,
+    100 : #e3e3e3,
+    200 : #d0d0d0,
+    300 : #bdbdbd,
+    400 : #aeaeae,
+    500 : #a0a0a0,
+    600 : #989898,
+    700 : #8e8e8e,
+    800 : #848484,
+    900 : #737373,
+    A100 : #f7b7b7,
+    A200 : #f28989,
+    A400 : #ff4949,
+    A700 : #ff3030,
+	contrast: (
+	  50: $black-87-opacity,
+	  100: $black-87-opacity,
+	  200: $black-87-opacity,
+	  300: white,
+	  400: white,
+	  500: $white-87-opacity,
+	  600: $white-87-opacity,
+	  700: $white-87-opacity,
+	  800: $white-87-opacity,
+	  900: $white-87-opacity,
+	  A100: $black-87-opacity,
+	  A200: white,
+	  A400: white,
+	  A700: $white-87-opacity,
+	),
+);
+
+$app-blue-theme-accent-palette: (
+    50 : #e5ebef,
+    100 : #bfccd8,
+    200 : #428bca,
+    300 : #6989a4,
+    400 : #496f91,
+    500 : #29567d,
+    600 : #244f75,
+    700 : #1f456a,
+    800 : #193c60,
+    900 : #0f2b4d,
+    A100 : #85b8ff,
+    A200 : #428bca,
+    A400 : #1f7dff,
+    A700 : #066eff,
+	contrast: (
+		50: $black-87-opacity,
+		100: $black-87-opacity,
+		200: $black-87-opacity,
+		300: $black-87-opacity,
+		400: $black-87-opacity,
+		500: white,
+		600: white,
+		700: $white-87-opacity,
+		800: $white-87-opacity,
+		900: $white-87-opacity,
+		A100: $black-87-opacity,
+		A200: white,
+		A400: white,
+		A700: white,
+	)
+);
+
+$app-blue-theme-primary: mat.define-palette($app-blue-theme-primary-palette);
+$app-blue-theme-accent: mat.define-palette($app-blue-theme-accent-palette, A200, A100, A400);
+$app-blue-theme-warn: mat.define-palette(mat.$red-palette);
+
+$app-blue-theme-background: (
+	status-bar: map_get(mat.$grey-palette, 300),
+	app-bar:    map_get(mat.$grey-palette, 100),
+	background: map_get(mat.$grey-palette, 50),
+	hover:      rgba(black, 0.04),
+	card:       white,
+	dialog:     #f8f8f8,
+	disabled-button: rgba(black, 0.12),
+	raised-button: white,
+	focused-button: $dark-focused,
+	selected-button: map_get(mat.$grey-palette, 300),
+	selected-disabled-button: map_get(mat.$grey-palette, 400),
+	disabled-button-toggle: map_get(mat.$grey-palette, 200),
+	unselected-chip: map_get(mat.$grey-palette, 300),
+	disabled-list-option: map_get(mat.$grey-palette, 200),
+);
+
+$app-blue-theme-foreground: (
+	base:              black,
+	divider:           $dark-dividers,
+	dividers:          $dark-dividers,
+	disabled:          $dark-disabled-text,
+	disabled-button:   rgba(black, 0.26),
+	disabled-text:     $dark-disabled-text,
+	hint-text:         $dark-disabled-text,
+	secondary-text:    $dark-secondary-text,
+	icon:              rgba(black, 0.54),
+	icons:             rgba(black, 0.54),
+	text:              rgba(black, 0.87),
+	slider-min:        rgba(black, 0.87),
+	slider-off:        rgba(black, 0.26),
+	slider-off-active: rgba(black, 0.38),
+);
+
+$custom-theme: (
+	primary: $app-blue-theme-primary,
+	accent: $app-blue-theme-accent,
+	warn: $app-blue-theme-warn,
+	is-dark: false,
+	foreground: $app-blue-theme-foreground,
+	background: $app-blue-theme-background,
+);
+
+$custom-typography: mat.define-typography-config(
+	$font-family: 'Lato, regular',
+	$headline: mat.define-typography-level(32px, 48px, 700),
+	$body-1: mat.define-typography-level(16px, 24px, 500)
+);
+
+
+.primary-theme {
+	@include mat.core();
+
+	@include mat.all-component-themes($custom-theme);
+	@include navigation-component-theme($custom-theme);
+
+	// Override typography CSS classes (e.g., mat-h1, mat-display-1, mat-typography, etc.).
+	@include mat.typography-hierarchy($custom-typography);
+
+	// Override typography for a specific Angular Material components.
+	@include mat.checkbox-typography($custom-typography);
+
+	// Override typography for all Angular Material, including mat-base-typography and all components.
+	@include mat.all-component-typographies($custom-typography);
+	//If you're using Material's theming, you can also pass in your typography config to the mat-core mixin:
+
+	// Override the typography in the core CSS.
+	@include mat.core($custom-typography);
+
+	@include mat-datetimepicker-theme($custom-theme);
+	
+}

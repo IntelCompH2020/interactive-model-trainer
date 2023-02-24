@@ -1,0 +1,50 @@
+
+<div *ngIf="(filterFormGroup && config?.items?.length) else noConfiguration" class="filter-container">
+
+    <ng-container *ngFor="let item of config.items">
+        <ng-container [ngSwitch]="item.type">
+
+            <!--  * DATEPICKER -->
+            <ng-container *ngSwitchCase="FilterEditorFilterType.DatePicker">
+                <mat-form-field appearance="outline">
+                    <mat-label *ngIf="item.label">{{item.label | translate}}</mat-label>
+                    <input matInput [matDatepicker]="picker" [formControl]="filterFormGroup.get(item.key)">
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+            </ng-container>
+
+            <!-- * TEXTINPUT -->
+            <ng-container *ngSwitchCase="FilterEditorFilterType.TextInput">
+                <mat-form-field appearance="outline" >
+                    <input type="text" matInput [placeholder]="item.placeholder | translate" [formControl]="filterFormGroup.get(item.key)">
+                </mat-form-field>
+            </ng-container>
+
+            <!-- * CHECKBOX -->
+            <ng-container *ngSwitchCase="FilterEditorFilterType.Checkbox">
+                <div>
+                    <mat-checkbox [formControl]="filterFormGroup.get(item.key)" color="accent">{{item.label | translate}}</mat-checkbox>
+                </div>
+            </ng-container>
+
+            <!-- * SELECT -->
+            <ng-container *ngSwitchCase="FilterEditorFilterType.Select">
+                <mat-form-field>
+                    <mat-label>{{item.label | translate}}</mat-label>
+                    <mat-select [formControl]="filterFormGroup.get(item.key)">
+                        <mat-option [value]="option" *ngFor="let option of item.availableValues">{{option.label()}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </ng-container>
+
+        </ng-container>
+    </ng-container>
+
+
+</div>
+
+
+<ng-template #noConfiguration>
+    No configuration found
+</ng-template>

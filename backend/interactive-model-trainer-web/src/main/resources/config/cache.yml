@@ -1,0 +1,149 @@
+cache:
+  manager:
+    fallbackToNoOpCache: true
+    caffeineCaches:
+      - names: [ apikey ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+      - names: [ tenantByCode ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+      - names: [ tenantById ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+      - names: [ userBySubjectId ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 5
+        expireAfterAccessMinutes: 5
+        refreshAfterWriteMinutes: 5
+      - names: [ kubeDeployByLabel ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 1
+        expireAfterAccessMinutes: 1
+        refreshAfterWriteMinutes: 1
+      - names: [ kubePodByLabel ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 1
+        expireAfterAccessMinutes: 1
+        refreshAfterWriteMinutes: 1
+      - names: [ userAccessTenant ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 5
+        expireAfterAccessMinutes: 5
+        refreshAfterWriteMinutes: 5
+      - names: [ indicatorConfig ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+      - names: [ indicatorIndex ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+      - names: [ authorizationAffiliatedIndicators ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 1
+        expireAfterAccessMinutes: 1
+        refreshAfterWriteMinutes: 1
+      - names: [ principalIndicatorResource ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 1
+        expireAfterAccessMinutes: 1
+        refreshAfterWriteMinutes: 1
+      - names: [ cacheA ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteMinutes: 10
+        expireAfterAccessMinutes: 10
+        refreshAfterWriteMinutes: 10
+    mapCaches:
+      - names: [ cacheB ]
+        allowNullValues: true
+        storeByValue: true
+      - names: [ cacheC ]
+        allowNullValues: true
+        storeByValue: true
+  apiKey:
+    name: apikey
+    keyPattern: resolve_$keyhash$:v0
+  userBySubjectId:
+    name: userBySubjectId
+    keyPattern: user_by_subject_$subject$:v0
+  tenantByCode:
+    name: tenantByCode
+    keyPattern: tenant_by_code_$code$:v0
+  kubeDeployByLabel:
+    name: kubeDeployByLabel
+    keyPattern: kube_deploy_by_label_$namespace$_$label$:v0
+  kubePodByLabel:
+    name: kubePodByLabel
+    keyPattern: kube_pod_by_label_$namespace$_$label$:v0
+  tenantById:
+    name: tenantById
+    keyPattern: tenant_by_id_$tenantId$:v0
+  userAllowedTenant:
+    name: userAccessTenant
+    keyPattern: user_access_tenant_$user_id$_$tenant_id$:v0
+  authorizationAffiliatedIndicators:
+    name: authorizationAffiliatedIndicators
+    keyPattern: authz_affiliated_indicators$user_id$_$permissions$:v0
+  authorizationPrincipalIndicatorResource:
+    name: principalIndicatorResource
+    keyPattern: authz_principal_indicator_resource$user_id$_$entity_type$_$entity_id$:v0
+  indicatorConfig:
+    name: indicatorConfig
+    keyPattern: indicator_config_$indicator$:v0
+  indicatorIndex:
+    name: indicatorIndex
+    keyPattern: indicator_index_$indicator$:v0
+  testCacheA:
+    name: cacheA
+    keyPattern: $keypart1$-$keypart2$
+  testCacheB:
+    name: cacheC
+    keyPattern: $keypart1$-$keypart2$
+  testCacheC:
+    name: cacheD
+    keyPattern: $keypart1$-$keypart2$

@@ -1,0 +1,54 @@
+<div class="row m-0 h-100">
+
+    <div class="col-12 col-lg-8 pr-5 pb-3">
+        <router-outlet (activate)="onOutletActivate($event)"></router-outlet>
+    </div>
+
+    <div class="col background-gray">
+        <div class="row details-sticky pb-2">
+            <div class="col-12">
+                <ng-container *ngIf="modelSelected else noneSelected">
+                    <div class="row justify-content-between pt-2 pb-2 align-items-center background-gray-dark">
+                        <div class="col-auto">
+                            <h5 class="mb-0">
+                                {{modelSelected.name}}
+                            </h5>
+                        </div>
+                        <div class="col-auto">
+                            <button mat-icon-button (click)="onEdit()">
+                                <mat-icon>
+                                    edit
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="onDelete()">
+                                <mat-icon>
+                                    delete
+                                </mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                    <h5 class="mt-2">
+                        {{'APP.WORD-LIST-COMPONENT.DETAILS' | translate}}
+                    </h5>
+                    <div class="row mt-3" *ngFor="let item of itemDetails">
+                        <div class="col-6">
+                            {{item.label | translate}}
+                        </div> 
+                        <div class="col-6">
+                            {{item.value}}
+                        </div> 
+                    </div>
+                    
+                </ng-container>
+
+                <ng-template #noneSelected>
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                        <h6>{{'APP.WORD-LIST-COMPONENT.NONE-SELECTED' | translate}}</h6>
+                    </div>
+                </ng-template>
+            </div>
+           
+        </div>
+    </div>
+
+</div>

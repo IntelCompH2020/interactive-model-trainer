@@ -1,0 +1,61 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <div [formGroup]="formGroup">
+    <mat-form-field class="w-100" appearance="fill">
+      <mat-label>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.PAIRS' | translate}}</mat-label>
+      <input matInput formControlName="pairs" type="number" min="1" step="1">
+  </mat-form-field>
+  </div>
+  <mat-spinner color="accent" diameter="30" *ngIf="loading"></mat-spinner>
+  <table *ngIf="!loading" class="table round-table shadow-table">
+    <thead class="table-head-gray">
+      <tr>
+        <th class="table-title" colspan="3">
+          {{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.COOCURRING' | translate}}
+        </th>
+      </tr>
+      <tr>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.TOPIC-1' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.TOPIC-2' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.SIMILARITY' | translate}}</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white">
+      <tr *ngFor="let similarity of similarities.Coocurring">
+        <td>{{similarity[0]}}</td>
+        <td>{{similarity[1]}}</td>
+        <td>{{similarity[2]}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <table *ngIf="!loading" class="table round-table shadow-table">
+    <thead class="table-head-gray">
+      <tr>
+        <th class="table-title" colspan="3">
+          {{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.WORD-DESC' | translate}}
+        </th>
+      </tr>
+      <tr>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.TOPIC-1' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.TOPIC-2' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPIC-SIMILARITIES-MODAL.SIMILARITY' | translate}}</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white">
+      <tr *ngFor="let similarity of similarities.Worddesc">
+        <td>{{similarity[0]}}</td>
+        <td>{{similarity[1]}}</td>
+        <td>{{similarity[2]}}</td>
+      </tr>
+    </tbody>
+  </table>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" [disabled]="!valid()" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

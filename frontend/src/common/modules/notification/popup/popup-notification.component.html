@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>{{notification.title}}</h2>
+<mat-dialog-content>
+	<p *ngIf="notification?.subTitle">
+		{{notification.subTitle}}
+	</p>
+	<ng-container *ngIf="notification?.messages?.length">
+		<ul>
+			<li *ngFor="let errMess of notification.messages">
+				{{errMess}}
+			</li>
+		</ul>
+	</ng-container>
+</mat-dialog-content>
+<mat-dialog-actions>
+	<button mat-button mat-dialog-close>{{'NOTIFICATION-SERVICE.NOTIFICATION-COMPONENT.POPUP.CLOSE-BUTTON' | translate}}</button>
+</mat-dialog-actions>

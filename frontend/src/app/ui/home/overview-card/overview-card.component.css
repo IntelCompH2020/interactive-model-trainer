@@ -1,0 +1,11 @@
+.text-container{
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e0e0e0;
+    color: #a6a6a6;
+    font-size: 1.4rem;
+}

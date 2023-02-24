@@ -1,0 +1,108 @@
+<section class="row m-0 pt-4 align-items-end">
+    <div class="col-12 col-md-5">
+        <img src="../../../assets/images/intelcomp.svg" class="img img-fluid" alt="Intelcomp Logo">
+    </div>
+    <div class="d-none d-md-inline-block col-2"></div>
+    
+    <div class="col">
+        
+        <img src="../../../assets/images/european-commision-logo.svg" class="img img-fluid" alt="Intelcomp Logo">
+    </div>
+    <div class="d-none d-md-inline-block col-2"></div>
+
+</section>
+
+
+<section class="actions-grid mt-5 pr-5 pl-5">
+    <section>
+        <h3>
+            {{'APP.HOME-COMPONENT.START' | translate}}
+        </h3>
+        <p class="text-muted">
+            <small>
+                {{'APP.HOME-COMPONENT.START-OVERVIEW' | translate}}
+            </small>
+        </p>
+
+        <div class="row">
+
+            <app-overview-card 
+                class="col-12 cursor-pointer"
+                routerLink="/corpus"
+                [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
+                matIconName="file_copy"
+                [description]="'APP.HOME-COMPONENT.CORPUS-DESCRIPTION' | translate"
+                >
+            </app-overview-card>
+
+            <app-overview-card 
+                class="col-12 cursor-pointer"
+                routerLink="/models"
+                [title]="'APP.HOME-COMPONENT.MODELS' | translate"
+                iconText="TM"
+                [description]="'APP.HOME-COMPONENT.MODELS-DESCRIPTION' | translate"
+                >
+            </app-overview-card>
+            
+            <app-overview-card 
+                class="col-12 cursor-pointer"
+                routerLink="/wordlists"
+                [title]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES' | translate"
+                matIconName="playlist_add"
+                [description]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES-DESCRIPTION' | translate"
+                >
+            </app-overview-card>
+        </div>
+    </section>
+    <section >
+        <h3>
+            {{'APP.HOME-COMPONENT.RECENT' | translate}}
+        </h3>
+
+        <section class="row">
+            <div class="col-12">
+                <div class="row recent-item pt-3 pb-3" *ngFor="let item of recentItems">
+                    <div class="col-6">
+                        <small>
+                            <a [href]="item.href">{{item.name}}</a>
+                        </small>
+                    </div>
+                    <div class="col text-right">
+                        <small class="text-muted">
+                            {{item.location}}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+    <section >
+        <h3>
+            {{'APP.HOME-COMPONENT.HOW-TO' | translate}}
+        </h3>
+        <div class="row m-0">
+
+            <app-how-to-card
+                class="w-100"
+                [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-CORPUS-DESCRIPTION' | translate"
+            >
+            </app-how-to-card>
+
+            <app-how-to-card
+                class="w-100"
+                [title]="'APP.HOME-COMPONENT.MODELS' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-MODELS-DESCRIPTION' | translate"
+            >
+            </app-how-to-card>
+
+            <app-how-to-card
+                class="w-100"
+                [title]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST-DESCRIPTION' | translate"
+            >
+            </app-how-to-card>
+            
+        </div> 
+    </section>
+</section>

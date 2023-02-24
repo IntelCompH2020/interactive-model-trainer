@@ -1,0 +1,210 @@
+<mat-toolbar class="navigation-bar row m-0">
+	
+	<div class="col-auto p-0" style="z-index: 2;">
+		<nav class="navigation h-100">
+			<ul class="navigation-groups h-100">
+				<li class="navigation-group-item cursor-pointer" routerLink="/home" routerLinkActive="background-gray">
+					{{'APP.NAVIGATION.HOME' | translate}}
+				</li>
+				<li class="navigation-group-item" routerLinkActive="background-gray">
+					{{'APP.NAVIGATION.CORPUS' | translate}}
+					<ul class="sub-navigation">
+						<li routerLink="/corpus/raw" routerLinkActive="background-gray">{{'APP.NAVIGATION.RAW-CORPUS' | translate}}</li>
+						<li routerLink="/corpus/logical" routerLinkActive="background-gray">{{'APP.NAVIGATION.LOGICAL-CORPUS' | translate}}</li>
+					</ul>
+				</li>
+				<li class="navigation-group-item" routerLinkActive="background-gray">
+					{{'APP.NAVIGATION.MODELS' | translate}}
+					<ul class="sub-navigation">
+						<li routerLink="/models/topic" routerLinkActive="background-gray">{{'APP.NAVIGATION.TOPIC-MODELS' | translate}}</li>
+						<li routerLink="/models/domain" routerLinkActive="background-gray">{{'APP.NAVIGATION.DOMAIN-MODELS' | translate}}</li>
+					</ul>
+				</li>
+				<li class="navigation-group-item" routerLinkActive="background-gray">
+					{{'APP.NAVIGATION.WORD-LISTS' | translate}}
+					<ul class="sub-navigation">
+						<li routerLink="/wordlists/stopwords" routerLinkActive="background-gray">{{'APP.NAVIGATION.STOPWORDS-EQUIVALENCES' | translate}}</li>
+						<li routerLink="/wordlists/keywords" routerLinkActive="background-gray">{{'APP.NAVIGATION.KEYWORDS' | translate}}</li>
+					</ul>
+				</li>
+			</ul>
+		</nav>
+	</div>
+	<!-- <div class="col-auto" *ngIf="isAuthenticated()">
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewDatasetPage)"
+			routerLink="datasets" routerLinkActive="active">{{'APP.NAVIGATION.DATASETS' | translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewIndicatorPage)"
+			routerLink="indicators" routerLinkActive="active">{{'APP.NAVIGATION.INDICATORS' | translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewIndicatorPage)"
+			routerLink="indicator-report" routerLinkActive="active">{{'APP.NAVIGATION.INDICATOR-REPORTS' |
+			translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewIndicatorPage)"
+			routerLink="indicator-dashboard" routerLinkActive="active">{{'APP.NAVIGATION.INDICATOR-DASHBOARD' |
+			translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewDataAccessRequestPage)"
+			routerLink="data-access-requests" routerLinkActive="active">{{'APP.NAVIGATION.DATA-ACCESS-REQUEST' |
+			translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewTenantPage)" routerLink="tenants"
+			routerLinkActive="active">{{'APP.NAVIGATION.TENANTS' | translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewTenantRequestPage)"
+			routerLink="tenant-requests" routerLinkActive="active">{{'APP.NAVIGATION.TENANT-REQUESTS' | translate}}</a>
+		<span>|</span>
+		<a mat-button *ngIf="authService.hasPermission(authService.permissionEnum.ViewMasterItemPage)"
+			routerLink="master-items" routerLinkActive="active">{{'APP.NAVIGATION.MASTER-ITEMS' | translate}}</a>
+		<span *ngIf="authService.hasPermission(authService.permissionEnum.ViewUsersPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewRoleAssignmentPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewAccessTokensPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewUserInvitationPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewForgetMeRequestPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewWhatYouKnowAboutMeRequestPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewTenantConfigurationPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewNotificationPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewNotificationEventRulePage)
+		|| authService.hasPermission(authService.permissionEnum.ViewBlueprintRequestPage)
+		|| authService.hasPermission(authService.permissionEnum.ViewNotificationTemplatePage)
+		|| authService.hasPermission(authService.permissionEnum.ViewBlueprintTemplatePage)">
+			<span>|</span>
+			<button mat-button [mat-menu-trigger-for]="menu">{{'APP.NAVIGATION.ADMIN-TITLE' | translate}}
+				<mat-icon>keyboard_arrow_down</mat-icon>
+			</button>
+			<mat-menu x-position="before" #menu="matMenu">
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewUsersPage)" mat-menu-item
+					routerLink="/users">{{'APP.NAVIGATION.USERS' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewApiClientsPage)" mat-menu-item
+					routerLink="/api-clients">{{'APP.NAVIGATION.API-CLIENTS' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewRoleAssignmentPage)" mat-menu-item
+					routerLink="/user-role-assignment">{{'APP.NAVIGATION.USER-ROLE-ASSIGNMENT' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewAccessTokensPage)" mat-menu-item
+					routerLink="/access-tokens">{{'APP.NAVIGATION.ACCESS-TOKENS' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewUserInvitationPage)" mat-menu-item
+					routerLink="/user-invitation">{{'APP.NAVIGATION.USER-INVITATION' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewForgetMeRequestPage)" mat-menu-item
+					routerLink="/forget-me/requests">{{'APP.NAVIGATION.FORGET-ME-REQUESTS' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewWhatYouKnowAboutMeRequestPage)"
+					mat-menu-item
+					routerLink="/what-you-know-about-me/requests">{{'APP.NAVIGATION.WHAT-YOU-KNOW-ABOUT-ME-REQUESTS' |
+					translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewTenantConfigurationPage)"
+					mat-menu-item routerLink="/configuration">{{'APP.NAVIGATION.TENANT-CONFIGURATION' | translate}}</a>
+				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewNotificationPage)" mat-menu-item
+					routerLink="/notifications">{{'APP.NAVIGATION.NOTIFICATIONS' | translate}}</a>
+					<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewBlueprintRequestPage)" mat-menu-item
+					routerLink="/blueprint-requests">{{'APP.NAVIGATION.BLUEPRINT-REQUESTS' | translate}}</a>
+					<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewNotificationTemplatePage)"
+					mat-menu-item routerLink="/notification-templates">{{'APP.NAVIGATION.NOTIFICATION-TEMPLATES' |
+					translate}}</a>
+					<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewBlueprintTemplatePage)" mat-menu-item
+					routerLink="/blueprint-templates">{{'APP.NAVIGATION.BLUEPRINT-TEMPLATES' | translate}}</a>
+				</mat-menu>
+			</span>
+		</div> -->
+		<!-- <a *ngIf="authService.hasPermission(authService.permissionEnum.ViewNotificationEventRulePage)" mat-menu-item routerLink="/notification-event-rules">{{'APP.NAVIGATION.NOTIFICATION-EVENT-RULES' | translate}}</a> -->
+	<div class="col-auto">
+		<mat-form-field class="search-input pb-0" appearance="outline">
+			<input type="text" [placeholder]="'APP.NAVIGATION.SEARCH' | translate" matInput >
+		</mat-form-field>
+	</div>
+	<div class="col"></div>
+	<div *ngIf="isAuthenticated() && areConsentsNeedAttention()" class="col-auto">
+		<button mat-icon-button matTooltip="{{'APP.NAVIGATION.CONSENT-ATTENTION' | translate}}"
+			(click)="consentsNeedAttentionClicked()">
+			<mat-icon class="consent-icon">warning</mat-icon>
+		</button>
+	</div>
+	<div *ngIf="isAuthenticated() && isTransientUser()" class="col-auto">
+		<a routerLink="/user-profile" routerLinkActive="active" mat-icon-button
+			matTooltip="{{'APP.NAVIGATION.TRANSIENT-PROMPT' | translate}}">
+			<mat-icon>group_add</mat-icon>
+		</a>
+	</div>
+	<!-- <div class="col-auto">
+		<button mat-icon-button [matMenuTriggerFor]="themeMenu">
+			<mat-icon>format_color_fill</mat-icon>
+		</button>
+		<mat-menu #themeMenu="matMenu">
+			<button mat-menu-item (click)="onThemeSelected(themeTypes.Blue)">{{'APP.NAVIGATION.BLUE-THEME' |
+				translate}}</button>
+			<button mat-menu-item (click)="onThemeSelected(themeTypes.Pink)">{{'APP.NAVIGATION.PINK-THEME' |
+				translate}}</button>
+			<button mat-menu-item (click)="onThemeSelected(themeTypes.Primary)">{{'APP.NAVIGATION.PRIMARY-THEME' |
+				translate}}</button>
+		</mat-menu>
+	</div>
+	<div class="col-auto">
+		<button mat-icon-button [matMenuTriggerFor]="languageMenu">
+			<mat-icon>language</mat-icon>
+		</button>
+		<mat-menu #languageMenu="matMenu">
+			<button mat-menu-item
+				(click)="onLanguageSelected(languageTypes.English)">{{'APP.NAVIGATION.ENGLISH-LANGUAGE' |
+				translate}}</button>
+			<button mat-menu-item (click)="onLanguageSelected(languageTypes.Greek)">{{'APP.NAVIGATION.GREEK-LANGUAGE' |
+				translate}}</button>
+		</mat-menu>
+	</div> -->
+	<!-- <div class="col-auto"
+		*ngIf="isAuthenticated() && authService.hasPermission(authService.permissionEnum.ViewInAppNotificationPage)">
+		<button id="notification-button" color="primary" mat-raised-button matTooltip="{{'APP.NAVIGATION.INAPP-NOTIFICATIONS' | translate}}"
+			(click)="toggleInAppNotifications()">
+			<mat-icon [matBadge]="inAppNotificationCount" [matBadgeHidden]="inAppNotificationCount <= 0"
+				matBadgeColor="warn">notifications</mat-icon>
+		</button>
+	</div> -->
+
+	<!-- * LANGUAGE -->
+	<div class="col-auto">
+		<button mat-button [matMenuTriggerFor]="languageMenu" class="background-gray">
+			<span [class]="languageFlag$ | async"></span>
+			{{languageSelected$ | async | translate}}
+			<mat-icon>
+				arrow_drop_down
+			</mat-icon>
+		</button>
+		<mat-menu #languageMenu="matMenu">
+			<button mat-menu-item (click)="onLanguageSelected(languageTypes.English)">
+				<span class="fi fi-gb mr-2"></span>
+					{{'APP.NAVIGATION.ENGLISH-LANGUAGE' | translate}}
+				</button>
+				<button mat-menu-item (click)="onLanguageSelected(languageTypes.Greek)">
+					<span class="fi fi-gr mr-2"></span>
+					{{'APP.NAVIGATION.GREEK-LANGUAGE' | translate}}
+				</button>
+		</mat-menu>
+	</div>
+
+
+	<!-- * USER INFO -->
+	<div *ngIf="isAuthenticated()" class="col-auto">
+
+		<button mat-button [matMenuTriggerFor]="menu" class="rounded-button background-gray">
+			<img *ngIf="authService.getUserProfilePictureRef() else namePlaceholder" class="profile-picture"
+						[src]="getProfilePicture() | secureImage | async">
+			<ng-template #namePlaceholder>
+				<div class="profile-picture d-flex background-blue justify-content-center align-items-center">
+					<small class="d-inline-block">
+						{{getPrincipalName()?.[0]}}	
+					</small>
+				</div>
+			</ng-template>
+			<span class="d-inline-block pl-3">
+				{{this.getPrincipalName()}}
+			</span>
+		</button>
+		<mat-menu #menu="matMenu">
+			<!-- <button mat-menu-item *ngIf="authService.hasPermission(authService.permissionEnum.ViewUserProfilePage)"
+			routerLink="/user-profile" [queryParams]="getUserProfileQueryParams()"><mat-icon>person</mat-icon>{{'APP.NAVIGATION.VIEW-PROFILE' | translate}}</button> -->
+			<button mat-menu-item><mat-icon>settings</mat-icon>{{'APP.NAVIGATION.SETTINGS' | translate}}</button>
+			<button mat-menu-item><mat-icon>message</mat-icon>{{'APP.NAVIGATION.NOTIFICATIONS' | translate}}</button>
+			<button mat-menu-item (click)="logout()"><mat-icon>exit_to_app</mat-icon>{{'APP.NAVIGATION.LOGOUT' | translate}}</button>
+		</mat-menu>
+	</div>
+	<div *ngIf="progressIndication" class="progress-bar" style="z-index: -1;">
+		<mat-progress-bar color="accent" mode="indeterminate"></mat-progress-bar>
+	</div>
+</mat-toolbar>

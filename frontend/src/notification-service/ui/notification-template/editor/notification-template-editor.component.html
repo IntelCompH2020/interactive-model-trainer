@@ -1,0 +1,35 @@
+<div class="row" [formGroup]="formGroup">
+	<mat-form-field class="col-md-12">
+		<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
+		<textarea matInput [formControl]="formGroup.get('description')"></textarea>
+		<mat-error *ngIf="formGroup.get('description').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+	<div class="col-12">
+		<div class="row">
+			<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.SUBJECT-SECTION' | translate}}</h4>
+			<app-notification-template-field-options-editor class="col-md-12" [formGroup]="formGroup.get('value').get('subjectFieldOptions')" [validationErrorModel]="editorModel.validationErrorModel"></app-notification-template-field-options-editor>
+			<mat-form-field class="col-md-12">
+				<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.SUBJECT-TEXT' | translate}}</mat-label>
+				<input matInput [formControl]="formGroup.get('value').get('subjectText')">
+				<mat-error *ngIf="formGroup.get('value').get('subjectText').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+			</mat-form-field>
+		</div>
+	</div>
+	<div class="col-12">
+		<div class="row">
+			<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.BODY-SECTION' | translate}}</h4>
+			<app-notification-template-field-options-editor class="col-md-12" [formGroup]="formGroup.get('value').get('bodyFieldOptions')" [validationErrorModel]="editorModel.validationErrorModel"></app-notification-template-field-options-editor>
+			<editor class="col-md-12" [formControl]="formGroup.get('value').get('bodyText')" [disabled]="formGroup.get('value').get('bodyText').disabled" [init]="{height: 500, base_url: '/tinymce', suffix: '.min', plugins: 'lists advlist', toolbar: 'undo redo | bold italic | bullist numlist outdent indent'}"></editor>
+		</div>
+	</div>
+</div>
+
+<div class="row editor-actions mt-2">
+	<div class="col-auto" *ngIf="!formGroup.disabled && authService.hasNotificationServicePermission(authService.notificationServicePermissionEnum.DeleteNotificationTemplate) && editorModel.id"><button mat-raised-button color="primary" (click)="delete()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.DELETE' | translate}}</button></div>
+	<div class="col"></div>
+	<div class="col-auto" *ngIf="!formGroup.disabled && authService.hasNotificationServicePermission(authService.notificationServicePermissionEnum.EditNotificationTemplate) && editorModel.kind !== notificationTemplateKindEnum.Primary"><button mat-raised-button color="primary" (click)="updateKind(notificationTemplateKindEnum.Primary)" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-PRIMARY' | translate}}</button></div>
+	<div class="col-auto" *ngIf="!formGroup.disabled && authService.hasNotificationServicePermission(authService.notificationServicePermissionEnum.EditNotificationTemplate) && editorModel.kind !== notificationTemplateKindEnum.Secondary"><button mat-raised-button color="primary" (click)="updateKind(notificationTemplateKindEnum.Secondary)" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-SECONDARY' | translate}}</button></div>
+	<div class="col-auto" *ngIf="!formGroup.disabled && authService.hasNotificationServicePermission(authService.notificationServicePermissionEnum.EditNotificationTemplate) && editorModel.kind !== notificationTemplateKindEnum.Draft"><button mat-raised-button color="primary" (click)="updateKind(notificationTemplateKindEnum.Draft)" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SET-DRAFT' | translate}}</button></div>
+	<div class="col-auto" *ngIf="!formGroup.disabled && authService.hasNotificationServicePermission(authService.notificationServicePermissionEnum.EditNotificationTemplate)"><button mat-raised-button color="primary" (click)="save()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SAVE' | translate}}</button></div>
+	<!-- <div class="col-auto"><button mat-raised-button color="primary" (click)="cancel()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.CANCEL' | translate}}</button></div> -->
+</div>

@@ -1,0 +1,13 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.MODELS-COMPONENT.PY-LDA-VIS-MODAL.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <iframe [src]="url | safe"></iframe>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

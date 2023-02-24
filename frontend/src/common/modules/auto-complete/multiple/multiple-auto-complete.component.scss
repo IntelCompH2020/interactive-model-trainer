@@ -1,0 +1,38 @@
+.multiple-auto-complete {
+	margin-left: inherit;
+	margin-right: inherit;
+  
+	.not-loading {
+	  display: none;
+	}
+  
+	.align-arrow-right {
+	  position: absolute;
+	  right: 0;
+	  vertical-align: middle;
+	  cursor: pointer;
+	  align-self: center;
+	  color: rgba(0, 0, 0, 0.54);
+	}
+  }
+  
+  .two-line-mat-option {
+	//   line-height: 0.8em;
+	//   line-height: 1.2em;
+  }
+  
+  .option {
+	line-height: 1rem;
+	//   height: 3em;
+  }
+  
+  .chip-text {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+  }
+  
+  .chip-list {
+	max-width: calc(100% - 30px);
+  }
+  

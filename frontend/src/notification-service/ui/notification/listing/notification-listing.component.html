@@ -1,0 +1,31 @@
+<div class="row notification-listing">
+	<div class="col-12">
+		<div class="row page-title">
+			<div class="col-auto pl-5 pr-0 align-self-center">
+				<i class="fa fa-2x fa-cogs accent-color"></i>
+			</div>
+			<!-- <div class="col-auto ml-auto mt-3 align-self-center">
+				<button mat-raised-button color="accent" *ngIf="authService.hasAnyPermission([authService.permissionEnum.EditDocument, authService.permissionEnum.DeferredAffiliation])" [routerLink]=" ['./new'] ">
+					<mat-icon class="mb-1 mr-2">add</mat-icon>{{'COMMONS.ACTIONS.NEW' | translate}}
+				</button>
+			</div> -->
+			<div class="col-auto p-0 user-settings-selector">
+				<app-user-settings-selector [key]="userSettingsKey" [lookup]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"></app-user-settings-selector>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12 filter-row">
+				<app-notification-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)"></app-notification-listing-filters>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-12 col-center-align">
+				<app-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items" [externalSorting]="true" (pageLoad)="onPageLoad($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)">
+				</app-listing>
+			</div>
+		</div>
+
+	</div>
+
+</div>

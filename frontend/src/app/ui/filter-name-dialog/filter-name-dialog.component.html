@@ -1,0 +1,14 @@
+<div mat-dialog-title class="dialog-title">{{'COMMONS.FILTER-NAME-DIALOG.TITLE' | translate}}</div>
+<div mat-dialog-content>
+	<div class="row">
+		<mat-form-field class="col" [formGroup]="nameFormGroup">
+			<mat-label>{{'COMMONS.FILTER-NAME-DIALOG.FIELDS.FILTER-NAME' | translate}}</mat-label>
+			<input type="text" matInput formControlName="name">
+			<mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+</div>
+<div mat-dialog-actions class="pb-3">
+	<button mat-raised-button color="primary" class="ml-auto" [mat-dialog-close]="nameFormGroup.get('name').value" [disabled]="!nameFormGroup.valid">{{'COMMONS.FILTER-NAME-DIALOG.ACTIONS.SUBMIT' | translate}}</button>
+	<button mat-raised-button color="warn" [mat-dialog-close]=false>{{'COMMONS.FILTER-NAME-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+</div>

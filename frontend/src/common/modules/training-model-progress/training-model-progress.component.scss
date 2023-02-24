@@ -1,0 +1,19 @@
+
+.details-container{
+    background-color: #fff;
+    border: 1px solid #000;
+}
+
+.summary-item{
+
+    border-top: 1px dashed black;
+    
+    &:last-child{
+        border-bottom: 1px dashed black;
+    }
+}
+
+.logs-console {
+    overflow: scroll;
+    height: 40vh;
+}

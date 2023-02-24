@@ -1,0 +1,39 @@
+{
+	"production": true,
+	"version": "-dev",
+	"defaultTheme": 2,
+	"defaultLanguage": 0,
+	"defaultCulture": "en-US",
+	"defaultTimezone": "UTC",
+	"inAppNotificationsCountInterval": "30",
+	"userSettingsVersion": "1",
+	"idp_service": {
+		"enabled": true,
+		"address": "ΧΧΧΧΧ",
+		"realm": "ΧΧΧΧΧ",
+		"flow": "ΧΧΧΧΧ",
+		"clientId": "ΧΧΧΧΧ",
+		"redirectUri": "ΧΧΧΧΧ",
+		"scope": "ΧΧΧΧΧ"
+	},
+	"notification_service": {
+		"enabled": false
+	},
+	"app_service": {
+		"enabled": true,
+		"address": "ΧΧΧΧΧ"
+	},
+	"logging": {
+		"enabled": false,
+		"logLevels": [
+			"debug",
+			"info",
+			"warning",
+			"error"
+		]
+	},
+	"globalErrorHandling": {
+		"transmitLogs": true,
+		"appName": "coreApp"
+	}
+}

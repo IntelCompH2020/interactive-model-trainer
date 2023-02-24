@@ -1,0 +1,130 @@
+.tenant-listing-filters {
+	margin: 1em 0;
+  
+	.toggle {
+	  font-weight: 400;
+	  height: 3.7em;
+	  min-height: 53.59px;
+	  background-color: white;
+	  border-radius: 0.4em;
+	  border: 1px solid #e0e0e0;
+	}
+  
+	.toggle-col {
+	  min-width: 25%;
+	}
+  
+	.no-padding-right {
+	  padding-right: 0;
+	}
+  
+	.no-padding-left {
+	  padding-left: 0;
+	}
+  
+	.text-filter {
+	  min-width: 25%;
+	}
+  
+	mat-form-field {
+	  min-width: 25%;
+	}
+  }
+  
+  .tenant-filters-btn {
+	height: 4.2em;
+	background-color: transparent;
+  
+	.filter-icon {
+	  font-size: 18px;
+	  color: #5b9bd5;
+	  padding: 0 0.3em 0.2em 0;
+	}
+  
+	.opened-filters {
+	  color: rgb(91, 155, 213);
+	  padding-left: 0.6em;
+	}
+  
+	.filter-option {
+	  padding: 0.5em 0 0.5em 0;
+	}
+  }
+  
+  .filter-icon {
+	font-size: 18px;
+	padding: 0 0.3em 0.2em 0;
+  }
+  
+  .filters-menu-header {
+	display: flex;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	background-color: rgb(238, 241, 246);
+  
+	button {
+	  background-color: #eef1f6;
+	}
+  
+	button:hover {
+	  color: #5b9bd5;
+	}
+  }
+  
+  .filters-menu-container {
+	max-width: calc(100vw - 158px) !important;
+	min-width: 40rem !important;
+	//   overflow: auto;
+  }
+  
+  .filter-option {
+	padding: 0.5em 0 0.5em 0;
+  }
+  
+  ::ng-deep.mat-menu-panel {
+	max-width: 100% !important;
+	height: 100% !important;
+  }
+  
+  // ::ng-deep.mat-menu-panel {
+  //   width: 100% !important;
+  //   max-width: calc(100vw - 158px) !important;
+  // }
+  
+  // ::ng-deep.cdk-overlay-pane {
+  //   width: calc(100vw - 128px) !important;
+  // }
+  
+  ::ng-deep.mat-menu-content:not(:empty) {
+	padding-top: 0 !important;
+  }
+  
+  :host ::ng-deep .mat-form-field-wrapper {
+	padding-bottom: 0;
+	margin: 1em 0 !important;
+  }
+  
+
+@mixin tenant-listing-themed($theme){
+	$primary: map-get($theme, primary );
+	$accent: map-get($theme, accent);
+	$accent-color: mat-color($accent);
+	$primary-color: mat-color($primary);
+
+
+		.tenant-filters-btn {
+			.filter-icon {
+				color: $accent-color!important;
+			}
+			
+			.opened-filters {
+				color: $accent-color !important;
+			}
+		}	
+		.filters-menu-header {
+			button:hover {
+			color: $accent-color !important;
+		}
+	}
+	
+}

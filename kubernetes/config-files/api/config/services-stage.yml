@@ -1,0 +1,15 @@
+services:
+  services:
+    manageLists:
+      volumeConfiguration:
+        temp_folder: /data/wordlist/temp
+    manageCorpus:
+      volumeConfiguration:
+        temp_folder: /data/corpus/temp
+    manageModels:
+      volumeConfiguration:
+        temp_folder: /data/models/temp
+    training:
+      volumeConfiguration:
+        models_folder: /data/models/data
+        temp_folder: /data/topic-modeling/temp

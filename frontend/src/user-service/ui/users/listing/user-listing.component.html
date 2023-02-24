@@ -1,0 +1,38 @@
+<div class="row user-listing">
+	<div class="col-12">
+		<div class="row page-title">
+			<div class="col-auto pl-5 pr-0 align-self-center">
+				<i class="fa fa-2x fa-cogs accent-color"></i>
+			</div>
+			<div class="col-auto p-0 user-settings-selector">
+				<app-user-settings-selector [key]="userSettingsKey" [lookup]="lookup"
+					(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings">
+				</app-user-settings-selector>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12 filter-row">
+				<app-user-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)">
+				</app-user-listing-filters>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-12 col-center-align">
+				<app-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+					[count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
+					[defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)"
+					(pageLoad)="onPageLoad($event)" (columnSort)="onColumnSort($event)"
+					(columnsChanged)="onColumnsChanged($event)">
+				</app-listing>
+			</div>
+		</div>
+
+		<button *ngIf="authService.hasPermission(authService.permissionEnum.EditUser)" mat-fab
+			class="mat-fab-bottom-right" matTooltip="{{'COMMONS.ACTIONS.NEW' | translate}}" [routerLink]=" ['./new'] ">
+			<mat-icon class="mat-24">add</mat-icon>
+		</button>
+
+	</div>
+
+</div>

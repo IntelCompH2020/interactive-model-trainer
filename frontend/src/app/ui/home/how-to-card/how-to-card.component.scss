@@ -1,0 +1,18 @@
+.how-to-item{
+    border: 1px solid black;
+    overflow: hidden;
+    z-index: 1;
+    margin-top: .4rem;
+    &::before{
+        content: '';
+        position: absolute;
+        background-color: #428bca;
+        height: 90%;
+        aspect-ratio: 1;
+        top: 0;
+        transform-origin: center;
+        transform: translateX(50%) translateY(100%) rotate(45deg);
+        right: 0;
+        border: 1px solid black;
+    }
+}

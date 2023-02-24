@@ -1,0 +1,21 @@
+$border-color: #dee2e6;
+
+:host ::ng-deep .padding-margin-none.mat-form-field-appearance-outline .mat-form-field-wrapper{
+  margin: 0px !important;
+  padding: 0px !important;
+}
+
+.table-container{
+  max-height: 30rem;
+  overflow-y: auto;
+}
+
+.table{
+  border: 1px solid $border-color !important;
+  thead{
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      transform: translateY(-1px);
+  }
+}

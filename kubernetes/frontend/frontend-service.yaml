@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service # Create service
+metadata:
+  name: imt-frontend # Sets the service name
+  labels:
+    app: imt-frontend # Defines app to create service for
+spec:
+  ports:
+    - port: 8080 # Sets the port to run the postgres application
+      name: imt-frontend
+  selector:
+    app: imt-frontend

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment # Create a deployment
+metadata:
+  name: imt-backend-apis # Set the name of the deployment
+spec:
+  replicas: 1 # Set 3 deployment replicas
+  selector:
+    matchLabels:
+      app: imt-backend-apis
+  template:
+    metadata:
+      labels:
+        app: imt-backend-apis
+    spec:
+      containers:
+        - name: imt-backend-api
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-api:0.0.11
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PROFILE
+              value: "stage"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          volumeMounts:
+            - name: "imt-backend-api-config"
+              mountPath: "/config"
+              subPath: "."
+            - name: "imt-management-api-config"
+              mountPath: "/management-config"
+              subPath: "."
+            - name: imt-mng-wordlist-data
+              mountPath: /data/wordlist/temp
+            - name: imt-mng-corpus-data
+              mountPath: /data/corpus/temp
+            - name: imt-mng-models-data
+              mountPath: /data/models/temp
+            - name: imt-mng-models-data
+              mountPath: /data/models/data
+            - name: imt-mng-topic-modeling-data
+              mountPath: /data/topic-modeling/temp
+            - name: logs
+              mountPath: "/logs"
+              subPathExpr: $(POD_NAME)_$(POD_UID)/api
+      volumes:
+        - name: imt-backend-api-config
+          configMap:
+            name: imt-api
+        - name: imt-management-api-config
+          configMap:
+            name: imt-management
+        - name: imt-mng-wordlist-data
+          persistentVolumeClaim:
+            claimName: imt-wordlists-volume-claim
+        - name: imt-mng-corpus-data
+          persistentVolumeClaim:
+            claimName: imt-corpus-volume-claim
+        - name: imt-mng-models-data
+          persistentVolumeClaim:
+            claimName: imt-models-volume-claim
+        - name: imt-mng-topic-modeling-data
+          persistentVolumeClaim:
+            claimName: imt-topic-modeling-volume-claim
+        - name: logs
+          persistentVolumeClaim:
+            claimName: logs
+      imagePullSecrets:
+        - name: bsc-docker-reg-credentials

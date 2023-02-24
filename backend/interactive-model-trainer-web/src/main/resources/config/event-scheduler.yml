@@ -1,0 +1,17 @@
+event-scheduler:
+  events:
+    run-training:
+      parallelTrainingsThreshold: 2
+      postponePeriodInSeconds: 60
+    check-tasks:
+      checkIntervalInSeconds: 60
+  task:
+    name: EventSchedulerTask
+    processor:
+      enable: true
+      interval-seconds: 15
+      options:
+        retry-threshold: 300
+        max-retry-delay-seconds: 10800
+        too-old-to-handle-seconds: 360000
+      overrides: [ ]

@@ -1,0 +1,32 @@
+ApiKey test
+	api-pomolo-playground-dev
+	5d804531d24e42eb95b81e532f2906c2
+	
+fieldsets
+	container class - DONE
+	method resover - DONE
+logging & auditing - DONE
+    base - DONE
+    enhironment / request enhnacer - DONE
+AuthN - DONE
+	basic setup - DONE
+	expand based on web-commons-security-core - DONE
+AuthZ - Thomas
+	roles & permissions & handlers/  voters
+Configuration (multiple files, profile, environment variables) - DONE
+    improve generalization - Done
+Builder & Deleter & Censor - Done
+Query - DONE
+Error handling - DONE
+	Error codes - DONE
+	Error messages - DONE
+	Error middleware - DONE
+Configure jackson ignore nulls - DONE
+Localizer - DONE
+validation - DONE
+    validation action filter - DONE
+    validation base attributes - DONE
+Spring Events - DONE
+forwarded headers - DONE
+cache - DONE
+cors configuration - DONE

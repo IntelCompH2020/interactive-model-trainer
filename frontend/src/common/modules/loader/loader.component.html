@@ -1,0 +1,7 @@
+<div *ngIf="mode === loaderModes.Spinner" [hidden]="!isLoading">
+	<mat-progress-spinner mode="indeterminate" [strokeWidth]="2" [diameter]="32 * size"></mat-progress-spinner>
+	<span class="message">{{message}}</span>
+</div>
+<div *ngIf="mode === loaderModes.ProgressBar" [hidden]="!isLoading">
+	<mat-progress-bar mode="indeterminate"></mat-progress-bar>
+</div>

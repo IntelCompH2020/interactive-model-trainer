@@ -1,0 +1,48 @@
+footer {
+	border-top: 1px solid black;
+	padding: 1rem;
+}
+
+#europe-icon{
+	height: 3rem;
+}
+
+.unstyled-link{
+	color: unset !important;
+}
+
+.training-model-item{
+	animation-name: pulse;
+	animation-duration: .8s;
+	animation-iteration-count: 3;
+	animation-fill-mode: backwards;
+	animation-timing-function: ease-out;
+}
+
+.finished{
+	color: #529bff;
+}
+
+@keyframes pulse{
+	0%{
+		outline-width: 1px;
+		outline-offset: -8px;
+		outline-color: #529bff;
+		outline-style: solid;
+	}
+	100%{
+		outline-width: 6px;
+		outline-offset:1px;
+		outline-color: transparent;
+		outline-style: solid;
+	}
+}
+
+.footer-selected-model {
+	background-color: white;
+	border: 1px solid lightgray;
+	border-radius: .3em;
+	text-align: center;
+	min-width: 18vw;
+	font-size: .8em;
+}

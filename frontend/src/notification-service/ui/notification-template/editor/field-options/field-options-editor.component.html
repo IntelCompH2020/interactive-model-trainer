@@ -1,0 +1,60 @@
+<div class="row" [formGroup]="formGroup">
+	<div class="col-md-6">
+		<div class="row">
+			<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FIELD-OPTIONS.MANDATORY.TITLE' | translate}}</h4>
+			<div class="col-12">
+				<div class="row" *ngFor="let mandatoryItemControl of formGroup.get('mandatory')['controls']; let i = index">
+					<mat-form-field class="col">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FIELD-OPTIONS.MANDATORY.ITEM' | translate}}</mat-label>
+						<input matInput [formControl]="mandatoryItemControl">
+						<mat-error *ngIf="mandatoryItemControl.hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+					<div class="col-auto">
+						<button mat-icon-button (click)="removeMandatoryItem(i)" [disabled]="formGroup.disabled">
+							<mat-icon>remove</mat-icon>
+						</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-auto">
+						<button mat-icon-button (click)="addMandatoryItem()" [disabled]="formGroup.disabled">
+							<mat-icon>add</mat-icon>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-6">
+		<div class="row">
+			<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FIELD-OPTIONS.OPTIONAL.TITLE' | translate}}</h4>
+			<div class="col-12">
+				<div class="row" *ngFor="let optionalItemFormGroup of formGroup.get('options')['controls']; let i = index">
+					<mat-form-field class="col-auto">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FIELD-OPTIONS.OPTIONAL.KEY' | translate}}</mat-label>
+						<input matInput [formControl]="optionalItemFormGroup.get('key')">
+						<mat-error *ngIf="optionalItemFormGroup.get('key').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+					<mat-form-field class="col">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FIELD-OPTIONS.OPTIONAL.VALUE' | translate}}</mat-label>
+						<input matInput [formControl]="optionalItemFormGroup.get('value')">
+						<mat-error *ngIf="optionalItemFormGroup.get('value').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+					</mat-form-field>
+					<div class="col-auto">
+						<button mat-icon-button (click)="removeOptionalItem(i)" [disabled]="formGroup.disabled">
+							<mat-icon>remove</mat-icon>
+						</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-auto">
+						<button mat-icon-button (click)="addOptionalItem()" [disabled]="formGroup.disabled">
+							<mat-icon>add</mat-icon>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

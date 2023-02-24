@@ -1,0 +1,13 @@
+<mat-nav-list class="inapp-notification-listing-dialog">
+	<a *ngFor="let inappNotification of inappNotifications; last as last;" mat-list-item (click)="goToNotification(inappNotification)">
+		<mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Delivered" mat-list-icon>drafts</mat-icon>
+		<mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Stored" mat-list-icon>mail</mat-icon>
+		<span mat-line>{{ inappNotification.subject }}</span>
+		<span mat-line class="secondary-text">{{ inappNotification.createdAt | date : 'short'}}</span>
+		<mat-divider inset *ngIf="!last"></mat-divider>
+	</a>
+	<mat-list-item *ngIf="authService.hasPermission(authService.permissionEnum.ViewInAppNotificationPage)">
+		<a (click)="goToNotifications()">{{'APP.NAVIGATION.ALL-INAPP-NOTIFICATIONS'
+			| translate}}</a>
+	</mat-list-item>
+</mat-nav-list>

@@ -1,0 +1,18 @@
+web:
+  security:
+    enabled: true
+    authorized-endpoints: [ api ]
+    allowed-endpoints: [ public, dataset, master-item, test ]
+    idp:
+      api-key:
+        enabled: true
+        authorization-header: Authorization
+        client-id: ${IDP_APIKEY_CLIENT_ID}
+        client-secret: ${IDP_APIKEY_CLIENT_SECRET}
+        scope: ${IDP_APIKEY_SCOPE}
+      resource:
+        opaque:
+          client-id: ${IDP_OPAQUE_CLIENT_ID}
+          client-secret: ${IDP_OPAQUE_CLIENT_SECRET}
+        jwt:
+          claims: [ role, x-role ]

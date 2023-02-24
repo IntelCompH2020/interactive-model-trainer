@@ -1,0 +1,8 @@
+.button-tabs{
+    border-bottom: 1px solid #e7e7e7;
+}
+.button-tabs button{
+    font-size: 1.4rem;
+    padding-top: .2rem;
+    padding-bottom: .2rem;
+}

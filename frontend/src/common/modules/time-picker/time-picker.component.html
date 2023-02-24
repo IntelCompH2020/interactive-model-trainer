@@ -1,0 +1,6 @@
+<mat-form-field [floatLabel]="floatLabel">
+	<mat-label>{{label}}</mat-label>
+	<input matInput autocomplete="nope" [placeholder]="placeholder" [formControl]="textFormControl" [dpDayPicker]="datePickerConfig" [required]="required" mode="time" theme="dp-material" attachTo=".mat-form-field-flex">
+	<mat-error *ngIf="validationError">{{validationError}}</mat-error>
+	<mat-error *ngIf="reactiveFormControl.hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+</mat-form-field>
