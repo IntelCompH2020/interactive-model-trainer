@@ -1,9 +1,10 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.docker;
 
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.data.CorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
@@ -35,19 +36,19 @@ public interface DockerService {
 
     void copyCorpus(String name) throws InterruptedException, IOException, ApiException;
 
-    void copyModel(String name) throws InterruptedException, IOException, ApiException;
+    void copyModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException;
 
     void renameWordList(String oldName, String newName) throws InterruptedException, IOException, ApiException;
 
     void renameCorpus(String oldName, String newName) throws InterruptedException, IOException, ApiException;
 
-    void renameModel(String oldName, String newName) throws InterruptedException, IOException, ApiException;
+    void renameModel(ModelType modelType, String oldName, String newName) throws InterruptedException, IOException, ApiException;
 
     void deleteWordList(String name) throws InterruptedException, IOException, ApiException;
 
     void deleteCorpus(String name) throws InterruptedException, IOException, ApiException;
 
-    void deleteModel(String name) throws InterruptedException, IOException, ApiException;
+    void deleteModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException;
 
     //TOPIC MODELS
 
@@ -62,6 +63,10 @@ public interface DockerService {
     void sortTopics(String name) throws IOException, ApiException, InterruptedException;
 
     void deleteTopics(String name, ArrayList<Integer> topics) throws IOException, ApiException, InterruptedException;
+
+    //DOMAIN MODELS
+
+
 
     String MANAGE_LISTS = "manageLists";
     String MANAGE_CORPUS = "manageCorpus";

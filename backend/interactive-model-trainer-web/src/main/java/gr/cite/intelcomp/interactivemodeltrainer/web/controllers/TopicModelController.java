@@ -1,5 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
@@ -17,7 +18,6 @@ import io.kubernetes.client.openapi.ApiException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
@@ -64,19 +64,19 @@ public class TopicModelController {
     @PostMapping("{name}/copy")
     @Transactional
     public void Copy(@PathVariable("name") String name) throws InterruptedException, IOException, ApiException {
-        topicModelService.copy(name);
+        topicModelService.copy(ModelType.TOPIC, name);
     }
 
     @PutMapping("rename")
     @Transactional
     public void Rename(@Valid @RequestBody RenameInfo model) throws InterruptedException, IOException, ApiException {
-        topicModelService.rename(model.getOldName(), model.getNewName());
+        topicModelService.rename(ModelType.TOPIC, model.getOldName(), model.getNewName());
     }
 
     @DeleteMapping("{name}/delete")
     @Transactional
     public void Delete(@PathVariable("name") String name) throws InterruptedException, IOException, ApiException {
-        topicModelService.delete(name);
+        topicModelService.delete(ModelType.TOPIC, name);
     }
 
     @GetMapping("{name}/reset")
@@ -165,20 +165,20 @@ public class TopicModelController {
     @PostMapping("train")
     @Transactional
     public TrainingTaskRequest TrainTopicModel(@Valid @RequestBody TrainingTaskRequestPersist trainingTaskRequestPersist) throws InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException {
-        if (trainingTaskRequestPersist.getParentName() == null) return trainingTaskRequestService.persistTrainingTaskForRootModel(trainingTaskRequestPersist);
+        if (!trainingTaskRequestPersist.getHierarchical()) return trainingTaskRequestService.persistTrainingTaskForRootModel(trainingTaskRequestPersist);
         else return trainingTaskRequestService.persistPreparingTaskForHierarchicalModel(trainingTaskRequestPersist);
     }
 
     @GetMapping("train/logs/{name}")
     @Transactional
     public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder"), modelName, "execution.log"));
+        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder"), modelName, "execution.log"));
     }
 
     @GetMapping("train/logs/{parent}/{name}")
     @Transactional
     public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder"), parentModelName, modelName, "execution.log"));
+        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder"), parentModelName, modelName, "execution.log"));
     }
 
     @GetMapping("tasks/{task}/status")

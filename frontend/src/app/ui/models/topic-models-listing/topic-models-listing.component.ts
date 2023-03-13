@@ -6,7 +6,6 @@ import { IsActive } from '@app/core/enum/is-active.enum';
 import { TopicModelSubtype } from '@app/core/enum/topic-model-subtype.enum';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
-import { Corpus } from '@app/core/model/corpus/corpus.model';
 import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
 import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicLookup } from '@app/core/query/topic.lookup';
@@ -23,13 +22,13 @@ import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
 import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
-import { SnackBarNotificationLevel, UiNotificationService } from '@common/modules/notification/ui-notification-service';
+import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TrainingModelProgressComponent } from '@common/modules/training-model-progress/training-model-progress.component';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { debounceTime, filter, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { TopicSelectionComponent } from './topic-selection-modal/topic-selection-modal.component';
 import { NewTopicModelComponent } from './new-topic-model/new-topic-model.component';
@@ -127,12 +126,12 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.CREATION-DATE'
     },
-    // {
-    //   prop: nameof<TopicModel>(x => x.creator),
-    //   sortable: true,
-    //   resizeable: true,
-    //   languageName: 'APP.MODELS-COMPONENT.CREATOR',
-    // },
+    {
+      prop: nameof<TopicModel>(x => x.creator),
+      sortable: true,
+      resizeable: true,
+      languageName: 'APP.MODELS-COMPONENT.CREATOR',
+    },
     {
       prop: nameof<TopicModel>(x => x.TrDtSet),
       sortable: false,
@@ -433,22 +432,16 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
           label: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.TYPE',
           availableValues: this.availableTypes.map(type => ({ label: () => this.enumUtils.toTopicModelTypeString(type), value: type }))
         },
-        // {
-        //   key: 'subType',
-        //   type: FilterEditorFilterType.Select,
-        //   label: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.SUBTYPE',
-        //   availableValues: this.availableSubTypes.map(subtype => ({label: () => this.enumUtils.toTopicModelSubtypeString(subtype), value: subtype}))
-        // },
-        // {
-        //   key: 'creator',
-        //   type: FilterEditorFilterType.TextInput,
-        //   placeholder: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.CREATOR-PLACEHOLDER'
-        // },
-        // {
-        //   key: 'mine',
-        //   type: FilterEditorFilterType.Checkbox,
-        //   label: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.MINE-ITEMS'
-        // },
+        {
+          key: 'creator',
+          type: FilterEditorFilterType.TextInput,
+          placeholder: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.CREATOR-PLACEHOLDER'
+        },
+        {
+          key: 'mine',
+          type: FilterEditorFilterType.Checkbox,
+          label: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.MINE-ITEMS'
+        },
       ]
     }
   }
@@ -474,19 +467,16 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       takeUntil(this._destroyed),
       debounceTime(600)
     ).subscribe(filterChanges => {
-      for (let field in filterChanges) {
-        if (filterChanges[field] && filterChanges[field]['value']) filterChanges[field] = filterChanges[field]['value'];
-      }
       this.lookup = Object.assign(this.lookup, filterChanges);
       this.refresh();
     });
+    this.filterFormGroup.patchValue({trainer: "all"}, {emitEvent: false});
   }
 
   onColumnsChanged(event: ColumnsChangedEvent) {
     this.onTopicModelSelect.emit(null);
     this.onTopicSelect.emit(null);
     this.topicLookup = new TopicLookup();
-    this.modelSelectionService.model = "";
     this.selectedModel.next(undefined);
     this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
   }
@@ -509,7 +499,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     const selectedModel: TopicModel = $event.row as TopicModel;
     if ($event.type === 'click') {
       if (this._topicModelSelected && selectedModel.name === this._topicModelSelected.name) return;
-      this.onTopicModelSelect.emit($event.row);
+      this.onTopicModelSelect.emit(selectedModel);
       this._topicModelSelected = selectedModel;
       this.modelSelectionService.model = this._topicModelSelected.name;
       this.selectedModel.next(this._topicModelSelected);

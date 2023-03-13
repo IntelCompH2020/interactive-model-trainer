@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { DomainModel } from '@app/core/model/model/domain-model.model';
 import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
+import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -36,7 +37,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
   get topicTitle() {
     const title = this.topicSelected?.label;
-    if (title && title.length > 30) return title.substring(0, 30)+"...";
+    if (title && title.length > 30) return title.substring(0, 30) + "...";
     if (title && title.length <= 30) return title;
   }
 
@@ -69,6 +70,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     private language: TranslateService,
     protected snackbars: SnackBarCommonNotificationsService,
     private topicModelService: TopicModelService,
+    private domainModelService: DomainModelService,
     public enumUtils: AppEnumUtils,
     private pipeService: PipeService
   ) {
@@ -200,11 +202,16 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           takeUntil(this._destroyed)
         ).subscribe(
           model => {
-            this.modelDetails = this._buildDomainModelDetails(model);
+            if (model) this.modelDetails = this._buildDomainModelDetails(model);
             this.modelSelected = model;
             this.selectedModelType = ModelType.Domain;
           }
-        )
+        );
+
+        this.onEditItem = () => {
+          castedActiveComponent.edit(this.modelSelected as DomainModel);
+        }
+
         break;
       }
     }
@@ -230,10 +237,16 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       )
       .subscribe(
         () => {
-
           switch (this.selectedModelType) {
-
             case ModelType.Domain: {
+              this.domainModelService.delete(this.modelSelected.name)
+                .pipe(takeUntil(
+                  this._destroyed
+                ))
+                .subscribe(_response => {
+                  this.snackbars.successfulDeletion();
+                  this.onRefresh?.();
+                })
               break;
             }
             case ModelType.Topic: {
@@ -251,7 +264,6 @@ export class ModelsComponent extends BaseComponent implements OnInit {
               console.warn('no type defined');
             }
           }
-
         }
       )
 
@@ -306,10 +318,10 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         label: 'APP.MODELS-COMPONENT.CREATION-DATE',
         value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(model.creation_date)
       },
-      // {
-      //   label: 'APP.MODELS-COMPONENT.CREATOR',
-      //   value: model.creator
-      // },
+      {
+        label: 'APP.MODELS-COMPONENT.CREATOR',
+        value: model.creator || "-"
+      },
       {
         label: 'APP.MODELS-COMPONENT.LOCATION',
         value: model.location || "-"
@@ -389,27 +401,31 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     return [
       {
         label: 'APP.MODELS-COMPONENT.NAME',
-        value: model.name
+        value: model.name || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.DESCRIPTION',
+        value: model.description || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.TAG',
+        value: model.tag || "-"
       },
       {
         label: 'APP.MODELS-COMPONENT.CREATION-DATE',
-        value: model.createdAt?.toString()
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(model.creation_date)
       },
       {
         label: 'APP.MODELS-COMPONENT.CREATOR',
-        value: model.creator
+        value: model.creator || "-"
       },
       {
         label: 'APP.MODELS-COMPONENT.LOCATION',
-        value: model.location
+        value: model.location || "-"
       },
       {
         label: 'APP.MODELS-COMPONENT.TYPE',
         value: (new DataTableDomainModelTypeFormatPipe(this.enumUtils)).transform(model.type)
-      },
-      {
-        label: 'APP.MODELS-COMPONENT.NUMBER-OF-TOPICS',
-        value: '-'
       },
       {
         label: 'APP.MODELS-COMPONENT.TRAINED-CORPUS',

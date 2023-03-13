@@ -7,6 +7,7 @@ import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
@@ -127,6 +128,14 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }
+        if (lookup.getCorpusValidFor() != null && !CorpusValidFor.ALL.equals(lookup.getCorpusValidFor())) {
+            result = result.stream().filter(e -> e.getValid_for().equals(lookup.getCorpusValidFor())).collect(Collectors.toList());
+        }
+
+//        if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
+//            String field = lookup.getOrder().getItems().get(0);
+//            System.out.println(field);
+//        }
         return result;
     }
 
@@ -135,15 +144,22 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
         }
-//        if (lookup.getCreator() != null && !lookup.getCreator().trim().isEmpty()) {
-//            result = result.stream().filter(e -> e.getCreator().equals(lookup.getCreator().trim())).collect(Collectors.toList());
-//        }
-//        if (lookup.getMine() != null && lookup.getMine()) {
-//            result = result.stream().filter(e -> e.getCreator().equals(getUserId())).collect(Collectors.toList());
-//        }
+        if (lookup.getCreator() != null && !lookup.getCreator().trim().isEmpty()) {
+            result = result.stream().filter(e -> e.getCreator().equals(lookup.getCreator().trim())).collect(Collectors.toList());
+        }
+        if (lookup.getMine() != null && lookup.getMine()) {
+            result = result.stream().filter(e -> e.getCreator().equals(getUserId())).collect(Collectors.toList());
+        }
         if (lookup.getModelType().equals(ModelType.TOPIC)) {
-            if (((TopicModelLookup) lookup).getTrainer() != null) {
-                result = result.stream().filter(e -> e.getTrainer().contains(((TopicModelLookup) lookup).getTrainer().trim())).collect(Collectors.toList());
+            TopicModelLookup topicModelLookup = (TopicModelLookup) lookup;
+            if (topicModelLookup.getTrainer() != null && !topicModelLookup.getTrainer().equals("all")) {
+                result = result.stream().filter(e -> e.getTrainer().contains(topicModelLookup.getTrainer().trim())).collect(Collectors.toList());
+            }
+        }
+        if (lookup.getModelType().equals(ModelType.DOMAIN)) {
+            DomainModelLookup domainModelLookup = (DomainModelLookup) lookup;
+            if (domainModelLookup.getTag() != null && !domainModelLookup.getTag().trim().isEmpty()) {
+                result = result.stream().filter(e -> ((DomainModelEntity)e).getTag().contains(domainModelLookup.getTag().trim())).collect(Collectors.toList());
             }
         }
         if (lookup.getPage() != null) {
@@ -160,12 +176,6 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getWordDescription() != null) {
             result = result.stream().filter(e -> e.getWordDescription().toLowerCase().contains(lookup.getWordDescription().trim())).collect(Collectors.toList());
         }
-//        if (lookup.getCreator() != null && !lookup.getCreator().trim().isEmpty()) {
-//            result = result.stream().filter(e -> e.getCreator().equals(lookup.getCreator().trim())).collect(Collectors.toList());
-//        }
-//        if (lookup.getMine() != null && lookup.getMine()) {
-//            result = result.stream().filter(e -> e.getCreator().equals(getUserId())).collect(Collectors.toList());
-//        }
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }
@@ -174,7 +184,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public List<WordListEntity> listWordLists(WordListLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageLists.LIST_ALL_CMD);
 
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
@@ -196,7 +206,7 @@ public class DockerServiceImpl implements DockerService {
     public List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
         List<CorpusEntity> result = Lists.newArrayList();
 
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
         if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
             command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_LOGICAL_CMD);
         } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
@@ -248,12 +258,16 @@ public class DockerServiceImpl implements DockerService {
     public List<? extends ModelEntity> listModels(ModelLookup lookup) throws InterruptedException, IOException, ApiException {
         List<ModelEntity> result = new ArrayList<>();
 
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
+        List<String> command;
         if (ModelType.DOMAIN.equals(lookup.getModelType())) {
-            logger.warn("Domain models listing - Not implemented");
-            return result;
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageDomainModels.LIST_ALL_DOMAIN_CMD);
         } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
-            command.add(ContainerServicesProperties.ManageModels.LIST_ALL_TOPIC_CMD);
+            command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageTopicModels.LIST_ALL_TM_MODELS_CMD);
+        } else {
+            logger.error("ModelType not defined");
+            return result;
         }
 
         String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -264,7 +278,7 @@ public class DockerServiceImpl implements DockerService {
             List<DomainModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/models/" + key);
+                value.setLocation("/data/DCmodels/" + key);
                 data.add(value);
             });
 
@@ -275,7 +289,7 @@ public class DockerServiceImpl implements DockerService {
             List<TopicModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/models/" + key);
+                value.setLocation("/data/TMmodels/" + key);
                 data.add(value);
             });
 
@@ -289,8 +303,8 @@ public class DockerServiceImpl implements DockerService {
     public List<? extends ModelEntity> getModel(ModelLookup lookup, String name) throws IOException, ApiException, InterruptedException {
         List<ModelEntity> result = new ArrayList<>();
 
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.GET_TM_MODEL);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+        command.add(ContainerServicesProperties.ManageTopicModels.GET_TM_MODEL_CMD);
         command.add(name);
 
         String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -301,7 +315,7 @@ public class DockerServiceImpl implements DockerService {
             List<DomainModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/models/" + key);
+                value.setLocation("/data/TMmodels/" + key);
                 data.add(value);
             });
 
@@ -312,7 +326,7 @@ public class DockerServiceImpl implements DockerService {
             List<TopicModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/models/" + key);
+                value.setLocation("/data/TMmodels/" + key);
                 data.add(value);
             });
 
@@ -334,7 +348,7 @@ public class DockerServiceImpl implements DockerService {
         List<String> command = new ArrayList<>();
         command.add("/bin/sh");
         command.add("-c");
-        String cmd = String.join(" ", ContainerServicesProperties.ManageLists.ENTRY_CMD) + " " + ContainerServicesProperties.ManageLists.CREATE_CMD + " < " + "/data/temp/" + tmp_file;
+        String cmd = String.join(" ", ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD) + " " + ContainerServicesProperties.ManageLists.CREATE_CMD + " < " + "/data/temp/" + tmp_file;
         command.add(cmd);
 
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_CREATE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
@@ -356,7 +370,7 @@ public class DockerServiceImpl implements DockerService {
         List<String> command = new ArrayList<>();
         command.add("/bin/sh");
         command.add("-c");
-        String cmd = String.join(" ", ContainerServicesProperties.ManageCorpus.ENTRY_CMD) + " " + ContainerServicesProperties.ManageCorpus.CREATE_CMD + " < " + "/data/temp/" + tmp_file;
+        String cmd = String.join(" ", ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD) + " " + ContainerServicesProperties.ManageCorpus.CREATE_CMD + " < " + "/data/temp/" + tmp_file;
         command.add(cmd);
 
         String result = this.dockerExecutionService.execCommand(CommandType.CORPUS_CREATE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
@@ -368,7 +382,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void copyWordList(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageLists.COPY_CMD);
         command.add(name);
 
@@ -377,7 +391,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void copyCorpus(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageCorpus.COPY_CMD);
         command.add(name);
 
@@ -385,9 +399,15 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void copyModel(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.COPY_CMD);
+    public void copyModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
+        List<String> command;
+        if (ModelType.TOPIC.equals(modelType)) {
+            command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageTopicModels.COPY_CMD);
+        } else {
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageDomainModels.COPY_CMD);
+        }
         command.add(name);
 
         this.dockerExecutionService.execCommand(CommandType.MODEL_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -395,7 +415,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void renameWordList(String oldName, String newName) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageLists.RENAME_CMD);
         command.add(oldName);
         command.add(newName);
@@ -407,7 +427,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void renameCorpus(String oldName, String newName) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageCorpus.RENAME_CMD);
         command.add(oldName);
         command.add(newName);
@@ -418,9 +438,15 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void renameModel(String oldName, String newName) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.RENAME_CMD);
+    public void renameModel(ModelType modelType, String oldName, String newName) throws InterruptedException, IOException, ApiException {
+        List<String> command;
+        if (ModelType.TOPIC.equals(modelType)) {
+            command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageTopicModels.RENAME_CMD);
+        } else {
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageDomainModels.RENAME_CMD);
+        }
         command.add(oldName);
         command.add(newName);
 
@@ -431,7 +457,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void deleteWordList(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageLists.DELETE_CMD);
         command.add(name);
 
@@ -442,7 +468,7 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void deleteCorpus(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.ENTRY_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
         command.add(ContainerServicesProperties.ManageCorpus.DELETE_CMD);
         command.add(name);
 
@@ -452,9 +478,15 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void deleteModel(String name) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.DELETE_CMD);
+    public void deleteModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
+        List<String> command;
+        if (ModelType.TOPIC.equals(modelType)) {
+            command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageTopicModels.DELETE_CMD);
+        } else {
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageDomainModels.DELETE_CMD);
+        }
         command.add(name);
 
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -464,8 +496,8 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public List<TopicEntity> listTopics(String name, TopicLookup lookup) throws IOException, ApiException, InterruptedException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.LIST_TOPICS_CMD);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+        command.add(ContainerServicesProperties.ManageTopicModels.LIST_TOPICS_CMD);
         command.add(name);
 
         String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -492,8 +524,8 @@ public class DockerServiceImpl implements DockerService {
         command.add("/bin/sh");
         command.add("-c");
         command.add(
-                String.join(" ", ContainerServicesProperties.ManageModels.ENTRY_CMD) + " " +
-                        String.join(" ", List.of(ContainerServicesProperties.ManageModels.GET_SIMILAR_TOPICS, name, "< /data/temp/" + tmp_file))
+                String.join(" ", ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD) + " " +
+                        String.join(" ", List.of(ContainerServicesProperties.ManageTopicModels.GET_SIMILAR_TOPICS_CMD, name, "< /data/temp/" + tmp_file))
         );
 
         String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_SIMILAR, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -516,8 +548,8 @@ public class DockerServiceImpl implements DockerService {
         command.add("/bin/sh");
         command.add("-c");
         command.add(
-                String.join(" ", ContainerServicesProperties.ManageModels.ENTRY_CMD) + " " +
-                        String.join(" ", List.of(ContainerServicesProperties.ManageModels.SET_TPC_LABELS, name, "< /data/temp/" + tmp_file))
+                String.join(" ", ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD) + " " +
+                        String.join(" ", List.of(ContainerServicesProperties.ManageTopicModels.SET_TPC_LABELS_CMD, name, "< /data/temp/" + tmp_file))
         );
 
         String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_LABELS_SET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -540,8 +572,8 @@ public class DockerServiceImpl implements DockerService {
         command.add("/bin/sh");
         command.add("-c");
         command.add(
-                String.join(" ", ContainerServicesProperties.ManageModels.ENTRY_CMD) + " " +
-                        String.join(" ", List.of(ContainerServicesProperties.ManageModels.FUSE_TOPICS, name, "< /data/temp/" + tmp_file))
+                String.join(" ", ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD) + " " +
+                        String.join(" ", List.of(ContainerServicesProperties.ManageTopicModels.FUSE_TOPICS_CMD, name, "< /data/temp/" + tmp_file))
         );
 
         String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_FUSE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -555,8 +587,8 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public void sortTopics(String name) throws IOException, ApiException, InterruptedException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageModels.ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageModels.SORT_TOPICS);
+        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+        command.add(ContainerServicesProperties.ManageTopicModels.SORT_TOPICS_CMD);
         command.add(name);
 
         String result = this.dockerExecutionService.execCommand(CommandType.TOPIC_SORT, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -575,8 +607,8 @@ public class DockerServiceImpl implements DockerService {
         command.add("/bin/sh");
         command.add("-c");
         command.add(
-                String.join(" ", ContainerServicesProperties.ManageModels.ENTRY_CMD) + " " +
-                        String.join(" ", List.of(ContainerServicesProperties.ManageModels.DELETE_TOPICS, name, "< /data/temp/" + tmp_file))
+                String.join(" ", ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD) + " " +
+                        String.join(" ", List.of(ContainerServicesProperties.ManageTopicModels.DELETE_TOPICS_CMD, name, "< /data/temp/" + tmp_file))
         );
 
         String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));

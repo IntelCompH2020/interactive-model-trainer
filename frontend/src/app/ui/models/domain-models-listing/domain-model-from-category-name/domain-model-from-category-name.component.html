@@ -1,25 +1,34 @@
-<div class="col-12 pt-3" [formGroup]="formGroup">
+<!-- <div mat-dialog-title>
+    
+</div> -->
 
+<mat-dialog-content *ngIf="formGroup">
 
-    <div class="row align-items-center">
-        <mat-form-field appearance="outline" class="col-auto">
-            <input formControlName="tag" type="text" matInput [placeholder]="'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TAG-PLACEHOLDER' | translate">
-        </mat-form-field>
-    </div>
-
-    <div class="row align-items-end">
+    <div class="row mt-3" [formGroup]="formGroup">
         <div class="col-12 col-lg-6">
-            <div class="row align-items-center">
-                <div class="col-auto">
-                    <h6>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CORPUS' | translate}}</h6>
-                </div>
-                <mat-form-field appearance="outline" class="col">
-                    <input formControlName="corpusId" type="text" matInput value="Semantic Scholar">
-                </mat-form-field>
-            </div>
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.NAME'
+                    | translate}}</mat-label>
+                <input type="text" matInput formControlName="name">
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CORPUS' |
+                    translate}}</mat-label>
+                <mat-select formControlName="corpus" (selectionChange)="onCorpusSelected($event)">
+                    <mat-option [value]="item" *ngFor="let item of availableCorpora">
+                        {{item}}
+                    </mat-option>
+                </mat-select>
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TAG'
+                    | translate}}</mat-label>
+                <input type="text" matInput formControlName="tag">
+            </mat-form-field>
         </div>
-        <div class="d-none d-lg-block col"></div>
-        <div class="col-12 col-lg-3">
+        <div class="col-12 col-lg-6">
             <table class="table table-bordered text-center">
                 <thead class="table-head-gray">
                     <tr>
@@ -38,38 +47,52 @@
                     </tr>
                 </tbody>
             </table>
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.DESCRIPTION'
+                    |
+                    translate}}</mat-label>
+                <textarea matInput formControlName="description" rows="2"></textarea>
+            </mat-form-field>
         </div>
     </div>
 
-
     <div class="row mb-3">
         <div class="col-12">
-            <h6 class="text-bold">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.SELECTED-KEYWORDS' | translate}}</h6>
-            <div class="keyword-container text-muted">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Animi reiciendis debitis ex. Facere dolor, rerum iste nesciunt ullam quasi laboriosam necessitatibus omnis enim repudiandae quibusdam tempora ipsum alias! Nulla, adipisci.
+            <h6 class="text-bold">
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TARGET-CATEGORY'
+                | translate}}</h6>
+            <div class="category-container text-muted">
+                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Animi reiciendis debitis ex. Facere dolor,
+                rerum iste nesciunt ullam quasi laboriosam necessitatibus omnis enim repudiandae quibusdam tempora ipsum
+                alias! Nulla, adipisci.
             </div>
         </div>
     </div>
 
-
-    
-    <div class="row">
+    <div class="row" [formGroup]="formGroup">
         <div class="col-auto">
-            <mat-checkbox formControlName="private">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.PRIVATE' | translate}}</mat-checkbox>
+            <mat-checkbox (change)="onPrivateChange($event)" [checked]="isPrivate">
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.PRIVATE' | translate}}
+            </mat-checkbox>
         </div>
     </div>
     <div class="row">
         <div class="col-auto">
-            <mat-checkbox (ngModelChange)="updateAdvanced($event)" [ngModelOptions]="{standalone: true}" [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.ADVANCED-OPTIONS' | translate}}</mat-checkbox>
+            <mat-checkbox (ngModelChange)="updateAdvanced($event)" [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.ADVANCED-OPTIONS'
+                | translate}}</mat-checkbox>
         </div>
     </div>
 
-    <ng-container *ngIf="advanced">
+    <ng-container *ngIf="advanced" [formGroup]="formGroup">
         <div class="row mt-4">
-            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TYPE' | translate}}</div>
+            <div class="col-3">
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TYPE'
+                | translate}}</div>
             <div class="col-auto">
                 <mat-form-field>
-                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TYPE-PLACEHOLDER' | translate}}</mat-label>
+                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TYPE-PLACEHOLDER'
+                        | translate}}</mat-label>
                     <mat-select formControlName="type">
                         <mat-option [value]="item" *ngFor="let item of availableTypes">
                             {{enumUtils.toDomainModelTypeString(item)}}
@@ -79,7 +102,8 @@
             </div>
             <div class="col-auto">
                 <mat-form-field>
-                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CLASS-PLACEHOLDER' | translate}}</mat-label>
+                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CLASS-PLACEHOLDER'
+                        | translate}}</mat-label>
                     <mat-select formControlName="subtype">
                         <mat-option [value]="item" *ngFor="let item of availableSubTypes">
                             {{enumUtils.toDomainModelSubtypeString(item)}}
@@ -89,7 +113,9 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.NUMBER-OF-HEADS' | translate}}</div>
+            <div class="col-3">
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.NUMBER-OF-HEADS'
+                | translate}}</div>
             <div class="col-auto">
                 <mat-form-field appearance="outline">
                     <input type="number" matInput formControlName="numberOfHeads">
@@ -98,7 +124,9 @@
         </div>
 
         <div class="row">
-            <div class="col-3">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.DEPTH' | translate}}</div>
+            <div class="col-3">
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.DEPTH'
+                | translate}}</div>
             <div class="col-auto">
                 <mat-form-field appearance="outline">
                     <input type="number" matInput formControlName="depth">
@@ -107,13 +135,18 @@
         </div>
     </ng-container>
 
+    <div class="mb-2" *ngIf="!advanced"></div>
+</mat-dialog-content>
 
-    <div class="row justify-content-end">
-        <div class="col-auto">
-            <button mat-button (click)="close()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CANCEL' | translate}}</button>
-        </div>
-        <div class="col-auto">
-            <button mat-raised-button color="accent" (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.SUBMIT' | translate}}</button>
-        </div>
+<mat-dialog-actions align="end" *ngIf="formGroup">
+    <div class="col-auto">
+        <button mat-button
+            (click)="close()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CANCEL'
+            | translate}}</button>
     </div>
-</div>
+    <div class="col-auto">
+        <button mat-raised-button [disabled]="!valid" color="accent"
+            (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.SUBMIT'
+            | translate}}</button>
+    </div>
+</mat-dialog-actions>

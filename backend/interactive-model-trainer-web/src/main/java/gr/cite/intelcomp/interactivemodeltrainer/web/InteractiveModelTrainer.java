@@ -1,5 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web;
 
+import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidationUtils;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.EventSchedulerUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,6 +20,7 @@ public class InteractiveModelTrainer {
     public static void main(String[] args) {
         ApplicationContext applicationContext = SpringApplication.run(InteractiveModelTrainer.class, args);
         EventSchedulerUtils.initializeRunningTasksCheckEvent(applicationContext);
+        ValidationUtils.tapTopicModelParameterValidator();
     }
 
 }

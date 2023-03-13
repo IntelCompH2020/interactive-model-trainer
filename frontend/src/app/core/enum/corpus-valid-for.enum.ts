@@ -1,3 +1,5 @@
-export enum CorpusValifFor {
-  TM = "TM"
+export enum CorpusValidFor {
+  ALL = "ALL",
+  TM = "TM",
+  DC = "DC"
 }

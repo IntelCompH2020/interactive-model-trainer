@@ -50,6 +50,11 @@ export class TopicModelService {
     return this.http.put<void>(url, renameModel);
   }
 
+	copy(name: string): Observable<void>{
+		const url = `${this.apiBase}/${name}/copy`;
+    return this.http.post<void>(url, {});
+  }
+
   delete(name: string): Observable<void>{
 		const url = `${this.apiBase}/${name}/delete`;
     return this.http.delete<void>(url);

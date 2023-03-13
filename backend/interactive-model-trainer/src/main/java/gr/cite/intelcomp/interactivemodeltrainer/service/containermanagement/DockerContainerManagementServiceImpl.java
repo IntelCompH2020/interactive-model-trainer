@@ -23,7 +23,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.mod
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
 import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionService;
 import gr.cite.tools.logging.LoggerService;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,10 +32,11 @@ import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
 
 import javax.annotation.PreDestroy;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service

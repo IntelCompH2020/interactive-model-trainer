@@ -210,9 +210,6 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
       takeUntil(this._destroyed),
       debounceTime(600)
     ).subscribe(filterChanges => {
-      for (let field in filterChanges) {
-        if (filterChanges[field] && filterChanges[field]['value']) filterChanges[field] = filterChanges[field]['value'];
-      }
       this.lookup = Object.assign(this.lookup, filterChanges);
       this.refresh();
     });

@@ -45,7 +45,7 @@ RUN ant jar
 
 RUN chmod +x /app/mallet-2.0.8/bin/mallet
 
-RUN mkdir -p /data/models
+RUN mkdir -p /data/TMmodels
 RUN mkdir -p /data/wordlists
 RUN mkdir -p /data/datasets
 

@@ -27,8 +27,7 @@ import { TopicLabelsComponent } from './topic-models-listing/topic-labels-modal/
 import { RenameTopicComponent } from './topic-models-listing/rename-topic/rename-topic.component';
 import { NewHierarchicalTopicModelComponent } from './topic-models-listing/new-hierarchical-topic-model/new-hierarchical-topic-model.component';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
-
-
+import { RenameDomainModelComponent } from './domain-models-listing/rename-domain-model/rename-domain-model.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +38,7 @@ import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.ser
     RenameTopicModelComponent,
     RenameTopicComponent,
     DomainModelsListingComponent,
+    RenameDomainModelComponent,
     DomainModelFromSourceFileComponent,
     DomainModelFromKeywordsComponent,
     DomainModelFromSelectionFunctionComponent,

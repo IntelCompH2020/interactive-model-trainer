@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { MatCheckbox, MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatSelectChange } from '@angular/material/select';
 import { CorpusVisibility } from '@app/core/enum/corpus-visibility.enum';
 import { IsActive } from '@app/core/enum/is-active.enum';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
@@ -11,7 +12,7 @@ import { RawCorpusService } from '@app/core/services/http/raw-corpus.service';
 import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { LogicalCorpusEditorModel } from '../logical-corpus-editor.model';
+import { getLogicalCorpusUses, LogicalCorpusEditorModel } from '../logical-corpus-editor.model';
 import { MergeLogicalCorpusComponent } from './merge-logical-corpus/merge-logical-corpus.component';
 
 @Component({
@@ -39,6 +40,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   }
 
   availableCorpora: RawCorpus[];
+  corpusValidFor = getLogicalCorpusUses();
 
   constructor(
     private dialogRef: MatDialogRef<NewLogicalCorpusComponent>,
@@ -54,6 +56,9 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
 
     this.editorModel = new LogicalCorpusEditorModel();
     this.formGroup = this.editorModel.buildForm();
+    this.formGroup.patchValue({
+      validFor: "TM"
+    });
     this.selectAllFormGroup = new FormGroup({
       selectAll: new FormControl({ value: false, disabled: true })
     });
@@ -117,6 +122,8 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
           CorpusVisibility.Public
       );
   }
+
+  onValidForSelected(event: MatSelectChange) {}
 
   canMerge(): boolean {
     return this.selectedFieldsCount > 0 && this.formGroup.value['name']

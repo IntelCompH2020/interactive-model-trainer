@@ -2,19 +2,23 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequ
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameter;
+import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidByHierarchical;
 import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 
 @ValidTrainingParameters()
+@ValidByHierarchical()
 public class TrainingTaskRequestPersist {
 
-    private String name, parentName, description, visibility, corpusId, type, htm;
-
+    @NotBlank
+    private String name;
+    private String parentName, description, visibility, corpusId, type;
     private Integer topicId;
-
-    private Double thr;
+    @NotNull
+    private Boolean hierarchical;
 
     private HashMap<String, String> parameters = new HashMap<>();
 
@@ -66,28 +70,12 @@ public class TrainingTaskRequestPersist {
         this.type = type;
     }
 
-    public String getHtm() {
-        return htm;
-    }
-
-    public void setHtm(String htm) {
-        this.htm = htm;
-    }
-
     public Integer getTopicId() {
         return topicId;
     }
 
     public void setTopicId(Integer topicId) {
         this.topicId = topicId;
-    }
-
-    public Double getThr() {
-        return thr;
-    }
-
-    public void setThr(Double thr) {
-        this.thr = thr;
     }
 
     @JsonAnyGetter()
@@ -104,4 +92,11 @@ public class TrainingTaskRequestPersist {
         this.parameters = parameters;
     }
 
+    public Boolean getHierarchical() {
+        return hierarchical;
+    }
+
+    public void setHierarchical(Boolean hierarchical) {
+        this.hierarchical = hierarchical;
+    }
 }

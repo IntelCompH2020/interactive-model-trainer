@@ -1,9 +1,9 @@
 training-parameters:
   params-by-trainer:
     mallet: ["TM.ntopics", "MalletTM.alpha", "MalletTM.num_iterations", "MalletTM.optimize_interval", "MalletTM.doc_topic_thr", "MalletTM.num_threads", "TM.thetas_thr", "MalletTM.token_regexp", "MalletTM.num_iterations_inf", MalletTM.labels]
-    prodLDA: []
-    ctm: []
-    sparkLDA: []
+    prodLDA: ["TM.ntopics", "ProdLDA.model_type", "ProdLDA.num_epochs", "ProdLDA.batch_size", "TM.thetas_thr", "ProdLDA.hidden_sizes", "ProdLDA.activation", "ProdLDA.dropout", "ProdLDA.learn_priors", "ProdLDA.lr", "ProdLDA.momentum", "ProdLDA.solver", "ProdLDA.reduce_on_plateau", "ProdLDA.topic_prior_mean", "ProdLDA.topic_prior_variance", "ProdLDA.num_samples", "ProdLDA.num_data_loader_workers"]
+    ctm: ["TM.ntopics", "CTM.model_type", "CTM.num_epochs", "CTM.batch_size", TM.thetas_thr, "CTM.ctm_model_type", "CTM.hidden_sizes", "CTM.activation", "CTM.dropout", "CTM.learn_priors", "CTM.lr", "CTM.momentum", "CTM.solver", "CTM.num_samples", "CTM.reduce_on_plateau", "CTM.topic_prior_mean", "CTM.topic_prior_variance", "CTM.num_data_loader_workers", "CTM.label_size", "CTM.loss_weights", "CTM.sbert_model_to_load"]
+    sparkLDA: ["TM.ntopics", "SparkLDA.alpha", "SparkLDA.maxIterations", "SparkLDA.optimizer", "SparkLDA.optimizeDocConcentration", "SparkLDA.subsamplingRate", "TM.thetas_thr"]
     hierarchical: ["Hierarchical.thr", "Hierarchical.htm"]
   params-catalog:
     '[TM.ntopics]':
@@ -62,3 +62,233 @@ training-parameters:
       name: "MalletTM.labels"
       type: "STRING"
       defaultValue: "wiki_categories.json"
+    '[ProdLDA.model_type]':
+      name: "ProdLDA.model_type"
+      type: "STRING"
+      defaultValue: "ProdLDA"
+      select: true
+      options: ["LDA", "ProdLDA"]
+    '[ProdLDA.num_epochs]':
+      name: "ProdLDA.num_epochs"
+      type: "NUMBER"
+      defaultValue: 100
+      min: 1
+      max: 1000
+    '[ProdLDA.batch_size]':
+      name: "ProdLDA.batch_size"
+      type: "NUMBER"
+      defaultValue: 64
+      min: 1
+      max: 1000
+    '[ProdLDA.hidden_sizes]':
+      name: "ProdLDA.hidden_sizes"
+      type: "STRING"
+      defaultValue: "(100,100)"
+    '[ProdLDA.activation]':
+      name: "ProdLDA.activation"
+      type: "STRING"
+      defaultValue: "softplus"
+      select: true
+      options: ["softplus", "relu", "sigmoid", "leakyrelu", "rrelu", "elu", "selu", "tanh"]
+    '[ProdLDA.dropout]':
+      name: "ProdLDA.dropout"
+      type: "NUMBER"
+      defaultValue: 0.2
+      min: 0
+      max: 1
+    '[ProdLDA.learn_priors]':
+      name: "ProdLDA.learn_priors"
+      type: "STRING"
+      defaultValue: "True"
+      select: true
+      options: ["True", "False"]
+    '[ProdLDA.lr]':
+      name: "ProdLDA.lr"
+      type: "NUMBER"
+      defaultValue: 0.002
+      min: 0
+      max: 1
+    '[ProdLDA.momentum]':
+      name: "ProdLDA.momentum"
+      type: "NUMBER"
+      defaultValue: 0.99
+      min: 0
+      max: 1
+    '[ProdLDA.solver]':
+      name: "ProdLDA.solver"
+      type: "STRING"
+      defaultValue: "adam"
+      select: true
+      options: ["adagrad", "adam", "sgd", "adadelta", "rmsprop"]
+    '[ProdLDA.reduce_on_plateau]':
+      name: "ProdLDA.reduce_on_plateau"
+      type: "STRING"
+      defaultValue: "False"
+      select: true
+      options: [ "True", "False" ]
+    '[ProdLDA.topic_prior_mean]':
+      name: "ProdLDA.topic_prior_mean"
+      type: "NUMBER"
+      defaultValue: 0
+    '[ProdLDA.topic_prior_variance]':
+      name: "ProdLDA.topic_prior_variance"
+      type: "NUMBER"
+      defaultValue: null
+    '[ProdLDA.num_samples]':
+      name: "ProdLDA.num_samples"
+      type: "NUMBER"
+      defaultValue: 10
+      min: 1
+      max: 1000
+    '[ProdLDA.num_data_loader_workers]':
+      name: "ProdLDA.num_data_loader_workers"
+      type: "NUMBER"
+      defaultValue: 0
+      min: 0
+      max: 128
+    '[CTM.model_type]':
+      name: "CTM.model_type"
+      type: "STRING"
+      defaultValue: "ProdLDA"
+      select: true
+      options: [ "LDA", "ProdLDA" ]
+    '[CTM.num_epochs]':
+      name: "CTM.num_epochs"
+      type: "NUMBER"
+      defaultValue: 100
+      min: 1
+      max: 1000
+    '[CTM.batch_size]':
+      name: "CTM.batch_size"
+      type: "NUMBER"
+      defaultValue: 64
+      min: 1
+      max: 1000
+    '[CTM.ctm_model_type]':
+      name: "CTM.ctm_model_type"
+      type: "STRING"
+      defaultValue: 64
+      select: true
+      options: ["CombinedTM", "ZeroShotTM"]
+    '[CTM.hidden_sizes]':
+      name: "CTM.hidden_sizes"
+      type: "STRING"
+      defaultValue: "(100,100)"
+    '[CTM.activation]':
+      name: "CTM.activation"
+      type: "STRING"
+      defaultValue: "softplus"
+      select: true
+      options: ["softplus", "relu", "sigmoid", "leakyrelu", "rrelu", "elu", "selu", "tanh"]
+    '[CTM.dropout]':
+      name: "CTM.dropout"
+      type: "NUMBER"
+      defaultValue: 0.2
+      min: 0
+      max: 1
+    '[CTM.learn_priors]':
+      name: "CTM.learn_priors"
+      type: "STRING"
+      defaultValue: "True"
+      select: true
+      options: ["True", "False"]
+    '[CTM.lr]':
+      name: "CTM.lr"
+      type: "NUMBER"
+      defaultValue: 0.002
+      min: 0
+      max: 1
+    '[CTM.momentum]':
+      name: "CTM.momentum"
+      type: "NUMBER"
+      defaultValue: 0.99
+      min: 0
+      max: 1
+    '[CTM.solver]':
+      name: "CTM.solver"
+      type: "STRING"
+      defaultValue: "adam"
+      select: true
+      options: [ "adagrad", "adam", "sgd", "adadelta", "rmsprop" ]
+    '[CTM.num_samples]':
+      name: "CTM.num_samples"
+      type: "NUMBER"
+      defaultValue: 10
+      min: 1
+      max: 1000
+    '[CTM.reduce_on_plateau]':
+      name: "CTM.reduce_on_plateau"
+      type: "STRING"
+      defaultValue: "False"
+      select: true
+      options: [ "True", "False" ]
+    '[CTM.topic_prior_mean]':
+      name: "CTM.topic_prior_mean"
+      type: "NUMBER"
+      defaultValue: 0
+    '[CTM.topic_prior_variance]':
+      name: "CTM.topic_prior_variance"
+      type: "NUMBER"
+      defaultValue: null
+    '[CTM.num_data_loader_workers]':
+      name: "CTM.num_data_loader_workers"
+      type: "NUMBER"
+      defaultValue: 0
+      min: 1
+      max: 128
+    '[CTM.label_size]':
+      name: "CTM.label_size"
+      type: "NUMBER"
+      defaultValue: 0
+      min: 0
+      max: 1000
+    '[CTM.loss_weights]':
+      name: "CTM.loss_weights"
+      type: "STRING"
+      defaultValue: null
+    '[CTM.sbert_model_to_load]':
+      name: "CTM.sbert_model_to_load"
+      type: "STRING"
+      defaultValue: "paraphrase-distilroberta-base-v1"
+    '[SparkLDA.alpha]':
+      name: "SparkLDA.alpha"
+      type: "NUMBER"
+      defaultValue: 5
+      min: 1
+      max: 1000
+    '[SparkLDA.maxIterations]':
+      name: "SparkLDA.maxIterations"
+      type: "NUMBER"
+      defaultValue: 20
+      min: 0
+      max: 10000
+    '[SparkLDA.optimizer]':
+      name: "SparkLDA.optimizer"
+      type: "STRING"
+      defaultValue: "online"
+      select: true
+      options: ["online", "em"]
+    '[SparkLDA.optimizeDocConcentration]':
+      name: "SparkLDA.optimizeDocConcentration"
+      type: "STRING"
+      defaultValue: "True"
+      select: true
+      options: ["True", "False"]
+    '[SparkLDA.subsamplingRate]':
+      name: "SparkLDA.subsamplingRate"
+      type: "NUMBER"
+      defaultValue: 0.05
+      min: 0.01
+      max: 1
+    '[Hierarchical.thr]':
+      name: "Hierarchical.thr"
+      type: "NUMBER"
+      defaultValue: 0.2
+      min: 0.01
+      max: 1
+    '[Hierarchical.htm]':
+      name: "Hierarchical.htm"
+      type: "STRING"
+      defaultValue: "htm-ds"
+      select: true
+      options: ["htm-ws","htm-ds"]

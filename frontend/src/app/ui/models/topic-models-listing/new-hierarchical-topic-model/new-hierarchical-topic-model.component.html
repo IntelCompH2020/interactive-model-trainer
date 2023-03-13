@@ -93,6 +93,8 @@
                 [formGroup]="formGroup"></app-model-parameters-table>
         </div>
     </div>
+
+    <div class="mb-2" *ngIf="!hierarchical"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup">

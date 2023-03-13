@@ -1,5 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.model;
 
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Model;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -21,16 +22,16 @@ public abstract class ModelService<M extends Model, L extends Lookup> {
 
     public abstract List<M> getAll(L lookup) throws IOException, InterruptedException, ApiException;
 
-    public void copy(String name) throws InterruptedException, IOException, ApiException {
-        dockerService.copyModel(name);
+    public void copy(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
+        dockerService.copyModel(modelType, name);
     }
 
-    public void rename(String oldName, String newName) throws InterruptedException, IOException, ApiException {
-        dockerService.renameModel(oldName, newName);
+    public void rename(ModelType modelType, String oldName, String newName) throws InterruptedException, IOException, ApiException {
+        dockerService.renameModel(modelType, oldName, newName);
     }
 
-    public void delete(String name) throws IOException, InterruptedException, ApiException {
-        dockerService.deleteModel(name);
+    public void delete(ModelType modelType, String name) throws IOException, InterruptedException, ApiException {
+        dockerService.deleteModel(modelType, name);
     }
 
 }

@@ -5,6 +5,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.DomainModelBuilder;
+import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.DomainModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.ModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -16,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Service
-public class DomainModelService extends ModelService<DomainModel, ModelLookup>{
+public class DomainModelService extends ModelService<DomainModel, DomainModelLookup>{
 
     @Autowired
     protected DomainModelService(BuilderFactory builderFactory, DockerService dockerService) {
@@ -25,7 +26,7 @@ public class DomainModelService extends ModelService<DomainModel, ModelLookup>{
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<DomainModel> getAll(ModelLookup lookup) throws IOException, InterruptedException, ApiException {
+    public List<DomainModel> getAll(DomainModelLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setModelType(ModelType.DOMAIN);
         List<? extends ModelEntity> data = dockerService.listModels(lookup);
         return builderFactory.builder(DomainModelBuilder.class).build(lookup.getProject(), (List<DomainModelEntity>) data);

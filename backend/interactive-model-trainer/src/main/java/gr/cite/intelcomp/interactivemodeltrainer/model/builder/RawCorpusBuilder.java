@@ -3,7 +3,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.RawCorpusEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.model.CorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpus;
 import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpusJson;
 import gr.cite.tools.exception.MyApplicationException;

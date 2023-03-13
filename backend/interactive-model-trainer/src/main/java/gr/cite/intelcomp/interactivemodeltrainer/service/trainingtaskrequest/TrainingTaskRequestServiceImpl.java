@@ -54,7 +54,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
 
     @Override
     public TrainingTaskRequest persistTrainingTaskForRootModel(TrainingTaskRequestPersist model) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException {
-        Path configFile = topicModelingParametersService.generateRootConfigurationFile(model);
+        Path configFile = topicModelingParametersService.generateRootConfigurationFile(model, userScope.getUserId());
         logger.debug("Training config file for model '{}' generated -> {}", model.getName(), configFile.toString());
 
         UUID requestId = UUID.randomUUID();
@@ -74,7 +74,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig("/data/models/"+ model.getName() + "/" + configFile.getFileName().toString());
+        entity.setConfig("/data/TMmodels/"+ model.getName() + "/" + configFile.getFileName().toString());
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName("trainModels");
         entity.setJobId(UUID.randomUUID().toString());
@@ -89,7 +89,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
 
     @Override
     public TrainingTaskRequest persistPreparingTaskForHierarchicalModel(TrainingTaskRequestPersist model) throws InvalidApplicationException {
-        Path configFile = topicModelingParametersService.generateHierarchicalConfigurationFile(model);
+        Path configFile = topicModelingParametersService.generateHierarchicalConfigurationFile(model, userScope.getUserId());
         logger.debug("Training config file for hierarchical model '{}' generated -> {}", model.getName(), configFile.toString());
 
         UUID requestId = UUID.randomUUID();
@@ -109,8 +109,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        String parentConfig = "/data/models/"+ model.getParentName() + "/trainconfig.json";
-        String config = "/data/models/"+ model.getParentName() + "/" + model.getName() + "/trainconfig.json";
+        String parentConfig = "/data/TMmodels/"+ model.getParentName() + "/trainconfig.json";
+        String config = "/data/TMmodels/"+ model.getParentName() + "/" + model.getName() + "/trainconfig.json";
         entity.setConfig(String.join(",", parentConfig, config));
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName("trainModels");
@@ -143,7 +143,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        String config = "/data/models/"+ model.getParentName() + "/" + model.getName() + "/trainconfig.json";
+        String config = "/data/TMmodels/"+ model.getParentName() + "/" + model.getName() + "/trainconfig.json";
         entity.setConfig(config);
         entity.setCreatorId(userId);
         entity.setJobName("trainModels");

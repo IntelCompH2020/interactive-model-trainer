@@ -29,7 +29,8 @@ RUN apt install python-is-python3
 
 # Directories architecture
 WORKDIR /app
-RUN mkdir -p /data/models
+RUN mkdir -p /data/TMmodels
+RUN mkdir -p /data/DCmodels
 
 # Application
 COPY . .

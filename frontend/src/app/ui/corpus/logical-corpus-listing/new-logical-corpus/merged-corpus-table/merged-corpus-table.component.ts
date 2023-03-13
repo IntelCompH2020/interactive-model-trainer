@@ -14,6 +14,7 @@ export class MergedCorpusTableComponent implements OnInit {
     name: null, 
     description: null,
     visibility: null, 
+    valid_for: null,
     Dtsets: [],
     fields: []
   };

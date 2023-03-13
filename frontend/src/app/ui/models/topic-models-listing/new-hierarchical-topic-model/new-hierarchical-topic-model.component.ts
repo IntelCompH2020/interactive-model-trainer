@@ -23,7 +23,6 @@ import { CTMParams, hierarchicalParams, malletParams, prodLDAParams, sparkLDAPar
 export class NewHierarchicalTopicModelComponent implements OnInit {
 
   availableTypes: TopicModelType[];
-  availableSubTypes: TopicModelSubtype[];
 
   TopicModelType = TopicModelType;
   selectedType: TopicModelType = TopicModelType.mallet;
@@ -68,7 +67,7 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data
   ) {
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
-    this.availableSubTypes = this.enumUtils.getEnumValues<TopicModelSubtype>(TopicModelSubtype).filter(x => x !== TopicModelSubtype.All);
+    this.availableTypes = this.availableTypes.filter(t => t !== TopicModelType.all);
   }
 
   ngOnInit(): void {
@@ -179,6 +178,7 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
       topicId: this.formGroup.get('topicId').value,
       type: this.formGroup.get('type').value,
       visibility: this.isPrivate ? "Private" : "Public",
+      hierarchical: true,
       parameters
     }
 

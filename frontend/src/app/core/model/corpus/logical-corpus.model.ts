@@ -1,4 +1,4 @@
-import { CorpusValifFor } from '@app/core/enum/corpus-valid-for.enum';
+import { CorpusValidFor } from '@app/core/enum/corpus-valid-for.enum';
 import { CorpusVisibility } from '@app/core/enum/corpus-visibility.enum';
 import { Guid } from '@common/types/guid';
 import { Corpus, CorpusPersist } from './corpus.model';
@@ -12,7 +12,7 @@ export interface LogicalCorpus extends Corpus {
   creator: string;
   creation_date: Date;
   dtsets: LocalDataset[];
-  valid_for?: CorpusValifFor;
+  valid_for?: CorpusValidFor;
 }
 
 export interface LogicalCorpusPersistHelper extends CorpusPersist {
@@ -36,6 +36,7 @@ export interface LogicalCorpusPersist {
   name: string;
   description: string;
   visibility: CorpusVisibility;
+  valid_for: string;
   fields: LogicalCorpusField[];
   Dtsets: LocalDataset[];
 }

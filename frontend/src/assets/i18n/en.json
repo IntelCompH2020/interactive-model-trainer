@@ -18,6 +18,10 @@
 				"SUCCESSFUL-OPERATION": "The operation completed without errors.",
 				"SUCCESSFUL-OPERATION-REFRESH-PAGE": "The operation completed without errors. The page got refreshed.",
 				"UNSUCCESSFUL-OPERATION": "An error occured. Operation failed."
+			},
+			"SELECT": {
+				"NONE": "None",
+				"ALL": "All"
 			}
 		},
 		"NAVIGATION": {
@@ -94,7 +98,8 @@
 				"CREATOR": "Creator",
 				"VALID-FOR": "Valid For",
 				"VALID-FOR-OPTIONS": {
-					"TM": "Topic Modeling"
+					"TM": "Topic Modeling",
+					"DC": "Domain Classification"
 				}
 			},
 			"RAW-CORPUS": "Raw Corpora",
@@ -116,7 +121,7 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My Corpus"
+					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-CORPUS-DIALOG": {
 					"NAME": "Name",
@@ -143,7 +148,8 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My Labels"
+					"MINE-ITEMS": "Show only mine",
+					"VALID-FOR":"Valid for"
 				},
 				"NEW-MERGED-FIELD-TITLE": "Merged field",
 				"NEW-CORPUS-DIALOG": {
@@ -158,6 +164,11 @@
 					"ADD-CORPUS": "Add corpus",
 					"PRIVATE": "Private",
 					"COMBINE-FIELDS": "Combine fields with same name",
+					"VALID-FOR": "Valid for",
+					"VALID-FOR-OPTIONS": {
+						"TM": "Topic Modeling",
+						"DC": "Domain Classification"
+					},
 					"CANCEL": "Cancel",
 					"SUBMIT": "Merge"
 				},
@@ -196,13 +207,15 @@
 			"LDA-VIS": "Show LDA visualization",
 			"RETRAIN": "Retrain",
 			"EVALUATE": "Evaluate",
+			"CLASSIFY": "Classify",
 			"NONE-SELECTED": "No model selected",
 			"DETAILS": "Details",
 			"NAME": "Name",
 			"DESCRIPTION": "Description",
+			"TAG": "Tag",
 			"CREATION-DATE": "Creation Date",
 			"CREATOR": "Creator",
-			"CORPUS":"Corpus",
+			"CORPUS": "Corpus",
 			"TYPE": "Type",
 			"LOCATION": "Location",
 			"MORE-DETAILS": "More Details",
@@ -225,7 +238,7 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My Models",
+					"MINE-ITEMS": "Show only mine",
 					"TYPE": "Type",
 					"SUBTYPE": "Subtype"
 				},
@@ -418,12 +431,15 @@
 				"ADD-NEW-FROM-CATEGORY-NAME": "From category name",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"TAG-PLACEHOLDER": "Tag",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My models"
+					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG": {
-					"TAG-PLACEHOLDER": "Tag",
+					"NAME": "Name",
+					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
+					"TAG": "Tag",
 					"FILE": "File",
 					"FILE-OVERVIEW": "File Overview",
 					"LOAD-FILE": "Load File...",
@@ -438,7 +454,10 @@
 					"SUBMIT": "Create"
 				},
 				"NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG": {
+					"NAME": "Name",
+					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
+					"TAG": "Tag",
 					"SUGGESTED-KEYWORDS": "Suggested keywords",
 					"SELECTED-KEYWORDS": "Selected keywords",
 					"PRIVATE": "Private",
@@ -452,8 +471,10 @@
 					"SUBMIT": "Create"
 				},
 				"NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG": {
-					"TAG-PLACEHOLDER": "Tag",
+					"NAME": "Name",
+					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
+					"TAG": "Tag",
 					"TOPIC-ID": "Topic ID",
 					"TOPIC-DESCRIPTION": "Topic description",
 					"TOPIC-WEIGHT": "Topic Weight",
@@ -468,9 +489,11 @@
 					"SUBMIT": "Create"
 				},
 				"NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG": {
-					"TAG-PLACEHOLDER": "Tag",
+					"NAME": "Name",
+					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
-					"SELECTED-KEYWORDS": "Selected keywords",
+					"TAG": "Tag",
+					"TARGET-CATEGORY": "Target Category",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
 					"TYPE": "Type",
@@ -480,6 +503,9 @@
 					"DEPTH": "Depth",
 					"CANCEL": "Cancel",
 					"SUBMIT": "Create"
+				},
+				"RENAME-DIALOG": {
+					"TITLE": "Rename Domain Model"
 				},
 				"DOMAIN-MODEL-TYPES": {
 					"TRANSFORMERS": "Transformers",
@@ -530,7 +556,7 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My equivalencies"
+					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-KEYWORD-FROM-FILE-DIALOG": {
 					"NAME": "Name",
@@ -571,7 +597,7 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My stopwords"
+					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-STOPWORD-FROM-FILE-DIALOG": {
 					"NAME": "Name",
@@ -609,7 +635,7 @@
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My equivalencies"
+					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-EQUIVALENCE-FROM-FILE-DIALOG": {
 					"NAME": "Name",

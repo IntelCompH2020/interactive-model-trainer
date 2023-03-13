@@ -43,7 +43,7 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._name))) m.setName(d.getName());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._dtsets))) m.setDtsets(d.getDtsets());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._dtsets))) m.setDtsets(d.getDatasets());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._valid_for))) m.setValid_for(d.getValid_for());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._creation_date))) m.setCreation_date(d.getCreation_date());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._creator))) m.setCreator(UUID.fromString(d.getCreator()));

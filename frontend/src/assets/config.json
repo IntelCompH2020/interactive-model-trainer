@@ -9,20 +9,20 @@
 	"userSettingsVersion": "1",
 	"idp_service": {
 		"enabled": true,
-		"address": "ΧΧΧΧΧ",
-		"realm": "ΧΧΧΧΧ",
-		"flow": "ΧΧΧΧΧ",
-		"clientId": "ΧΧΧΧΧ",
-		"redirectUri": "ΧΧΧΧΧ",
-		"scope": "ΧΧΧΧΧ"
+		"address": "http://dev03.local.cite.gr:60201/auth",
+		"realm": "sti-viewer",
+		"flow": "hybrid",
+		"clientId": "intelcomp-sti-viewer-dev",
+		"redirectUri": "http://localhost:40000/login/post",
+		"scope": "openid profile email address phone"
 	},
 	"notification_service": {
 		"enabled": true,
-		"address": "ΧΧΧΧΧ"
+		"address": "http://dev04.local.cite.gr:50302/"
 	},
 	"app_service": {
 		"enabled": true,
-		"address": "ΧΧΧΧΧ"
+		"address": "http://localhost:8085/"
 	},
 	"logging": {
 		"enabled": true,

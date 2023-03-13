@@ -35,7 +35,6 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
 
     @Override
     public void create(LogicalCorpus logicalCorpus) throws IOException, InterruptedException, ApiException {
-        if (logicalCorpus.getValid_for() == null) logicalCorpus.setValid_for(CorpusValidFor.TM);
         LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus);
         dockerService.createCorpus(corpus);
     }

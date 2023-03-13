@@ -1,5 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LocalDataset;
 
@@ -12,7 +13,7 @@ public class LogicalCorpusEntity extends CorpusEntity {
     private CorpusValidFor valid_for;
 
     public static final String _dtsets = "dtsets";
-    private ArrayList<LocalDataset> Dtsets;
+    private ArrayList<LocalDataset> datasets;
 
     public static final String _creation_date = "creation_date";
     private Date creation_date;
@@ -27,12 +28,14 @@ public class LogicalCorpusEntity extends CorpusEntity {
         this.valid_for = valid_for;
     }
 
-    public ArrayList<LocalDataset> getDtsets() {
-        return Dtsets;
+    @JsonProperty("Dtsets")
+    public ArrayList<LocalDataset> getDatasets() {
+        return datasets;
     }
 
-    public void setDtsets(ArrayList<LocalDataset> dtsets) {
-        Dtsets = dtsets;
+    @JsonProperty("Dtsets")
+    public void setDatasets(ArrayList<LocalDataset> datasets) {
+        this.datasets = datasets;
     }
 
     @Override

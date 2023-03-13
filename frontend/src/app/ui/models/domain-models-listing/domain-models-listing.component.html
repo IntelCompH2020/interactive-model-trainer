@@ -6,12 +6,20 @@
         </h4>
     </div>
 
-    <mat-form-field appearance="outline" class="col padding-margin-none">
-        <mat-icon matPrefix class="search-icon-search-bar">search</mat-icon>
-        <input type="text" [placeholder]="'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SEARCH-PLACEHOLDER' | translate" matInput>
-    </mat-form-field>
-    <div class="col-auto">
+    <form [formGroup]="likeFilterFormGroup" class="col padding-margin-none">
+        <mat-form-field appearance="outline" class="padding-margin-none w-100">
+            <mat-icon matPrefix class="search-icon-search-bar">search</mat-icon>
+            <input type="search"
+                [placeholder]="'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SEARCH-PLACEHOLDER' | translate"
+                matInput formControlName="like">
+        </mat-form-field>
+    </form>
 
+    <div class="col-auto" *ngIf="items_loading">
+        <mat-spinner color="accent" diameter="20"></mat-spinner>
+    </div>
+
+    <div class="col-auto">
         <button mat-button [matMenuTriggerFor]="menu" class="background-gray">
             <mat-icon>
                 filter_alt
@@ -40,7 +48,7 @@
             </mat-icon>
         </button>
         <mat-menu #newModelMenu="matMenu">
-            <button mat-menu-item (click)="newDomainModelFromSourceFile()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button>
+            <!-- <button mat-menu-item (click)="newDomainModelFromSourceFile()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button> -->
             <button mat-menu-item (click)="newDomainModelFromKeywords()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-LIST-KEYWORDS' | translate}}</button>
             <button mat-menu-item (click)="newDomainModelFromSelectionFunction()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-SELECTION-FUNCTION' | translate}}</button>
             <button mat-menu-item (click)="newDomainModelFromCategoryName()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-CATEGORY-NAME' | translate}}</button>

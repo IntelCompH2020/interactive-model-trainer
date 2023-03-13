@@ -1,6 +1,5 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
@@ -21,6 +20,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Service
 @Primary
@@ -39,19 +39,20 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
     }
 
     @Override
-    public Path generateRootConfigurationFile(TrainingTaskRequestPersist params) {
+    public Path generateRootConfigurationFile(TrainingTaskRequestPersist config, UUID userId) {
         TopicModelingParametersModel contents = new TopicModelingParametersModel();
-        contents.setName(params.getName());
-        contents.setDescription(params.getDescription());
-        contents.setVisibility(params.getVisibility());
-        contents.setTrainer(params.getType());
+        contents.setName(config.getName());
+        contents.setDescription(config.getDescription());
+        contents.setVisibility(config.getVisibility());
+        contents.setCreator(userId.toString());
+        contents.setTrainer(config.getType());
         contents.setCreationDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSD").format(Date.from(Instant.now())));
-        contents.setTrDtSet("/data/datasets/" + params.getCorpusId() + ".json");
+        contents.setTrDtSet("/data/datasets/" + config.getCorpusId() + ".json");
         HashMap<String, Object> tmParams = new HashMap<>();
         //Extracting parameter names
-        params.getParameters().keySet().forEach((key) -> {
+        config.getParameters().keySet().forEach((key) -> {
             if (key.split("\\.").length > 1) {
-                String paramValue = params.getParameters().get(key);
+                String paramValue = config.getParameters().get(key);
                 try {
                     if (paramValue != null) {
                         if ("labels".equals(key.split("\\.")[1]))
@@ -70,7 +71,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 }
             }
         });
-        if ("mallet".equals(params.getType())) {
+        if ("mallet".equals(config.getType())) {
             tmParams.put("mallet_path", "/app/mallet-2.0.8/bin/mallet");
         }
         contents.setTmParams(tmParams);
@@ -79,7 +80,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setPreProcessing(new TopicModelingParametersModel.PreprocessingParameters());
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder") + "/" + params.getName();
+            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + config.getName();
             Path modelFolderPath = Path.of(modelFolder);
             if (!Files.isDirectory(modelFolderPath)) {
                 Files.createDirectory(modelFolderPath);
@@ -89,7 +90,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
             } else {
-                logger.debug("Training configuration file for model '{}' already exists, overriding contents", params.getName());
+                logger.debug("Training configuration file for model '{}' already exists, overriding contents", config.getName());
             }
             String json = jsonHandlingService.toJsonSafe(contents);
             Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
@@ -104,11 +105,12 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
     }
 
     @Override
-    public Path generateHierarchicalConfigurationFile(TrainingTaskRequestPersist params) {
+    public Path generateHierarchicalConfigurationFile(TrainingTaskRequestPersist params, UUID userId) {
         HierarchicalTopicModelingParametersModel contents = new HierarchicalTopicModelingParametersModel();
         contents.setName(params.getName());
         contents.setDescription(params.getDescription());
         contents.setVisibility(params.getVisibility());
+        contents.setCreator(userId.toString());
         contents.setTrainer(params.getType());
         contents.setTopicId(params.getTopicId());
         contents.setThreshold(Double.valueOf(params.getParameters().get("Hierarchical.thr")));
@@ -147,7 +149,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setTmParams(tmParams);
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder")
+            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
                     + "/" + params.getParentName()
                     + "/" + params.getName();
             Path modelFolderPath = Path.of(modelFolder);
@@ -175,7 +177,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
     @Override
     public Path getHierarchicalConfigurationFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder")
+        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
                 + "/" + config.getParentName()
                 + "/" + config.getName();
         return Path.of(modelFolder, "trainconfig.json");
@@ -183,7 +185,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
     @Override
     public Path getHierarchicalConfigurationParentFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("models_folder")
+        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
                 + "/" + config.getParentName();
         return Path.of(modelFolder, "trainconfig.json");
     }
@@ -196,6 +198,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         private String name;
         private String description;
         private String visibility;
+        private String creator;
         private String trainer;
         private String trDtSet;
         private PreprocessingParameters preProcessing;
@@ -226,6 +229,14 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
         public void setVisibility(String visibility) {
             this.visibility = visibility;
+        }
+
+        public String getCreator() {
+            return creator;
+        }
+
+        public void setCreator(String creator) {
+            this.creator = creator;
         }
 
         public String getTrainer() {
@@ -376,6 +387,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         private String name;
         private String description;
         private String visibility;
+        private String creator;
         private String trainer;
         private Integer topicId;
         private Double threshold;
@@ -407,6 +419,14 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
         public void setVisibility(String visibility) {
             this.visibility = visibility;
+        }
+
+        public String getCreator() {
+            return creator;
+        }
+
+        public void setCreator(String creator) {
+            this.creator = creator;
         }
 
         public String getTrainer() {

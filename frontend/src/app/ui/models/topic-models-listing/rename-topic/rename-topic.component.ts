@@ -25,6 +25,10 @@ export class RenameTopicComponent implements OnInit {
     return this.data.model?.name;
   }
 
+  get valid() {
+    return this.data?.model && this.formGroup.valid && this.topics.length > 0
+  }
+
   constructor(
     private dialogRef: MatDialogRef<RenameTopicComponent>,
     private topicModelService: TopicModelService,
@@ -39,12 +43,8 @@ export class RenameTopicComponent implements OnInit {
     this.loadTopicLabels();
   }
 
-  valid(): boolean {
-    return this.data?.model && this.formGroup.valid && this.topics.length > 0
-  }
-
   submit(): void {
-    if (this.valid()) {
+    if (this.valid) {
       this.updateTopicLabels();
       this.topicModelService.setTopicLabels(this.modelName, { labels: this.labels })
         .subscribe(

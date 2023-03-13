@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CorpusValidFor } from '@app/core/enum/corpus-valid-for.enum';
 import { IsActive } from '@app/core/enum/is-active.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
@@ -37,26 +38,9 @@ import { RenameLogicalCorpusComponent } from './rename-logical-corpus/rename-log
 })
 export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalCorpus, LogicalCorpusLookup> implements OnInit {
   userSettingsKey: UserSettingsKey;
-  filterEditorConfiguration: FilterEditorConfiguration = {
-    items: [
-      {
-        key: 'createdAt',
-        type: FilterEditorFilterType.DatePicker,
-        label: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATION-DATE-PLACEHOLDER'
-      },
-      {
-        key: 'creator',
-        type: FilterEditorFilterType.TextInput,
-        placeholder: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATOR-PLACEHOLDER'
-      },
-      {
-        key: 'mine',
-        type: FilterEditorFilterType.Checkbox,
-        label: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.MINE-ITEMS'
-      },
-    ]
-  };
+  availableValidFor: CorpusValidFor[];
 
+  filterEditorConfiguration: FilterEditorConfiguration;
   likeFilterFormGroup: FormGroup;
   filterFormGroup: FormGroup;
 
@@ -138,6 +122,8 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
   ) { 
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		this.lookup = this.initializeLookup();
+    this.availableValidFor = this.enumUtils.getEnumValues<CorpusValidFor>(CorpusValidFor);
+    this._buildFilterEditorConfiguration();
   }
 
   ngOnInit(): void {
@@ -149,7 +135,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
 
   public refresh(): void{
     this.onCorpusSelect.emit(null);
-    this.modelSelectionService.corpus = "";
+    this.modelSelectionService.corpus = undefined;
     this.onPageLoad({offset: 0} as PageLoadEvent);
   }
 
@@ -170,6 +156,34 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
       this.snackbars.successfulUpdate();
       this.refresh();
     });
+  }
+
+  private _buildFilterEditorConfiguration(): void {
+    this.filterEditorConfiguration = {
+      items: [
+        {
+          key: 'createdAt',
+          type: FilterEditorFilterType.DatePicker,
+          label: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATION-DATE-PLACEHOLDER'
+        },
+        {
+          key: 'creator',
+          type: FilterEditorFilterType.TextInput,
+          placeholder: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATOR-PLACEHOLDER'
+        },
+        {
+          key: 'corpusValidFor',
+          type: FilterEditorFilterType.Select,
+          label: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.VALID-FOR',
+          availableValues: this.availableValidFor.map(type => ({ label: () => this.enumUtils.toCorpusValidForString(type), value: type.toString() }))
+        },
+        {
+          key: 'mine',
+          type: FilterEditorFilterType.Checkbox,
+          label: 'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.MINE-ITEMS'
+        },
+      ]
+    };
   }
 
   public export(corpus: LogicalCorpus): void {
@@ -208,9 +222,11 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
       this.lookup = Object.assign(this.lookup, filterChanges);
       this.refresh();
     });
+    this.filterFormGroup.patchValue({corpusValidFor: "ALL"}, {emitEvent: null});
   }
 
   onColumnsChanged(event: ColumnsChangedEvent) {
+    this.onCorpusSelect.emit(null);
 		this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
 	}
 
@@ -231,7 +247,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
   onRowActivated($event: RowActivateEvent){
     if($event.type === 'click'){
       this.onCorpusSelect.emit($event.row);
-      this.modelSelectionService.corpus = ($event.row as LogicalCorpus).name;
+      this.modelSelectionService.corpus = $event.row as LogicalCorpus;
     }
   }
 

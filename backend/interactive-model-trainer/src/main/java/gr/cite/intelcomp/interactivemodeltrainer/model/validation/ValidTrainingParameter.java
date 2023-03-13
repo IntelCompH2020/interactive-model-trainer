@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = TrainingTaskParameterValidator.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(ValidTrainingParameter.List.class)
+@Repeatable(ValidTrainingParameter.ValidTrainingParameterList.class)
 @Documented
 public @interface ValidTrainingParameter {
 
@@ -21,7 +21,7 @@ public @interface ValidTrainingParameter {
     @Target({ElementType.TYPE})
     @Retention(RetentionPolicy.RUNTIME)
     @Documented
-    @interface List {
+    @interface ValidTrainingParameterList {
         ValidTrainingParameter[] value();
     }
 

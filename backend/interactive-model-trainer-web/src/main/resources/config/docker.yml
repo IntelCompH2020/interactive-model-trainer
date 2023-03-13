@@ -15,16 +15,23 @@ docker:
     manageModels:
       image: mng-mdls
       volumeConfiguration:
-        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models,
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels,
+          ${DOCKER_WORKSPACE}\models_docker\DCmodels:/data/DCmodels,
           ${DOCKER_WORKSPACE}\models_docker\temp:/data/temp
   jobs:
     trainModels:
       image: topicmodeling
       volumeConfiguration:
-        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models,
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels,
           ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,
           ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets
     resetModel:
       image: mng-mdls-tasks
       volumeConfiguration:
-        volume_binding: ${DOCKER_WORKSPACE}\models_docker\models:/data/models
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels
+    trainDomainModels:
+      image: domainmodeling
+      volumeConfiguration:
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\DCmodels:/data/DCmodels,
+          ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,
+          ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets

@@ -64,7 +64,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
             List<TrainingTaskRequestEntity> runningTrainRequests = trainingTaskRequestQuery
                     .status(TrainingTaskRequestStatus.PENDING)
-                    .jobName("trainModels")
+                    .jobName("trainModels", "trainDomainModels")
                     .collect();
             logger.debug("Currently running training tasks count -> {}", runningTrainRequests.size());
 

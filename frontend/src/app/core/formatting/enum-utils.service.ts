@@ -7,6 +7,7 @@ import { LanguageType } from '@app/core/enum/language-type.enum';
 import { RoleType } from '@app/core/enum/role-type.enum';
 import { BaseEnumUtilsService } from '@common/base/base-enum-utils.service';
 import { TranslateService } from '@ngx-translate/core';
+import { CorpusValidFor } from '../enum/corpus-valid-for.enum';
 import { DomainModelSubType, DomainModelType } from '../enum/domain-model-type.enum';
 import { TopicModelSubtype } from '../enum/topic-model-subtype.enum';
 import { TopicModelType } from '../enum/topic-model.-type.enum';
@@ -51,8 +52,18 @@ export class AppEnumUtils extends BaseEnumUtilsService {
 		}
 	}
 
+	public toCorpusValidForString(value: CorpusValidFor): string {
+		switch (value) {
+			case CorpusValidFor.ALL: return this.language.instant('APP.COMMONS.SELECT.ALL');
+			case CorpusValidFor.TM: return this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.VALID-FOR-OPTIONS.TM');
+			case CorpusValidFor.DC: return this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.VALID-FOR-OPTIONS.DC');
+			default: return '-';
+		}
+	}
+
 	public toTopicModelTypeString(value: TopicModelType): string {
 		switch (value) {
+			case TopicModelType.all: return this.language.instant('APP.COMMONS.SELECT.ALL');
 			case TopicModelType.mallet: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-TYPES.MALLET-LDA');
 			case TopicModelType.prodLDA: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-TYPES.PROD-LDA');
 			case TopicModelType.CTM: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-TYPES.CTM');

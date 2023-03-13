@@ -16,6 +16,10 @@ export class RenameTopicModelComponent implements OnInit {
     return this.data?.model.name;
   }
 
+  get valid() {
+    return this.formGroup?.valid;
+  }
+
   constructor(
     private dialogRef: MatDialogRef<RenameTopicModelComponent>,
     private topicModelService: TopicModelService,

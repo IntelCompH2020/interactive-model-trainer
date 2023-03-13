@@ -851,9 +851,9 @@ export function sparkLDAParams(advanced: boolean): TopicModelParam[] {
       default: 0.05,
       tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.PARAMETERS-TOOLTIPS.SUBSAMPLING-RATE',
       validation: {
-        min: 0.05,
-        max: 100,
-        step: 0.05
+        min: 0.01,
+        max: 1,
+        step: 0.01
       }
     }
   ];
@@ -963,6 +963,8 @@ export function extractAllTopicModelParametersByTrainer(trainer: Trainer): Topic
   } else if (trainer === "sparkLDA") {
     params.push(...sparkLDAParams(false));
     params.push(...sparkLDAParams(true));
+  } else if (trainer === "all") {
+    return extractAllTopicModelParameters();
   }
 
   return params;
@@ -986,4 +988,4 @@ export interface TopicModelParam {
   }
 }
 
-export type Trainer = "mallet" | "prodLDA" | "ctm" | "sparkLDA";
+export type Trainer = "mallet" | "prodLDA" | "ctm" | "sparkLDA" | "all";

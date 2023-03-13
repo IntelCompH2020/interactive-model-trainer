@@ -23,4 +23,24 @@ export class DomainModelService {
 			.post<QueryResult<DomainModel>>(url, q).pipe(
 				catchError((error: any) => throwError(error)));
 	}
+
+	rename(renameModel: RenameDomainModel ): Observable<void>{
+    const url = `${this.apiBase}/rename`;
+    return this.http.put<void>(url, renameModel);
+  }
+
+	copy(name: string): Observable<void>{
+		const url = `${this.apiBase}/${name}/copy`;
+    return this.http.post<void>(url, {});
+  }
+
+  delete(name: string): Observable<void>{
+		const url = `${this.apiBase}/${name}/delete`;
+    return this.http.delete<void>(url);
+  }
+}
+
+interface RenameDomainModel{
+  oldName: string;
+  newName: string;
 }

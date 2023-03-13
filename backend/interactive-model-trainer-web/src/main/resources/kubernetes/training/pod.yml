@@ -22,17 +22,17 @@ spec:
   volumes:
     - name: imt-training-temp-conf
       hostPath:
-        path: ΧΧΧΧΧ/wordlist_docker/wordlists
+        path: /run/desktop/mnt/host/c/Users/sgiannopoulos/Desktop/intelcomp/imt/wordlist_docker/wordlists
         type: Directory
     - name: imt-mng-wordlist-data
       hostPath:
-        path: ΧΧΧΧΧ/wordlist_docker/wordlists
+        path: /run/desktop/mnt/host/c/Users/sgiannopoulos/Desktop/intelcomp/imt/wordlist_docker/wordlists
         type: Directory
     - name: imt-mng-corpus-data
       hostPath:
-        path: ΧΧΧΧΧ/corpus_docker/datasets
+        path: /run/desktop/mnt/host/c/Users/sgiannopoulos/Desktop/intelcomp/imt/corpus_docker/datasets
         type: Directory
     - name: imt-mng-models-data
       hostPath:
-        path: ΧΧΧΧΧ/models_docker/models
+        path: /run/desktop/mnt/host/c/Users/sgiannopoulos/Desktop/intelcomp/imt/models_docker/models
         type: Directory

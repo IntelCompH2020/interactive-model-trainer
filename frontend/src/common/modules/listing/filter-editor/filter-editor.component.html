@@ -33,7 +33,7 @@
                 <mat-form-field>
                     <mat-label>{{item.label | translate}}</mat-label>
                     <mat-select [formControl]="filterFormGroup.get(item.key)">
-                        <mat-option [value]="option" *ngFor="let option of item.availableValues">{{option.label()}}</mat-option>
+                        <mat-option [value]="option.value" *ngFor="let option of item.availableValues">{{option.label()}}</mat-option>
                     </mat-select>
                 </mat-form-field>
             </ng-container>

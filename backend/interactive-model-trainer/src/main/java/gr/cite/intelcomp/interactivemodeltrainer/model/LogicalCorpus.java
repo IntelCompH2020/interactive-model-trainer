@@ -3,6 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class LogicalCorpus extends Corpus{
     private UUID creator;
 
     public static final String _valid_for = "valid_for";
+    @NotNull
     private CorpusValidFor valid_for;
 
     public static final String _dtsets = "dtsets";

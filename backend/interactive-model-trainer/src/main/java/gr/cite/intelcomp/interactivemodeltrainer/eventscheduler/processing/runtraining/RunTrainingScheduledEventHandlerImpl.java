@@ -10,7 +10,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.EventProcessingStatus;
-import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.TrainingScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.resetmodel.ResetModelScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.config.RunTrainingSchedulerEventConfig;
@@ -18,7 +17,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.EventSchedulerUtils;
-import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
@@ -45,8 +43,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(RunTrainingScheduledEventHandlerImpl.class));
     private final JsonHandlingService jsonHandlingService;
-    protected final ApplicationContext applicationContext;
-
+    private final ApplicationContext applicationContext;
     private final RunTrainingSchedulerEventConfig config;
 
     @Autowired
@@ -75,12 +72,12 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
         try {
             RunTrainingConsistencyHandler runTrainingConsistencyHandler = applicationContext.getBean(RunTrainingConsistencyHandler.class);
-            Boolean isConsistent = (runTrainingConsistencyHandler.isConsistent(new RunTrainingConsistencyPredicates(trainingTaskRequestId)));
+            Boolean isConsistent = runTrainingConsistencyHandler.isConsistent(new RunTrainingConsistencyPredicates(trainingTaskRequestId));
             if (isConsistent) {
                 TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
                 Long runningTasks = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.PENDING)
-                        .jobName("trainModels")
+                        .jobName("trainModels", "trainDomainModels")
                         .count();
                 if (runningTasks >= config.get().getParallelTrainingsThreshold()) {
                     logger.debug("Currently running tasks have reached the limit ({}), postponing train task to run again in {} seconds...", config.get().getParallelTrainingsThreshold(), config.get().getPostponePeriodInSeconds());
@@ -114,7 +111,6 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         ));
                     }
                     //auditService.trackIdentity(AuditableAction.IdentityTracking_Action);
-
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
                     logger.error(e.getLocalizedMessage());
@@ -253,8 +249,8 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                 String.join(
                         " ",
                         "manageModels.py",
-                        ContainerServicesProperties.ManageModels.PATH_TM_MODELS,
-                        ContainerServicesProperties.ManageModels.RESET_CMD,
+                        ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
+                        ContainerServicesProperties.ManageTopicModels.RESET_CMD,
                         modelName
                 )
         );

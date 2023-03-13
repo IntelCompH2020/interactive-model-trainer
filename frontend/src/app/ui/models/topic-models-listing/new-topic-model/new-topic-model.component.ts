@@ -25,7 +25,6 @@ import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
 export class NewTopicModelComponent implements OnInit {
 
   availableTypes: TopicModelType[];
-  availableSubTypes: TopicModelSubtype[];
 
   availableCorpora: string[];
 
@@ -68,10 +67,11 @@ export class NewTopicModelComponent implements OnInit {
     protected modelSelectionService: ModelSelectionService
   ) {
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
-    this.availableSubTypes = this.enumUtils.getEnumValues<TopicModelSubtype>(TopicModelSubtype).filter(x => x !== TopicModelSubtype.All);
+    this.availableTypes = this.availableTypes.filter(t => t !== TopicModelType.all);
   
-    const lookup =  new LogicalCorpusLookup();
-    lookup.project = {fields: [nameof<LogicalCorpus>(x => x.name)]}
+    const lookup = new LogicalCorpusLookup();
+    lookup.project = {fields: [nameof<LogicalCorpus>(x => x.name)]};
+    lookup.corpusValidFor = "TM";
     this.corpusService.query(lookup).subscribe((response) => {
       const corpora = response.items;
       this.availableCorpora = corpora.map(corpus => corpus.name)
@@ -83,7 +83,7 @@ export class NewTopicModelComponent implements OnInit {
       this.editorModel = new TopicModelEditorModel();
       this.formGroup = this.editorModel.buildForm(null, false, this.selectedType);
       this.formGroup.get('type').setValue(this.selectedType);
-      let corpusToSet: string = this.modelSelectionService.corpus.toString();
+      let corpusToSet: string = (this.modelSelectionService.corpus?.name && this.modelSelectionService.corpus?.valid_for === "TM") ? this.modelSelectionService.corpus?.name : "";
       if (this.selectedCorpus) corpusToSet = this.selectedCorpus;
       this.formGroup.get('corpus').setValue(corpusToSet);
       this.setDefaultParamValues();
@@ -187,6 +187,7 @@ export class NewTopicModelComponent implements OnInit {
       corpusId: this.formGroup.get('corpus').value,
       type: this.formGroup.get('type').value,
       visibility: this.isPrivate ? "Private" : "Public",
+      hierarchical: false,
       parameters
     }
 
