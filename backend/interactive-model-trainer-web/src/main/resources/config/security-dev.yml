@@ -4,4 +4,4 @@ web:
       resource:
         token-type: JWT #| opaque
         jwt:
-          issuer-uri: http://dev03.local.cite.gr:60201/auth/realms/sti-viewer
+          issuer-uri: ΧΧΧΧΧ
