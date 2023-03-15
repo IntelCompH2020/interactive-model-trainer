@@ -5,6 +5,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.audit.AuditableAction;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
+import gr.cite.intelcomp.interactivemodeltrainer.common.utils.EventSchedulerUtils;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
@@ -16,7 +17,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtr
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
-import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.EventSchedulerUtils;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;

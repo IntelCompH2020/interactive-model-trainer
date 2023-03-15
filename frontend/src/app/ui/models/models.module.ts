@@ -28,6 +28,7 @@ import { RenameTopicComponent } from './topic-models-listing/rename-topic/rename
 import { NewHierarchicalTopicModelComponent } from './topic-models-listing/new-hierarchical-topic-model/new-hierarchical-topic-model.component';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { RenameDomainModelComponent } from './domain-models-listing/rename-domain-model/rename-domain-model.component';
+import { KeywordService } from '@app/core/services/http/keyword.service';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { RenameDomainModelComponent } from './domain-models-listing/rename-domai
   providers:[
     TopicModelService,
     DomainModelService,
-    LogicalCorpusService
+    LogicalCorpusService,
+    KeywordService
   ]
 })
 export class ModelsModule { }

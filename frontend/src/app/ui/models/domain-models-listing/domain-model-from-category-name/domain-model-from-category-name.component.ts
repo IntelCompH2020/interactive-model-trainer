@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DomainModelSubType, DomainModelType } from '@app/core/enum/domain-model-type.enum';
@@ -35,6 +35,10 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
     return this.formGroup?.valid;
   }
 
+  get corpusInput(): FormControl {
+    return this.formGroup?.get('corpus') as FormControl;
+  }
+
   get isPrivate(): boolean {
     return !!(this.formGroup?.get(nameof<DomainModel>(x => x.visibility))?.value === ModelVisibility.Private);
   }
@@ -53,7 +57,8 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
     lookup.corpusValidFor = "DC";
     this.corpusService.query(lookup).subscribe((response) => {
       const corpora = response.items;
-      this.availableCorpora = corpora.map(corpus => corpus.name)
+      this.availableCorpora = corpora.map(corpus => corpus.name);
+      this.corpusInput.enable();
     });
   }
 
@@ -61,6 +66,7 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
     setTimeout(() => {
       this.editorModel = new DomainModelEditorModel();
       this.formGroup = this.editorModel.buildForm();
+      this.corpusInput.disable();
 
       this.updateAdvanced(this.advanced);
 

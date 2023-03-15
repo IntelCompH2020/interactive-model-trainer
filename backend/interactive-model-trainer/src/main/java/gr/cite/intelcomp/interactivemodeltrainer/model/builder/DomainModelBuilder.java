@@ -2,9 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
-import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;

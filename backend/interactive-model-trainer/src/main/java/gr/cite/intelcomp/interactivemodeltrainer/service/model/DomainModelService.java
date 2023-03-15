@@ -6,7 +6,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.DomainModelBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.DomainModelLookup;
-import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.ModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import io.kubernetes.client.openapi.ApiException;

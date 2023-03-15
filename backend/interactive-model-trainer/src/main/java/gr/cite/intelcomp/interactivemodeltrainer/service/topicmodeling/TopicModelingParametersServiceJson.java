@@ -80,7 +80,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setPreProcessing(new TopicModelingParametersModel.PreprocessingParameters());
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + config.getName();
+            String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + config.getName();
             Path modelFolderPath = Path.of(modelFolder);
             if (!Files.isDirectory(modelFolderPath)) {
                 Files.createDirectory(modelFolderPath);
@@ -149,7 +149,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setTmParams(tmParams);
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
+            String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                     + "/" + params.getParentName()
                     + "/" + params.getName();
             Path modelFolderPath = Path.of(modelFolder);
@@ -177,7 +177,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
     @Override
     public Path getHierarchicalConfigurationFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                 + "/" + config.getParentName()
                 + "/" + config.getName();
         return Path.of(modelFolder, "trainconfig.json");
@@ -185,7 +185,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
     @Override
     public Path getHierarchicalConfigurationParentFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder")
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                 + "/" + config.getParentName();
         return Path.of(modelFolder, "trainconfig.json");
     }

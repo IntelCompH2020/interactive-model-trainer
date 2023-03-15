@@ -27,6 +27,16 @@
                     | translate}}</mat-label>
                 <input type="text" matInput formControlName="tag">
             </mat-form-field>
+            <mat-form-field class="w-100" appearance="outline">
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.MODEL' |
+                    translate}}</mat-label>
+                <mat-select (selectionChange)="onModelSelected($event)" [disabled]="!availableModels">
+                    <mat-option [value]="item" *ngFor="let item of availableModels">
+                        {{item}}
+                    </mat-option>
+                </mat-select>
+                <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
         </div>
         <div class="col-12 col-lg-6">
             <table class="table table-bordered text-center">
@@ -51,14 +61,14 @@
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.DESCRIPTION'
                     |
                     translate}}</mat-label>
-                <textarea matInput formControlName="description" rows="2"></textarea>
+                <textarea matInput formControlName="description" rows="5"></textarea>
             </mat-form-field>
         </div>
     </div>
 
     <div class="row mb-4">
         <div class="col-12">
-            <table class="table table-bordered text-center">
+            <table class="table table-bordered text-center" [formGroup]="topicWeightsFormGroup">
                 <thead class="table-head-gray">
                     <tr>
                         <th>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.TOPIC-ID'
@@ -69,8 +79,8 @@
                             | translate}}</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white">
-                    <tr *ngFor="let item of tableItems">
+                <tbody class="bg-white" *ngIf="topics.length">
+                    <tr *ngFor="let item of topics; index as i">
                         <td>
                             {{item.id}}
                         </td>
@@ -78,8 +88,13 @@
                             {{item.description}}
                         </td>
                         <td>
-                            {{item.weight}}
+                            <input matInput type="number" step="0.0001" min="0" max="1" [formControl]="weightsInputs.controls[i]">
                         </td>
+                    </tr>
+                </tbody>
+                <tbody class="bg-white" *ngIf="!topics.length">
+                    <tr>
+                        <td colspan="3" class="text-center w-100 p-2">Select a topic model above to view the topics</td>
                     </tr>
                 </tbody>
             </table>
@@ -151,6 +166,8 @@
             </div>
         </div>
     </ng-container>
+
+    <div class="mb-2" *ngIf="!advanced"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup">

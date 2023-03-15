@@ -80,37 +80,37 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     }
 
     public String getPyLDAvis(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "pyLDAvis.html");
         return Files.readString(file);
     }
 
     public String getD3(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "d3.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvisLibrary(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "ldavis.v3.0.0.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvis(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "pyLDAvis.html");
         return Files.readString(file);
     }
 
     public String getD3(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "d3.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvisLibrary(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "ldavis.v3.0.0.js");
         return Files.readString(file);
     }

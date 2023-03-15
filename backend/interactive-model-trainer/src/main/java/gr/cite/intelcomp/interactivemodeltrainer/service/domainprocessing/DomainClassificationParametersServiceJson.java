@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
-import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersServiceJson;
 import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,12 +45,12 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
         contents.setCreationDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSD").format(Date.from(Instant.now())));
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder") + "/" + config.getName();
+            String modelFolder = containerServicesProperties.getServices().get("domainTraining").getModelsFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + config.getName();
             Path modelFolderPath = Path.of(modelFolder);
             if (!Files.isDirectory(modelFolderPath)) {
                 Files.createDirectory(modelFolderPath);
             }
-            Path filePath = Path.of(modelFolder, "trainconfig.json");
+            Path filePath = Path.of(modelFolder, "dc_config.json");
             Path logs = Path.of(modelFolder, "execution.log");
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);

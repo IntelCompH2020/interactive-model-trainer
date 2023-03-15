@@ -10,9 +10,12 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.Scheduled
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.resetmodel.ResetModelScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundomaintraining.RunDomainTrainingScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.RunTrainingScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
+import gr.cite.intelcomp.interactivemodeltrainer.service.domainprocessing.DomainClassificationParametersService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersService;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -41,14 +44,16 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     private final UserScope userScope;
     private final EntityManager entityManager;
     private final TopicModelingParametersService topicModelingParametersService;
+    private final DomainClassificationParametersService domainClassificationParametersService;
     private final JsonHandlingService jsonHandlingService;
 
     @Autowired
-    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, JsonHandlingService jsonHandlingService) {
+    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService) {
         this.scheduledEventManageService = scheduledEventManageService;
         this.userScope = userScope;
         this.entityManager = entityManager;
         this.topicModelingParametersService = topicModelingParametersService;
+        this.domainClassificationParametersService = domainClassificationParametersService;
         this.jsonHandlingService = jsonHandlingService;
     }
 
@@ -179,6 +184,41 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setConfig("");
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName("resetModel");
+        entity.setJobId(UUID.randomUUID().toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+        return result;
+    }
+
+    @Override
+    public TrainingTaskRequest persistDomainTrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
+        Path configFile = domainClassificationParametersService.generateConfigurationFile(model, userScope.getUserId());
+        logger.debug("Training config file for model '{}' generated -> {}", model.getName(), configFile.toString());
+
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig("/data/DCmodels/"+ model.getName() + "/" + configFile.getFileName().toString());
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName("trainDomainModels");
         entity.setJobId(UUID.randomUUID().toString());
         entity.setCreatedAt(Instant.now());
         entityManager.persist(entity);

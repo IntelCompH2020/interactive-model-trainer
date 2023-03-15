@@ -18,13 +18,13 @@ public class ValidationUtils {
             for (Annotation annotation :  clazz.getAnnotations()) {
                 if (annotation.annotationType().getSimpleName().equals("ValidTrainingParameterList")) {
                     ValidTrainingParameter.ValidTrainingParameterList validatorWrapper = (ValidTrainingParameter.ValidTrainingParameterList) annotation;
-                    logger.debug("-------------------------------------------------------------");
-                    logger.debug("Validation set for the following parameters (topic modeling):");
-                    logger.debug("-------------------------------------------------------------");
+                    logger.trace("-------------------------------------------------------------");
+                    logger.trace("Validation set for the following parameters (topic modeling):");
+                    logger.trace("-------------------------------------------------------------");
                     for (ValidTrainingParameter inner: validatorWrapper.value()) {
-                        logger.debug(inner.parameter());
+                        logger.trace(inner.parameter());
                     }
-                    logger.debug("-------------------------------------------------------------");
+                    logger.trace("-------------------------------------------------------------");
                 }
             }
         } catch (ClassNotFoundException e) {

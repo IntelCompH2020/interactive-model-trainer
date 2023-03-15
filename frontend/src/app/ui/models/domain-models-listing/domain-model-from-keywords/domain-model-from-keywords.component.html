@@ -62,24 +62,39 @@
 
     <div class="row mb-4">
         <div class="col-12 col-lg-6">
-
             <h6 class="text-bold">
                 {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.SUGGESTED-KEYWORDS'
                 | translate}}</h6>
-            <div class="keyword-container">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Facilis velit, in repellendus molestiae et
-                consequatur ullam dolor officia? Obcaecati placeat cupiditate veniam error numquam reiciendis quod
-                officia tenetur alias assumenda!
+                <mat-form-field class="w-100 mt-2" appearance="outline">
+                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.KEYWORD' |
+                        translate}}</mat-label>
+                    <mat-select (selectionChange)="onKeywordListSelected($event)" [disabled]="!availableKeywordLists">
+                        <mat-option [value]="item" *ngFor="let item of availableKeywordLists">
+                            {{item.name}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <div class="keyword-container">
+                <mat-chip-list>
+                    <mat-chip class="cursor-pointer" *ngFor="let item of keywords; let index = index" (click)="addKeyword($event.target.innerText)">
+                        {{item}}
+                    </mat-chip>
+                </mat-chip-list>
             </div>
         </div>
         <div class="col">
             <h6 class="text-bold">
                 {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.SELECTED-KEYWORDS'
                 | translate}}</h6>
-            <div class="keyword-container text-muted">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Aliquid tempora earum saepe impedit eligendi
-                cum delectus obcaecati. Doloribus repellendus eum cum molestias optio! Dignissimos enim, a iusto
-                consequuntur itaque facere!
+            <div class="keyword-container text-muted h-100">
+                <mat-chip-list>
+                    <mat-chip *ngFor="let item of selectedKeywords;">
+                        {{item}}
+                        <button matChipRemove (click)="removeKeyword(item)">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </mat-chip>
+                </mat-chip-list>
             </div>
         </div>
     </div>

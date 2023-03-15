@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DomainModelSubType, DomainModelType } from '@app/core/enum/domain-model-type.enum';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
+import { Keyword } from '@app/core/model/keyword/keyword.model';
 import { DomainModel } from '@app/core/model/model/domain-model.model';
+import { KeywordLookup } from '@app/core/query/keyword.lookup';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
+import { KeywordService } from '@app/core/services/http/keyword.service';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { nameof } from 'ts-simple-nameof';
@@ -24,6 +27,10 @@ export class DomainModelFromKeywordsComponent implements OnInit {
 
   availableCorpora: string[];
 
+  keywords: string[];
+  selectedKeywords: Set<string> = new Set();
+  availableKeywordLists: Keyword[];
+
   selectedCorpus: string = undefined;
 
   editorModel: DomainModelEditorModel;
@@ -35,6 +42,10 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     return this.formGroup?.valid;
   }
 
+  get corpusInput(): FormControl {
+    return this.formGroup?.get('corpus') as FormControl;
+  }
+
   get isPrivate(): boolean {
     return !!(this.formGroup?.get(nameof<DomainModel>(x => x.visibility))?.value === ModelVisibility.Private);
   }
@@ -42,18 +53,32 @@ export class DomainModelFromKeywordsComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<DomainModelFromKeywordsComponent>,
     public enumUtils: AppEnumUtils,
+    private keywordService: KeywordService,
     private corpusService: LogicalCorpusService,
     protected modelSelectionService: ModelSelectionService
   ) {
     this.availableSubTypes = this.enumUtils.getEnumValues<DomainModelSubType>(DomainModelSubType);
     this.availableTypes = this.enumUtils.getEnumValues<DomainModelType>(DomainModelType);
 
-    const lookup = new LogicalCorpusLookup();
-    lookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
-    lookup.corpusValidFor = "DC";
-    this.corpusService.query(lookup).subscribe((response) => {
+    const logicalLookup = new LogicalCorpusLookup();
+    logicalLookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
+    logicalLookup.corpusValidFor = "DC";
+    this.corpusService.query(logicalLookup).subscribe((response) => {
       const corpora = response.items;
-      this.availableCorpora = corpora.map(corpus => corpus.name)
+      this.availableCorpora = corpora.map(corpus => corpus.name);
+      this.corpusInput.enable();
+    });
+
+    const keywordLookup = new KeywordLookup();
+    keywordLookup.project = { 
+      fields: [
+        nameof<Keyword>(x => x.name),
+        nameof<Keyword>(x => x.wordlist)
+      ] 
+    };
+    this.keywordService.query(keywordLookup).subscribe((response) => {
+      const keywords = response.items;
+      this.availableKeywordLists = keywords;
     });
   }
 
@@ -61,6 +86,7 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     setTimeout(() => {
       this.editorModel = new DomainModelEditorModel();
       this.formGroup = this.editorModel.buildForm();
+      this.corpusInput.disable();
 
       this.updateAdvanced(this.advanced);
 
@@ -86,6 +112,19 @@ export class DomainModelFromKeywordsComponent implements OnInit {
 
   onCorpusSelected(event: any) {
     this.selectedCorpus = event.value;
+  }
+
+  onKeywordListSelected(event: any) {
+    const keywordList: Keyword = event.value as Keyword;
+    this.keywords = this.availableKeywordLists.filter(k => k.name === keywordList.name)[0].wordlist;
+  }
+
+  addKeyword(keyword: string) {
+    this.selectedKeywords.add(keyword);
+  }
+
+  removeKeyword(keyword: string) {
+    this.selectedKeywords.delete(keyword);
   }
 
   updateAdvanced(value: boolean) {

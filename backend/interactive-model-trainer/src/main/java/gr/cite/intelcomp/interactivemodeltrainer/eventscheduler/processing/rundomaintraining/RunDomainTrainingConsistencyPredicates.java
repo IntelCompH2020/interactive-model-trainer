@@ -1,4 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundomaintraining;
 
-public class RunDomainTrainingConsistencyPredicates {
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.ConsistencyPredicates;
+
+public class RunDomainTrainingConsistencyPredicates implements ConsistencyPredicates {
 }

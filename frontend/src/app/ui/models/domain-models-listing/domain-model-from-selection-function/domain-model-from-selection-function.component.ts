@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DomainModelSubType, DomainModelType } from '@app/core/enum/domain-model-type.enum';
@@ -7,8 +7,12 @@ import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
 import { DomainModel } from '@app/core/model/model/domain-model.model';
+import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
+import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
+import { TopicLookup } from '@app/core/query/topic.lookup';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
+import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { nameof } from 'ts-simple-nameof';
 import { DomainModelEditorModel } from '../domain-model-editor.model';
@@ -23,16 +27,33 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
   availableSubTypes: DomainModelSubType[];
 
   availableCorpora: string[];
+  availableModels: string[];
+
+  topics: {
+    id: number,
+    description: string,
+    weight: number
+  }[] = [];
+  topicWeights: number[] = [];
 
   selectedCorpus: string = undefined;
 
   editorModel: DomainModelEditorModel;
   formGroup: FormGroup;
+  topicWeightsFormGroup: FormGroup;
 
   advanced: boolean = false;
 
   get valid() {
-    return this.formGroup?.valid;
+    return this.formGroup?.valid && this.topicWeightsFormGroup?.valid;
+  }
+
+  get weightsInputs(): FormArray {
+    return this.topicWeightsFormGroup?.get('weights') as FormArray;
+  }
+
+  get corpusInput(): FormControl {
+    return this.formGroup?.get('corpus') as FormControl;
   }
 
   get isPrivate(): boolean {
@@ -42,18 +63,21 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<DomainModelFromSelectionFunctionComponent>,
     public enumUtils: AppEnumUtils,
+    private formBuilder: FormBuilder,
     private corpusService: LogicalCorpusService,
+    private topicModelService: TopicModelService,
     protected modelSelectionService: ModelSelectionService
   ) {
     this.availableSubTypes = this.enumUtils.getEnumValues<DomainModelSubType>(DomainModelSubType);
     this.availableTypes = this.enumUtils.getEnumValues<DomainModelType>(DomainModelType);
 
-    const lookup = new LogicalCorpusLookup();
-    lookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
-    lookup.corpusValidFor = "DC";
-    this.corpusService.query(lookup).subscribe((response) => {
+    const corpusLookup = new LogicalCorpusLookup();
+    corpusLookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
+    corpusLookup.corpusValidFor = "DC";
+    this.corpusService.query(corpusLookup).subscribe((response) => {
       const corpora = response.items;
-      this.availableCorpora = corpora.map(corpus => corpus.name)
+      this.availableCorpora = corpora.map(corpus => corpus.name);
+      this.corpusInput.enable();
     });
   }
 
@@ -61,6 +85,13 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
     setTimeout(() => {
       this.editorModel = new DomainModelEditorModel();
       this.formGroup = this.editorModel.buildForm();
+      this.corpusInput.disable();
+      this.topicWeightsFormGroup = this.formBuilder.group({
+        weights: this.formBuilder.array([])
+      });
+      this.topicWeightsFormGroup.valueChanges.subscribe((value) => {
+        this.topicWeights = value.weights;
+      });
 
       this.updateAdvanced(this.advanced);
 
@@ -69,12 +100,6 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
       this.formGroup.get('corpus').setValue(corpusToSet);
     }, 0);
   }
-
-  tableItems = Array(5).fill(0).map((_, index) => ({
-    id: index,
-    description: 'service.platform.infrastructure.datum.network ' + index,
-    weight: (index * 0.1).toString().substring(0, 3)
-  }))
 
   close(): void {
     this.dialogRef.close();
@@ -92,6 +117,39 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
 
   onCorpusSelected(event: any) {
     this.selectedCorpus = event.value;
+
+    const modelsLookup = new TopicModelLookup();
+    modelsLookup.project = { fields: [nameof<TopicModel>(x => x.name)] };
+    this.topicModelService.query(modelsLookup).subscribe((response) => {
+      const models = response.items;
+      this.availableModels = models.map(model => model.name);
+    });
+  }
+
+  onModelSelected(event: any) {
+    const model = event.value;
+
+    const topicsLookup = new TopicLookup();
+    topicsLookup.project = { 
+      fields: [
+        nameof<Topic>(x => x.id),
+        nameof<Topic>(x => x.label),
+        nameof<Topic>(x => x.size)
+      ] 
+    };
+    this.topicModelService.queryTopics(model, topicsLookup).subscribe((response) => {
+      const topics = response.items;
+      this.topics = topics.map((topic) => {
+        return {
+          id: topic.id,
+          description: topic.label,
+          weight: +topic.size
+        }
+      });
+      for (let topic of topics) {
+        this.weightsInputs.push(new FormControl(+topic.size))
+      }
+    });
   }
 
   updateAdvanced(value: boolean) {

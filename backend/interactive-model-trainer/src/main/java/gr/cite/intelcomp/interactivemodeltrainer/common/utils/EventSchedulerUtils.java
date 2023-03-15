@@ -1,4 +1,4 @@
-package gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling;
+package gr.cite.intelcomp.interactivemodeltrainer.common.utils;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;

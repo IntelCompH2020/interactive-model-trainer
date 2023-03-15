@@ -1,7 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.corpus;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.data.CorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.LogicalCorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpus;

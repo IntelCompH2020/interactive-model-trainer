@@ -12,7 +12,7 @@ public class DomainClassificationRequestPersist {
     private String tag;
     private String task;
     private String keywords;
-    private HashMap<String, String> params;
+    private HashMap<String, String> parameters;
 
     public String getName() {
         return name;
@@ -60,5 +60,29 @@ public class DomainClassificationRequestPersist {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public String getTask() {
+        return task;
+    }
+
+    public void setTask(String task) {
+        this.task = task;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
+    }
+
+    public HashMap<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(HashMap<String, String> parameters) {
+        this.parameters = parameters;
     }
 }

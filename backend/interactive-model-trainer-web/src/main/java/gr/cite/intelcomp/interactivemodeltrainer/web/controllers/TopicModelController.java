@@ -164,7 +164,7 @@ public class TopicModelController {
 
     @PostMapping("train")
     @Transactional
-    public TrainingTaskRequest TrainTopicModel(@Valid @RequestBody TrainingTaskRequestPersist trainingTaskRequestPersist) throws InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException {
+    public TrainingTaskRequest trainTopicModel(@Valid @RequestBody TrainingTaskRequestPersist trainingTaskRequestPersist) throws InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException {
         if (!trainingTaskRequestPersist.getHierarchical()) return trainingTaskRequestService.persistTrainingTaskForRootModel(trainingTaskRequestPersist);
         else return trainingTaskRequestService.persistPreparingTaskForHierarchicalModel(trainingTaskRequestPersist);
     }
@@ -172,13 +172,13 @@ public class TopicModelController {
     @GetMapping("train/logs/{name}")
     @Transactional
     public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder"), modelName, "execution.log"));
+        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
     }
 
     @GetMapping("train/logs/{parent}/{name}")
     @Transactional
     public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getVolumeConfiguration().get("tm_models_folder"), parentModelName, modelName, "execution.log"));
+        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
     }
 
     @GetMapping("tasks/{task}/status")

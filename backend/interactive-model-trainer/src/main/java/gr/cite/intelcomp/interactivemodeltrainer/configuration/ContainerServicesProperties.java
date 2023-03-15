@@ -2,15 +2,14 @@ package gr.cite.intelcomp.interactivemodeltrainer.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @ConfigurationProperties(prefix = "services")
 public class ContainerServicesProperties {
 
-    public static class ManageLists {
+    public static abstract class Manager {}
+
+    public static class ManageLists extends Manager {
         public static List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
                 Arrays.asList("python", "manageLists.py", "--path_wordlists", "/data/wordlists"));
         public static String LIST_ALL_CMD = "--listWordLists";
@@ -20,7 +19,7 @@ public class ContainerServicesProperties {
         public static String DELETE_CMD = "--deleteWordList";
     }
 
-    public static class ManageCorpus {
+    public static class ManageCorpus extends Manager {
         public static List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
                 Arrays.asList("python", "manageCorpus.py", "--path_datasets", "/data/datasets", "--path_downloaded", "/data/datasets/parquet")
         );
@@ -32,7 +31,7 @@ public class ContainerServicesProperties {
         public static String DELETE_CMD = "--deleteTrDtset";
     }
 
-    public static class ManageTopicModels {
+    public static class ManageTopicModels extends Manager {
         public static List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
                 Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/TMmodels")
         );
@@ -52,16 +51,16 @@ public class ContainerServicesProperties {
 
     }
 
-    public static class ManageDomainModels {
+    public static class ManageDomainModels extends Manager {
 
         public static List<String> TASK_CMD(String modelName, String task, HashMap<String, String> params) {
             List<String> command = new ArrayList<>(
-                    Arrays.asList("python", "/app/main_dc_single_task.py", "--source", "/data/datasets")
+                    Arrays.asList("main_dc_single_task.py", "--source", "/data/datasets")
             );
             command.addAll(Arrays.asList("--p", "/data/DCmodels/" + modelName));
             command.addAll(Arrays.asList("--task", task));
             params.forEach((key, val) -> {
-                command.addAll(Arrays.asList("--" + key, val));
+                command.addAll(Arrays.asList("--" + key, Objects.requireNonNullElse(val, "")));
             });
             return command;
         }
@@ -102,6 +101,13 @@ public class ContainerServicesProperties {
         public String getTempFolder() {
             if (volumeConfiguration == null || volumeConfiguration.get("temp_folder") == null) return null;
             return volumeConfiguration.get("temp_folder");
+        }
+
+        public String getModelsFolder(Class<? extends Manager> manager) {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager)) return volumeConfiguration.get("tm_models_folder");
+            if (volumeConfiguration.get("dc_models_folder") != null && ManageDomainModels.class.equals(manager)) return volumeConfiguration.get("dc_models_folder");
+            return null;
         }
 
     }
