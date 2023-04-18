@@ -15,7 +15,6 @@ import { DomainModelFromSelectionFunctionComponent } from './domain-models-listi
 import { DomainModelFromCategoryNameComponent } from './domain-models-listing/domain-model-from-category-name/domain-model-from-category-name.component';
 import { TrainingProgressModelDialogModule } from '@common/modules/training-model-progress/training-model-dialog.module';
 import { CommonFormsModule } from '@common/forms/common-forms.module';
-import { RenameTopicModelComponent } from './topic-models-listing/rename-topic-model/rename-topic-model.component';
 import { ModelParametersComponent } from './model-parameters-table/model-parameters-table.component';
 import { TopicsListingComponent } from './topic-models-listing/topics-listing/topics-listing.component';
 import { ModelDetailsComponent } from './model-details/model-details.component';
@@ -27,8 +26,12 @@ import { TopicLabelsComponent } from './topic-models-listing/topic-labels-modal/
 import { RenameTopicComponent } from './topic-models-listing/rename-topic/rename-topic.component';
 import { NewHierarchicalTopicModelComponent } from './topic-models-listing/new-hierarchical-topic-model/new-hierarchical-topic-model.component';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
-import { RenameDomainModelComponent } from './domain-models-listing/rename-domain-model/rename-domain-model.component';
 import { KeywordService } from '@app/core/services/http/keyword.service';
+import { StopwordService } from '@app/core/services/http/stopword.service';
+import { EquivalenceService } from '@app/core/services/http/equivalence.service';
+import { ModelPatchComponent } from './model-patch/model-patch-modal.component';
+import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
+import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
 
 @NgModule({
   declarations: [
@@ -36,16 +39,15 @@ import { KeywordService } from '@app/core/services/http/keyword.service';
     TopicModelsListingComponent,
     NewTopicModelComponent,
     NewHierarchicalTopicModelComponent,
-    RenameTopicModelComponent,
     RenameTopicComponent,
     DomainModelsListingComponent,
-    RenameDomainModelComponent,
     DomainModelFromSourceFileComponent,
     DomainModelFromKeywordsComponent,
     DomainModelFromSelectionFunctionComponent,
     DomainModelFromCategoryNameComponent,
     ModelParametersComponent,
     ModelDetailsComponent,
+    ModelPatchComponent,
     TopicsListingComponent,
     PyLDAComponent,
     TopicSelectionComponent,
@@ -59,13 +61,17 @@ import { KeywordService } from '@app/core/services/http/keyword.service';
     ModelsRoutingModule,
     TrainingProgressModelDialogModule,
     CommonFormsModule,
+    RenameDialogModule,
     FormattingModule
   ],
   providers:[
     TopicModelService,
     DomainModelService,
     LogicalCorpusService,
-    KeywordService
+    StopwordService,
+    EquivalenceService,
+    KeywordService,
+    RunningTasksService
   ]
 })
 export class ModelsModule { }

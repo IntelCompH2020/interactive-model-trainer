@@ -3,17 +3,15 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
-import { TopicModelSubtype } from '@app/core/enum/topic-model-subtype.enum';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { TopicModel } from '@app/core/model/model/topic-model.model';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
-import { PipeService } from '@common/formatting/pipe.service';
 import { TranslateService } from '@ngx-translate/core';
 import { nameof } from 'ts-simple-nameof';
 import { HierarchicalTopicModelEditorModel } from './hierarchical-topic-model-editor.model';
-import { CTMParams, hierarchicalParams, malletParams, prodLDAParams, sparkLDAParams, TopicModelParam } from '../topic-model-params.model';
+import { CTMParams, hierarchicalParams, malletParams, prodLDAParams, sparkLDAParams } from '../topic-model-params.model';
+import { ModelParam } from '../../model-parameters-table/model-parameters-table.component';
 
 @Component({
   selector: 'app-new-Hierarchical-topic-model',
@@ -37,7 +35,7 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
     return !!(this.formGroup?.get(nameof<TopicModel>(x => x.visibility))?.value === ModelVisibility.Private);
   }
 
-  get params(): TopicModelParam[] {
+  get params(): ModelParam[] {
     if (this.selectedType == TopicModelType.mallet) return malletParams(false);
     else if (this.selectedType == TopicModelType.prodLDA) return prodLDAParams(false);
     else if (this.selectedType == TopicModelType.CTM) return CTMParams(false);
@@ -45,11 +43,11 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
     return [];
   }
 
-  get hierarchicalParams(): TopicModelParam[] {
+  get hierarchicalParams(): ModelParam[] {
     return hierarchicalParams();
   }
 
-  get advancedParams(): TopicModelParam[] {
+  get advancedParams(): ModelParam[] {
     if (this.selectedType == TopicModelType.mallet) return malletParams(true);
     else if (this.selectedType == TopicModelType.prodLDA) return prodLDAParams(true);
     else if (this.selectedType == TopicModelType.CTM) return CTMParams(true);
@@ -63,7 +61,6 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
     private topicModelService: TopicModelService,
     protected formBuilder: FormBuilder = new FormBuilder(),
     public translate: TranslateService,
-    protected modelSelecrionService: ModelSelectionService,
     @Inject(MAT_DIALOG_DATA) private data
   ) {
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
@@ -75,7 +72,7 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
       this.editorModel = new HierarchicalTopicModelEditorModel();
       this.formGroup = this.editorModel.buildForm(null, false, this.selectedType);
       this.formGroup.get('type').setValue(this.selectedType);
-      this.formGroup.get('parentName').setValue(this.modelSelecrionService.model.toString());
+      this.formGroup.get('parentName').setValue(this.data?.parent.name);
       this.formGroup.get('topicId').setValue(this.data?.topic.id);
       this.setDefaultParamValues();
     }, 0);
@@ -185,8 +182,11 @@ export class NewHierarchicalTopicModelComponent implements OnInit {
     this.topicModelService.train(model).subscribe(
       response => {
         this.dialogRef.close({
+          label: model.name,
+          finished: false,
           model,
-          task: response.id
+          task: response.id,
+          startedAt: new Date()
         });
       },
       error => {

@@ -195,6 +195,12 @@ public class ScheduledEventQuery extends QueryBase<ScheduledEventEntity> {
 			predicates.add(inClause);
 		}
 
+		if (this.eventTypes != null) {
+			CriteriaBuilder.In<ScheduledEventType> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(ScheduledEventEntity._eventType));
+			for (ScheduledEventType item : this.eventTypes) inClause.value(item);
+			predicates.add(inClause);
+		}
+
 		if (this.retryThreshold != null) {
 			predicates.add(queryContext.CriteriaBuilder.or(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(ScheduledEventEntity._retryCount)),
 					queryContext.CriteriaBuilder.lessThanOrEqualTo(queryContext.Root.get(ScheduledEventEntity._retryCount), this.retryThreshold)));

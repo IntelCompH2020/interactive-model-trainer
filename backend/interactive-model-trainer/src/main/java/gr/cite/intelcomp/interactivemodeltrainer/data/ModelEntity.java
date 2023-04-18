@@ -33,10 +33,6 @@ public class ModelEntity {
     private String trainer;
     public static final String _trainer = "type";
 
-    @Column(name = "corpus")
-    private String corpus;
-    public static final String _corpus = "TrDtSet";
-
     @Column(name = "params")
     private Map<String, Object> params;
     public static final String _params = "params";
@@ -95,16 +91,6 @@ public class ModelEntity {
 
     public void setTrainer(String trainer) {
         this.trainer = trainer;
-    }
-
-    @JsonProperty("TrDtSet")
-    public String getCorpus() {
-        return corpus;
-    }
-
-    @JsonProperty("TrDtSet")
-    public void setCorpus(String corpus) {
-        this.corpus = corpus;
     }
 
     @JsonProperty("TMparam")

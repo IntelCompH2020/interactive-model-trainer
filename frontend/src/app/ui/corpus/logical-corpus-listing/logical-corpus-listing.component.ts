@@ -9,10 +9,11 @@ import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
-import { FileExportDialogComponent } from '@app/ui/file/file-export-dialog.component';
+import { FileExportDialogComponent } from '@app/ui/file/file-export-dialog/file-export-dialog.component';
+import { RenameDialogComponent } from '@app/ui/rename-dialog/rename-dialog.component';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
@@ -24,12 +25,10 @@ import { UiNotificationService } from '@common/modules/notification/ui-notificat
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
-import { Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { NewLogicalCorpusFromFileComponent } from './new-logical-corpus-from-file/new-logical-corpus-from-file.component';
 import { NewLogicalCorpusComponent } from './new-logical-corpus/new-logical-corpus.component';
-import { RenameLogicalCorpusComponent } from './rename-logical-corpus/rename-logical-corpus.component';
 
 @Component({
   selector: 'app-logical-corpus-listing',
@@ -53,24 +52,25 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
     return this.logicalCorpusService.query(this.lookup);
   }
   protected initializeLookup(): LogicalCorpusLookup {
-    const lookup =  new LogicalCorpusLookup();
+    const lookup = new LogicalCorpusLookup();
     lookup.metadata = { countAll: true };
-		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
-		lookup.isActive = [IsActive.Active];
-		lookup.order = { items: ['-' + nameof<LogicalCorpus>(x => x.creation_date)] };
-		this.updateOrderUiFields(lookup.order);
+    lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
+    lookup.isActive = [IsActive.Active];
+    lookup.order = { items: ['-' + nameof<LogicalCorpus>(x => x.creation_date)] };
+    this.updateOrderUiFields(lookup.order);
 
-		lookup.project = {
-			fields: [
-				nameof<LogicalCorpus>(x => x.id),
+    lookup.project = {
+      fields: [
+        nameof<LogicalCorpus>(x => x.id),
         nameof<LogicalCorpus>(x => x.name),
         nameof<LogicalCorpus>(x => x.description),
         nameof<LogicalCorpus>(x => x.visibility),
+        nameof<LogicalCorpus>(x => x.creator),
         nameof<LogicalCorpus>(x => x.creation_date),
         nameof<LogicalCorpus>(x => x.valid_for),
         nameof<LogicalCorpus>(x => x.dtsets)
-			]
-		};
+      ]
+    };
 
     return lookup;
   }
@@ -80,6 +80,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
         prop: nameof<LogicalCorpus>(x => x.name),
         sortable: true,
         resizeable: true,
+        alwaysShown: true,
         languageName: 'APP.CORPUS-COMPONENT.NAME'
       },
       {
@@ -87,7 +88,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
         sortable: true,
         resizeable: true,
         languageName: 'APP.CORPUS-COMPONENT.DESCRIPTION'
-      }, 
+      },
       {
         prop: nameof<LogicalCorpus>(x => x.creator),
         sortable: true,
@@ -106,24 +107,31 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
 
   constructor(
     protected router: Router,
-		protected route: ActivatedRoute,
-		protected uiNotificationService: UiNotificationService,
+    protected route: ActivatedRoute,
+    protected uiNotificationService: UiNotificationService,
     protected snackbars: SnackBarCommonNotificationsService,
-		protected httpErrorHandlingService: HttpErrorHandlingService,
-		protected queryParamsService: QueryParamsService,
-		protected language: TranslateService,
-		public authService: AuthService,
-		public enumUtils: AppEnumUtils,
+    protected httpErrorHandlingService: HttpErrorHandlingService,
+    protected queryParamsService: QueryParamsService,
+    protected language: TranslateService,
+    public authService: AuthService,
+    public enumUtils: AppEnumUtils,
     protected dialog: MatDialog,
     protected logicalCorpusService: LogicalCorpusService,
     private pipeService: PipeService,
-    private formBuilder: FormBuilder,
-    private modelSelectionService: ModelSelectionService
-  ) { 
-		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
-		this.lookup = this.initializeLookup();
+    private formBuilder: FormBuilder
+  ) {
+    super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
+    this.lookup = this.initializeLookup();
     this.availableValidFor = this.enumUtils.getEnumValues<CorpusValidFor>(CorpusValidFor);
     this._buildFilterEditorConfiguration();
+
+    setTimeout(() => {
+      this.setupVisibleColumns([
+        nameof<LogicalCorpus>(x => x.name),
+        nameof<LogicalCorpus>(x => x.description),
+        nameof<LogicalCorpus>(x => x.creation_date)
+      ]);
+    }, 0);
   }
 
   ngOnInit(): void {
@@ -133,29 +141,32 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
-  public refresh(): void{
+  public refresh(): void {
     this.onCorpusSelect.emit(null);
-    this.modelSelectionService.corpus = undefined;
-    this.onPageLoad({offset: 0} as PageLoadEvent);
+    this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
-  public edit(corpus: LogicalCorpus): void{
-    this.dialog.open(RenameLogicalCorpusComponent, {
+  public edit(corpus: LogicalCorpus): void {
+    this.dialog.open(RenameDialogComponent, {
       width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
-      data:{
-        corpus
+      data: {
+        name: corpus.name,
+        title: this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
       }
     })
-    .afterClosed()
-    .pipe(
-      filter(x => x),
-      takeUntil(this._destroyed)
-    )
-    .subscribe(() => {
-      this.snackbars.successfulUpdate();
-      this.refresh();
-    });
+      .afterClosed()
+      .pipe(
+        filter(x => x),
+        takeUntil(this._destroyed)
+      )
+      .subscribe((rename: RenamePersist) => {
+        this.logicalCorpusService.rename(rename).subscribe((_response) => {
+          this.snackbars.successfulUpdate();
+          this.refresh();
+        });
+      });
   }
 
   private _buildFilterEditorConfiguration(): void {
@@ -190,98 +201,81 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
     let data = JSON.stringify(corpus);
     this.dialog.open(FileExportDialogComponent, {
       width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
-      data:{
+      data: {
         name: corpus.name,
         payload: data
       }
     });
   }
 
-  private _setUpLikeFilterFormGroup(): void{
+  private _setUpLikeFilterFormGroup(): void {
     this.likeFilterFormGroup = new FormGroup({
       like: new FormControl("")
     });
     this.likeFilterFormGroup.valueChanges.pipe(
       takeUntil(this._destroyed),
       debounceTime(600)
-    ).subscribe(filterChanges =>{
+    ).subscribe(filterChanges => {
       this.lookup.like = filterChanges["like"];
       this.refresh();
     });
   }
 
-  private _setUpFiltersFormGroup(): void{
+  private _setUpFiltersFormGroup(): void {
     this.filterFormGroup = this.formBuilder.group(
-      this.filterEditorConfiguration.items.reduce((aggr, current)=>({...aggr, [current.key]: null}),{})
+      this.filterEditorConfiguration.items.reduce((aggr, current) => ({ ...aggr, [current.key]: null }), {})
     )
     this.filterFormGroup.valueChanges.pipe(
       takeUntil(this._destroyed),
       debounceTime(600)
-    ).subscribe(filterChanges =>{
+    ).subscribe(filterChanges => {
       this.lookup = Object.assign(this.lookup, filterChanges);
       this.refresh();
     });
-    this.filterFormGroup.patchValue({corpusValidFor: "ALL"}, {emitEvent: null});
+    this.filterFormGroup.patchValue({ corpusValidFor: "ALL" }, { emitEvent: null });
   }
 
-  onColumnsChanged(event: ColumnsChangedEvent) {
-    this.onCorpusSelect.emit(null);
-		this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
-	}
-
-	private onColumnsChangedInternal(columns: string[]) {
-		// Here are defined the projection fields that always requested from the api.
-		this.lookup.project = {
-			fields: [
-				nameof<LogicalCorpus>(x => x.id),
-        nameof<LogicalCorpus>(x => x.visibility),
-        nameof<LogicalCorpus>(x => x.dtsets),
-        nameof<LogicalCorpus>(x => x.valid_for),
-				...columns
-			]
-		};
-		this.onPageLoad({ offset: 0 } as PageLoadEvent);
-	}
-
-  onRowActivated($event: RowActivateEvent){
-    if($event.type === 'click'){
+  onRowActivated($event: RowActivateEvent) {
+    if ($event.type === 'click') {
       this.onCorpusSelect.emit($event.row);
-      this.modelSelectionService.corpus = $event.row as LogicalCorpus;
     }
   }
 
   addNewCorpusManually(): void {
     this.dialog.open(NewLogicalCorpusComponent, {
-      minWidth: '50rem',
+      width: "50rem",
+      maxWidth: "90vw",
       disableClose: true
     })
-    .afterClosed()
-    .pipe(
-      filter(x => x),
-      takeUntil(this._destroyed)
-    )
-    .subscribe(() => {
-      this.onCorpusSelect.emit(null);
-      this.snackbars.successfulCreation();
-      this.refresh();
-    });
+      .afterClosed()
+      .pipe(
+        filter(x => x),
+        takeUntil(this._destroyed)
+      )
+      .subscribe(() => {
+        this.onCorpusSelect.emit(null);
+        this.snackbars.successfulCreation();
+        this.refresh();
+      });
   }
 
-  addNewCorpusFromFile(): void {
-    this.dialog.open(NewLogicalCorpusFromFileComponent, {
-      minWidth: '40rem',
-      disableClose: true
-    })
-    .afterClosed()
-    .pipe(
-      filter(x => x),
-      takeUntil(this._destroyed)
-    )
-    .subscribe(() => {
-      this.onCorpusSelect.emit(null);
-      this.snackbars.successfulCreation();
-      this.refresh();
-    });
-  }
+  // addNewCorpusFromFile(): void {
+  //   this.dialog.open(NewLogicalCorpusFromFileComponent, {
+  //     width: "50rem",
+  //     maxWidth: "90vw",
+  //     disableClose: true
+  //   })
+  //   .afterClosed()
+  //   .pipe(
+  //     filter(x => x),
+  //     takeUntil(this._destroyed)
+  //   )
+  //   .subscribe(() => {
+  //     this.onCorpusSelect.emit(null);
+  //     this.snackbars.successfulCreation();
+  //     this.refresh();
+  //   });
+  // }
 }

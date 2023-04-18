@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { LogicalCorpus, LogicalCorpusPersist } from '@app/core/model/corpus/logical-corpus.model';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 import { BaseHttpService } from '@common/base/base-http.service';
 import { InstallationConfigurationService } from '@common/installation-configuration/installation-configuration.service';
 import { QueryResult } from '@common/model/query-result';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, delay } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable()
 export class LogicalCorpusService {
@@ -33,13 +34,8 @@ export class LogicalCorpusService {
     return this.http.delete<void>(url);
   }
 
-	rename(rename: RenameLogicalCorpus): Observable<void> {
+	rename(rename: RenamePersist): Observable<void> {
 		const url = `${this.apiBase}/rename`;
 		return this.http.put<void>(url, rename);
 	}
-}
-
-interface RenameLogicalCorpus {
-	oldName: string;
-	newName: string;
 }

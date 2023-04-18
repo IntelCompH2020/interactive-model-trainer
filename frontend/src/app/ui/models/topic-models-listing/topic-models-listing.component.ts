@@ -11,7 +11,6 @@ import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicLookup } from '@app/core/query/topic.lookup';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
 import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
 import { BaseListingComponent } from '@common/base/base-listing-component';
@@ -23,7 +22,6 @@ import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
 import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
-import { TrainingModelProgressComponent } from '@common/modules/training-model-progress/training-model-progress.component';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
@@ -32,12 +30,15 @@ import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { TopicSelectionComponent } from './topic-selection-modal/topic-selection-modal.component';
 import { NewTopicModelComponent } from './new-topic-model/new-topic-model.component';
-import { RenameTopicModelComponent } from './rename-topic-model/rename-topic-model.component';
 import { TopicSimilaritiesComponent } from './topic-similarities-modal/topic-similarities-modal.component';
 import { TopicLabelsComponent } from './topic-labels-modal/topic-labels-modal.component';
 import { RenameTopicComponent } from './rename-topic/rename-topic.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
+import { ModelPatchComponent } from '../model-patch/model-patch-modal.component';
+import { RenameDialogComponent } from '@app/ui/rename-dialog/rename-dialog.component';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
+import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
 
 @Component({
   selector: 'app-topic-models-listing',
@@ -84,8 +85,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
         nameof<TopicModel>(x => x.id),
         nameof<TopicModel>(x => x.name),
         nameof<TopicModel>(x => x.description),
-        // nameof<TopicModel>(x => x.creator),
-        // nameof<TopicModel>(x => x.location),
+        nameof<TopicModel>(x => x.creator),
+        nameof<TopicModel>(x => x.location),
         nameof<TopicModel>(x => x.type),
         nameof<TopicModel>(x => x.visibility),
         nameof<TopicModel>(x => x.creation_date),
@@ -136,7 +137,6 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       prop: nameof<TopicModel>(x => x.TrDtSet),
       sortable: false,
       resizeable: true,
-      alwaysShown: true,
       languageName: 'APP.MODELS-COMPONENT.CORPUS'
     },
     {
@@ -163,8 +163,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     public enumUtils: AppEnumUtils,
     protected dialog: MatDialog,
     protected topicModelService: TopicModelService,
+    protected runningTasksService: RunningTasksService,
     private trainingModelQueueService: TrainingQueueService,
-    private modelSelectionService: ModelSelectionService,
     private pipeService: PipeService,
     private formBuilder: FormBuilder
 
@@ -175,6 +175,16 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
     this.availableSubTypes = this.enumUtils.getEnumValues<TopicModelSubtype>(TopicModelSubtype);
     this._buildFilterEditorConfiguration();
+
+    setTimeout(() => {
+      this.setupVisibleColumns([
+        nameof<TopicModel>(x => x.name),
+        nameof<TopicModel>(x => x.description),
+        nameof<TopicModel>(x => x.type),
+        nameof<TopicModel>(x => x.creation_date),
+        nameof<TopicModel>(x => x.TrDtSet)
+      ]);
+    }, 0);
   }
 
   ngOnInit(): void {
@@ -184,7 +194,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
     this.trainingModelQueueService.taskCompleted.subscribe((task) => {
-      if (task === "__REFRESH__") this.refresh();
+      if (task.finished) this.refresh();
     });
   }
 
@@ -193,7 +203,6 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this._topicModelSelected = null;
     this.onTopicSelect.emit(null);
     this.topicLookup = new TopicLookup();
-    this.modelSelectionService.model = "";
     this.selectedModel.next(undefined);
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
@@ -203,28 +212,62 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.selectedModel.next(this._topicModelSelected);
   }
 
-  public edit(model: TopicModel): void {
-    this.dialog.open(RenameTopicModelComponent, {
-      width: '25rem',
-      disableClose: true,
-      data: {
-        model
-      }
-    })
-      .afterClosed()
-      .pipe(
-        filter(x => x),
-        takeUntil(this._destroyed)
+  public edit(model: TopicModel, updateAll: boolean = false): void {
+    if (updateAll) {
+      this.dialog.open(ModelPatchComponent,
+        {
+          width: "40rem",
+          maxWidth: "90vw",
+          disableClose: true,
+          data: {
+            model,
+            modelType: "TOPIC"
+          }
+        }
       )
-      .subscribe(() => {
-        this.snackbars.successfulUpdate();
-        this.refresh();
-      });
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe(() => {
+          this.snackbars.successfulUpdate();
+          this.refresh();
+        });
+    } else {
+      this.dialog.open(RenameDialogComponent, {
+        width: '25rem',
+        maxWidth: "90vw",
+        disableClose: true,
+        data: {
+          name: model.name,
+          title: this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
+        }
+      })
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe((rename: RenamePersist) => {
+          this.topicModelService.rename(rename).subscribe((_response) => {
+            this.snackbars.successfulUpdate();
+            this.refresh();
+          });
+        });
+    }
+  }
+
+  public copy(model: TopicModel): void {
+    this.topicModelService.copy(model.name).subscribe(
+      _response => this.refresh()
+    );
   }
 
   public editTopic(model: TopicModel, topic: Topic, callback: () => void): void {
     this.dialog.open(RenameTopicComponent, {
       width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
       data: {
         model,
@@ -246,8 +289,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   public fuseTopics(model: TopicModel, callback: () => void): void {
     this.dialog.open(TopicSelectionComponent, {
-      minWidth: '25vw',
-      maxWidth: '40vw',
+      width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
       data: {
         name: model.name,
@@ -278,8 +321,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   public deleteTopics(model: TopicModel, callback: () => void): void {
     this.dialog.open(TopicSelectionComponent, {
-      minWidth: '25vw',
-      maxWidth: '40vw',
+      width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
       data: {
         name: model.name,
@@ -355,7 +398,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.snackbars.operationStarted();
     this.topicModelService.reset(model.name).subscribe((task) => {
       const timeout = setInterval(() => {
-        this.topicModelService.getTaskStatus(task.id).subscribe((status) => {
+        this.runningTasksService.getTaskStatus(task.id).subscribe((status) => {
           if (status === "COMPLETED" || status === "ERROR") {
             clearInterval(timeout);
             if (status === "COMPLETED") {
@@ -375,8 +418,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   public showSimilar(model: TopicModel): void {
     this.dialog.open(TopicSimilaritiesComponent, {
-      minWidth: '25vw',
-      maxWidth: '40vw',
+      width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
       data: {
         name: model.name
@@ -392,8 +435,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   public setLabels(model: TopicModel, callback: () => void): void {
     this.dialog.open(TopicLabelsComponent, {
-      minWidth: '30vw',
-      maxWidth: '70vw',
+      width: '80rem',
+      maxWidth: "90vw",
       disableClose: true,
       data: {
         name: model.name
@@ -470,29 +513,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       this.lookup = Object.assign(this.lookup, filterChanges);
       this.refresh();
     });
-    this.filterFormGroup.patchValue({trainer: "all"}, {emitEvent: false});
-  }
-
-  onColumnsChanged(event: ColumnsChangedEvent) {
-    this.onTopicModelSelect.emit(null);
-    this.onTopicSelect.emit(null);
-    this.topicLookup = new TopicLookup();
-    this.selectedModel.next(undefined);
-    this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
-  }
-
-  private onColumnsChangedInternal(columns: string[]) {
-    // Here are defined the projection fields that always requested from the api.
-    this.lookup.project = {
-      fields: [
-        nameof<TopicModel>(x => x.id),
-        nameof<TopicModel>(x => x.name),
-        nameof<TopicModel>(x => x.TrDtSet),
-        nameof<TopicModel>(x => x.hierarchyLevel),
-        ...columns
-      ]
-    };
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    this.filterFormGroup.patchValue({ trainer: "all" }, { emitEvent: false });
   }
 
   onRowActivated($event: RowActivateEvent) {
@@ -501,13 +522,12 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       if (this._topicModelSelected && selectedModel.name === this._topicModelSelected.name) return;
       this.onTopicModelSelect.emit(selectedModel);
       this._topicModelSelected = selectedModel;
-      this.modelSelectionService.model = this._topicModelSelected.name;
       this.selectedModel.next(this._topicModelSelected);
     }
   }
 
   onTreeAction(event: any) {
-    
+
   }
 
   onTopicSelected(topic: Topic) {
@@ -521,7 +541,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   addNewTopicModel(): void {
     this.dialog.open(NewTopicModelComponent, {
-      minWidth: '50rem',
+      width: "80rem",
       maxWidth: '90vw',
       disableClose: true,
     })
@@ -530,33 +550,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
         takeUntil(this._destroyed),
         filter(x => x)
       ).subscribe(result => {
-        if (result) this.openTrainingDialog(result);
-      })
-  }
-
-  openTrainingDialog(data: any): void {
-    this.trainingModelQueueService.addItem({
-      label: data.model['name'],
-      finished: false,
-      model: data.model,
-      task: data.task
-    })
-    this.dialog.open(TrainingModelProgressComponent, {
-      id: data.task,
-      minWidth: '80vw',
-      disableClose: true,
-      data
-    })
-      .afterClosed()
-      .pipe(
-        takeUntil(this._destroyed)
-      )
-      .subscribe((response) => {
-        if (response) this.snackbars.operationStarted();
-        else {
-          this.trainingModelQueueService.removeItem(data.task);
-          this.trainingModelQueueService.taskCompleted.next("__REFRESH__");
-        }
+        if (result) this.snackbars.operationStarted();
       });
   }
 }

@@ -38,25 +38,8 @@
                 <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
             </mat-form-field>
         </div>
-        <div class="col-12 col-lg-6">
-            <table class="table table-bordered text-center">
-                <thead class="table-head-gray">
-                    <tr>
-                        <th>
-                            n_max
-                        </th>
-                        <th>
-                            s_min
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white">
-                    <tr>
-                        <td>2000</td>
-                        <td>.2</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div *ngIf="params.length" class="col-12 col-lg-6">
+            <app-model-parameters-table [parameters]="params" [formGroup]="formGroup" [maxParamsPerRow]="3"></app-model-parameters-table>
             <mat-form-field class="w-100" appearance="outline">
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.DESCRIPTION'
                     |
@@ -110,74 +93,45 @@
     </div>
     <div class="row">
         <div class="col-auto">
-            <mat-checkbox (ngModelChange)="updateAdvanced($event)" [ngModelOptions]="{standalone: true}"
+            <mat-checkbox [ngModelOptions]="{standalone: true}"
                 [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.ADVANCED-OPTIONS'
                 | translate}}</mat-checkbox>
         </div>
     </div>
-
-    <ng-container *ngIf="advanced" [formGroup]="formGroup">
+    <ng-container *ngIf="advanced" [formGroup]="classifierFormGroup">
         <div class="row mt-4">
-            <div class="col-3">
-                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.TYPE'
-                | translate}}</div>
-            <div class="col-auto">
-                <mat-form-field>
-                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.TYPE-PLACEHOLDER'
-                        | translate}}</mat-label>
-                    <mat-select formControlName="type">
-                        <mat-option [value]="item" *ngFor="let item of availableTypes">
-                            {{enumUtils.toDomainModelTypeString(item)}}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-            <div class="col-auto">
-                <mat-form-field>
-                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.CLASS-PLACEHOLDER'
-                        | translate}}</mat-label>
-                    <mat-select formControlName="subtype">
-                        <mat-option [value]="item" *ngFor="let item of availableSubTypes">
-                            {{enumUtils.toDomainModelSubtypeString(item)}}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-3">
-                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.NUMBER-OF-HEADS'
-                | translate}}</div>
-            <div class="col-auto">
-                <mat-form-field appearance="outline">
-                    <input type="number" matInput formControlName="numberOfHeads">
-                </mat-form-field>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-3">
-                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.DEPTH'
-                | translate}}</div>
-            <div class="col-auto">
-                <mat-form-field appearance="outline">
-                    <input type="number" matInput formControlName="depth">
-                </mat-form-field>
+            <div class="col-12">
+                <app-model-parameters-table [parameters]="advancedParams" [formGroup]="classifierFormGroup" [maxParamsPerRow]="4"></app-model-parameters-table>                
             </div>
         </div>
     </ng-container>
 
-    <div class="mb-2" *ngIf="!advanced"></div>
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="advancedForAL">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.ADVANCED-FOR-AL-OPTIONS'
+                | translate}}</mat-checkbox>
+        </div>
+    </div>
+    <ng-container *ngIf="advancedForAL" [formGroup]="activeLearningFormGroup">
+        <div class="row mt-4">
+            <div class="col-12">
+                <app-model-parameters-table [parameters]="advancedParamsForAL" [formGroup]="activeLearningFormGroup" [maxParamsPerRow]="4"></app-model-parameters-table>                
+            </div>
+        </div>
+    </ng-container>
+
+    <div class="mb-2" *ngIf="!advancedParamsForAL"></div>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end" *ngIf="formGroup">
+<mat-dialog-actions align="end" *ngIf="formGroup && classifierFormGroup">
     <div class="col-auto">
         <button mat-button
             (click)="close()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.CANCEL'
             | translate}}</button>
     </div>
     <div class="col-auto">
-        <button mat-raised-button [disabled]="!valid" color="accent"
+        <button mat-raised-button [disabled]="true" color="accent"
             (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.SUBMIT'
             | translate}}</button>
     </div>

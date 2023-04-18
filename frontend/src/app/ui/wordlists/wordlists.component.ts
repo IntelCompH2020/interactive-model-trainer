@@ -3,7 +3,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { Subscription } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { KeywordsListingComponent } from './keywords/keywords-listing.component';
-import { StopwordsAndEquivalenciesComponent } from './stopwords-and-equivalencies/stopwords-and-equivalencies.component';
+import { StopwordsAndEquivalencesComponent } from './stopwords-and-equivalences/stopwords-and-equivalences.component';
 import { Keyword } from '@app/core/model/keyword/keyword.model';
 import { Stopword } from '@app/core/model/stopword/stopword.model';
 import { Equivalence } from '@app/core/model/equivalence/equivalence.model';
@@ -12,11 +12,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
 import { StopwordService } from '@app/core/services/http/stopword.service';
-import { StopwordsListingComponent } from './stopwords-and-equivalencies/stopwords-listing/stopwords-listing.component';
 import { EquivalenceService } from '@app/core/services/http/equivalence.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
 import { PipeService } from '@common/formatting/pipe.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
+import { WordlistDetailsComponent } from './wordlist-details/wordlist-details.component';
 
 @Component({
   selector: 'app-wordlists',
@@ -30,10 +30,12 @@ export class WordListsComponent extends BaseComponent implements OnInit {
 
   modelSelectionSubscription: Subscription;
 
-  itemDetails: ItemDetail[]
+  itemDetails: DetailsItem[];
 
   private onRefresh: () => void;
-  private onEditItem: () => void;
+  private onRenameItem: () => void;
+  private onUpdateItem: () => void;
+  private onCopyItem: () => void;
 
   constructor(
     private keywordService: KeywordService,
@@ -49,8 +51,13 @@ export class WordListsComponent extends BaseComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  protected onEdit(): void {
-    this.onEditItem?.();
+  protected onEdit(updateAll: boolean = false): void {
+    if (updateAll) this.onUpdateItem?.();
+    else this.onRenameItem?.();
+  }
+
+  protected onCopy(): void {
+    this.onCopyItem?.();
   }
 
   protected onOutletActivate(activeComponent: Component): void {
@@ -64,7 +71,9 @@ export class WordListsComponent extends BaseComponent implements OnInit {
     this.itemDetails = [];
 
     this.onRefresh = null;
-    this.onEditItem = null;
+    this.onRenameItem = null;
+    this.onUpdateItem = null;
+    this.onCopyItem = null;
     switch (true) {
       case activeComponent instanceof KeywordsListingComponent: {
         const castedActiveComponent = activeComponent as KeywordsListingComponent;
@@ -82,14 +91,23 @@ export class WordListsComponent extends BaseComponent implements OnInit {
           castedActiveComponent.refresh();
         }
 
-        this.onEditItem = () => {
+        this.onRenameItem = () => {
           castedActiveComponent.edit(this.modelSelected as Keyword);
         }
+
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.modelSelected as Keyword, true);
+        }
+
+        this.onCopyItem = () => {
+          castedActiveComponent.copy(this.modelSelected as Keyword);
+        }
+
         break;
       }
-      case activeComponent instanceof StopwordsAndEquivalenciesComponent: {
+      case activeComponent instanceof StopwordsAndEquivalencesComponent: {
 
-        const castedActiveComponent = activeComponent as StopwordsAndEquivalenciesComponent;
+        const castedActiveComponent = activeComponent as StopwordsAndEquivalencesComponent;
 
         this.modelSelectionSubscription = castedActiveComponent.onStopwordSelect.pipe(
           takeUntil(this._destroyed)
@@ -114,99 +132,151 @@ export class WordListsComponent extends BaseComponent implements OnInit {
         this.onRefresh = () => {
           castedActiveComponent.refresh();
         }
-        this.onEdit = () => {
+
+        this.onRenameItem = () => {
           castedActiveComponent.edit(this.modelSelected as (Stopword | Equivalence));
         }
+
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.modelSelected as (Stopword | Equivalence), true);
+        }
+
+        this.onCopyItem = () => {
+          castedActiveComponent.copy(this.modelSelected as (Stopword | Equivalence));
+        }
+
         break;
       }
     }
   }
 
-  private _buildKeywordFields(item: Keyword): ItemDetail[] {
+  private _buildKeywordFields(item: Keyword): DetailsItem[] {
     if (!item) return [];
     return [
       {
         label: 'APP.WORD-LIST-COMPONENT.NAME',
-        value: item.name
+        value: item.name || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.DESCRIPTION',
-        value: item.description
+        value: item.description || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATION-DATE',
-        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date)
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date) || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATOR',
-        value: item.creator
+        value: item.creator || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.LOCATION',
-        value: item.location
+        value: item.location || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',
-        value: '...'
-      },
+        value: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS-SHOW',
+        button: true,
+        action: () => {
+          this.dialog.open(WordlistDetailsComponent,
+            {
+              width: '60rem',
+              maxWidth: "90vw",
+              maxHeight: '90vh',
+              disableClose: true,
+              data: {
+                wordlist: item
+              }
+            }
+          );
+        }
+      }
     ]
   }
-  private _buildStopWordFields(item: Stopword): ItemDetail[] {
+  private _buildStopWordFields(item: Stopword): DetailsItem[] {
     if (!item) return [];
     return [
       {
         label: 'APP.WORD-LIST-COMPONENT.NAME',
-        value: item.name
+        value: item.name || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.DESCRIPTION',
-        value: item.description
+        value: item.description || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATION-DATE',
-        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date)
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date) || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATOR',
-        value: item.creator
+        value: item.creator || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.LOCATION',
-        value: item.location
+        value: item.location || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',
-        value: '...'
-      },
+        value: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS-SHOW',
+        button: true,
+        action: () => {
+          this.dialog.open(WordlistDetailsComponent,
+            {
+              width: '60rem',
+              maxWidth: "90vw",
+              maxHeight: '90vh',
+              disableClose: true,
+              data: {
+                wordlist: item
+              }
+            }
+          );
+        }
+      }
     ]
   }
-  private _buildEquivalenceFields(item: Equivalence): ItemDetail[] {
+  private _buildEquivalenceFields(item: Equivalence): DetailsItem[] {
     if (!item) return [];
     return [
       {
         label: 'APP.WORD-LIST-COMPONENT.NAME',
-        value: item.name
+        value: item.name || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.DESCRIPTION',
-        value: item.description
+        value: item.description || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATION-DATE',
-        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date)
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(item.creation_date) || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.CREATOR',
-        value: item.creator
+        value: item.creator || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.LOCATION',
-        value: item.location
+        value: item.location || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',
-        value: '...'
-      },
+        value: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS-SHOW',
+        button: true,
+        action: () => {
+          this.dialog.open(WordlistDetailsComponent,
+            {
+              width: '60rem',
+              maxWidth: "90vw",
+              maxHeight: '90vh',
+              disableClose: true,
+              data: {
+                wordlist: item
+              }
+            }
+          );
+        }
+      }
     ]
   }
 
@@ -280,9 +350,18 @@ export class WordListsComponent extends BaseComponent implements OnInit {
 
 
 
-interface ItemDetail {
+type DetailsItem = SimpleDetailsItem | ButtonDetailsItem;
+
+interface SimpleDetailsItem {
   label: string;
-  value: any;
+  value: string;
+}
+
+interface ButtonDetailsItem {
+  label: string;
+  value: string;
+  button: boolean;
+  action: Function;
 }
 
 enum AvailableModelsType {

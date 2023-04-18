@@ -12,13 +12,37 @@
     <tr>
       <td *ngFor="let param of row.parameters; trackBy: trackByIndex">
         <input *ngIf="param.type == 'number'" matInput [type]="param.type" [formControlName]="param.name"
-          [min]="param.validation?.min" [max]="param.validation?.max" [step]="param.validation?.step || null" />
+          [placeholder]="param.placeholder ? translate.instant(param.placeholder) : translate.instant(param.name)"
+          [min]="param.validation?.min" [max]="param.validation?.max" [step]="param.validation?.step" />
         <input *ngIf="param.type == 'string'" matInput [type]="param.type" [formControlName]="param.name" />
-        <select *ngIf="param.type == 'select'" matInput [formControlName]="param.name">
-          <option *ngFor="let option of param.validation?.options; trackBy: trackByItem" [value]="option.value">
+        <mat-select *ngIf="param.type == 'select'" matInput [formControlName]="param.name"
+          [placeholder]="param.placeholder ? translate.instant(param.placeholder) : translate.instant(param.name)">
+          <mat-option *ngFor="let option of param.validation?.options; trackBy: trackByItem" [value]="option.value"
+            [title]="translate.instant(option.displayName)">
             {{option.displayName | translate}}
-          </option>
-        </select>
+          </mat-option>
+        </mat-select>
+        <mat-select *ngIf="param.type == 'rawselect'" matInput [formControlName]="param.name"
+          [placeholder]="param.placeholder ? translate.instant(param.placeholder) : translate.instant(param.name)">
+          <mat-option *ngFor="let option of param.validation?.rawOptions; trackBy: trackByLabel" [value]="option"
+            [title]="option">
+            {{option}}
+          </mat-option>
+        </mat-select>
+        <mat-select *ngIf="param.type == 'multiselect'" matInput [formControlName]="param.name" multiple
+          [placeholder]="param.placeholder ? translate.instant(param.placeholder) : translate.instant(param.name)">
+          <mat-option *ngFor="let option of param.validation?.options; trackBy: trackByItem" [value]="option.value"
+            [title]="translate.instant(option.displayName)">
+            {{option.displayName | translate}}
+          </mat-option>
+        </mat-select>
+        <mat-select *ngIf="param.type == 'rawmultiselect'" matInput [formControlName]="param.name" multiple
+          [placeholder]="param.placeholder ? translate.instant(param.placeholder) : translate.instant(param.name)">
+          <mat-option *ngFor="let option of param.validation?.rawOptions; trackBy: trackByLabel" [value]="option"
+            [title]="option">
+            {{option}}
+          </mat-option>
+        </mat-select>
       </td>
     </tr>
   </tbody>

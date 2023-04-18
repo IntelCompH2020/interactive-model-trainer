@@ -1,0 +1,19 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.WORD-LIST-COMPONENT.WORD-LIST-DETAILS-COMPONENT.TITLE' | translate}} <i class="h5 gray-text">({{name}})</i></span>
+</div>
+
+<mat-dialog-content>
+  <div class="wordlist-container">
+    <mat-chip-list>
+      <mat-chip *ngFor="let word of list" [disableRipple]="true">
+        {{word}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button #button mat-raised-button color="accent" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

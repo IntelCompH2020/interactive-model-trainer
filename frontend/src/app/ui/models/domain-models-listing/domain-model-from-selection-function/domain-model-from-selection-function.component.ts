@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef } from '@angular/material/dialog';
-import { DomainModelSubType, DomainModelType } from '@app/core/enum/domain-model-type.enum';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
@@ -13,18 +12,19 @@ import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicLookup } from '@app/core/query/topic.lookup';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { nameof } from 'ts-simple-nameof';
+import { ModelParam } from '../../model-parameters-table/model-parameters-table.component';
+import { DomainModelActiveLearningEditorModel } from '../domain-model-active-learning-editor.model';
+import { DomainModelClassifierEditorModel } from '../domain-model-classifier-editor.model';
 import { DomainModelEditorModel } from '../domain-model-editor.model';
+import { bySelectionFunctionParams } from '../domain-model-params.model';
+import { DomainModelService } from '@app/core/services/http/domain-model.service';
 
 @Component({
   templateUrl: './domain-model-from-selection-function.component.html',
   styleUrls: ['./domain-model-from-selection-function.component.scss']
 })
 export class DomainModelFromSelectionFunctionComponent implements OnInit {
-
-  availableTypes: DomainModelType[];
-  availableSubTypes: DomainModelSubType[];
 
   availableCorpora: string[];
   availableModels: string[];
@@ -40,12 +40,17 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
 
   editorModel: DomainModelEditorModel;
   formGroup: FormGroup;
+  classifierEditorModel: DomainModelClassifierEditorModel;
+  classifierFormGroup: FormGroup;
   topicWeightsFormGroup: FormGroup;
+  activeLearningEditorModel: DomainModelActiveLearningEditorModel;
+  activeLearningFormGroup: FormGroup;
 
   advanced: boolean = false;
+  advandedForAL: boolean = false;
 
   get valid() {
-    return this.formGroup?.valid && this.topicWeightsFormGroup?.valid;
+    return this.formGroup?.valid && this.classifierFormGroup.valid && this.activeLearningFormGroup?.valid && this.topicWeightsFormGroup?.valid;
   }
 
   get weightsInputs(): FormArray {
@@ -60,17 +65,26 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
     return !!(this.formGroup?.get(nameof<DomainModel>(x => x.visibility))?.value === ModelVisibility.Private);
   }
 
+  get params(): ModelParam[] {
+    return bySelectionFunctionParams(false, null);
+  }
+
+  get advancedParams(): ModelParam[] {
+    return bySelectionFunctionParams(true, 'classifier');
+  }
+
+  get advancedParamsForAL(): ModelParam[] {
+    return bySelectionFunctionParams(true, 'active_learning');
+  }
+
   constructor(
     private dialogRef: MatDialogRef<DomainModelFromSelectionFunctionComponent>,
     public enumUtils: AppEnumUtils,
     private formBuilder: FormBuilder,
     private corpusService: LogicalCorpusService,
     private topicModelService: TopicModelService,
-    protected modelSelectionService: ModelSelectionService
+    private domainModelService: DomainModelService
   ) {
-    this.availableSubTypes = this.enumUtils.getEnumValues<DomainModelSubType>(DomainModelSubType);
-    this.availableTypes = this.enumUtils.getEnumValues<DomainModelType>(DomainModelType);
-
     const corpusLookup = new LogicalCorpusLookup();
     corpusLookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
     corpusLookup.corpusValidFor = "DC";
@@ -85,6 +99,10 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
     setTimeout(() => {
       this.editorModel = new DomainModelEditorModel();
       this.formGroup = this.editorModel.buildForm();
+      this.classifierEditorModel = new DomainModelClassifierEditorModel();
+      this.classifierFormGroup = this.classifierEditorModel.buildForm();
+      this.activeLearningEditorModel = new DomainModelActiveLearningEditorModel();
+      this.activeLearningFormGroup = this.activeLearningEditorModel.buildForm();
       this.corpusInput.disable();
       this.topicWeightsFormGroup = this.formBuilder.group({
         weights: this.formBuilder.array([])
@@ -92,12 +110,7 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
       this.topicWeightsFormGroup.valueChanges.subscribe((value) => {
         this.topicWeights = value.weights;
       });
-
-      this.updateAdvanced(this.advanced);
-
-      let corpusToSet: string = (this.modelSelectionService.corpus?.name && this.modelSelectionService.corpus?.valid_for === "DC") ? this.modelSelectionService.corpus?.name : "";
-      if (this.selectedCorpus) corpusToSet = this.selectedCorpus;
-      this.formGroup.get('corpus').setValue(corpusToSet);
+      this.setDefaultParamValues();
     }, 0);
   }
 
@@ -152,16 +165,48 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
     });
   }
 
-  updateAdvanced(value: boolean) {
-    if (!value) {
-      this.formGroup.get('type').reset();
-      this.formGroup.get('subtype').reset();
-      this.formGroup.get('numberOfHeads').reset();
-      this.formGroup.get('depth').reset();
+  create(): void {
+    let parameters: any = {}
+
+    parameters['DC.n_max'] = this.formGroup.get('numberOfElements').value;
+    parameters['DC.s_min'] = this.formGroup.get('minimumScore').value;
+
+    const model: any = {
+      name: this.formGroup.get('name').value,
+      description: this.formGroup.get('description').value,
+      tag: this.formGroup.get('tag').value,
+      corpus: this.formGroup.get('corpus').value,
+      visibility: this.isPrivate ? "Private" : "Public",
+      task: "on_create_topic_selection",
+      keywords: '',
+      parameters
     }
+
+    this.domainModelService.train(model).subscribe(
+      response => {
+        this.dialogRef.close({
+          label: model.name,
+          finished: false,
+          model,
+          task: response.id,
+          startedAt: new Date()
+        });
+      },
+      _error => {
+        this.dialogRef.close(null);
+      }
+    );
   }
 
-  create(): void {
-    this.dialogRef.close(true);
+  setDefaultParamValues() {
+    for (let param of this.params) {
+      this.formGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
+    }
+    for (let param of this.advancedParams) {
+      this.classifierFormGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
+    }
+    for (let param of this.advancedParamsForAL) {
+      this.activeLearningFormGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
+    }
   }
 }

@@ -10,6 +10,10 @@ export class SnackBarCommonNotificationsService {
     protected language: TranslateService
   ) { }
 
+  notify(messageKey: string, level: SnackBarNotificationLevel) {
+    this.uiNotificationService.snackBarNotification(this.language.instant(messageKey), level);
+  }
+
   successfulCreation(): void {
     this.uiNotificationService.snackBarNotification(this.language.instant("APP.COMMONS.SNACK-BAR.SUCCESSFUL-CREATION"), SnackBarNotificationLevel.Success);
   }

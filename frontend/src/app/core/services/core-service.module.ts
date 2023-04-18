@@ -15,9 +15,9 @@ import { FilterService } from '@common/modules/text-filter/filter-service';
 import { CollectionUtils } from '@common/utilities/collection-utils.service';
 import { TypeUtils } from '@common/utilities/type-utils.service'
 import { TopicModelService } from './http/topic-model.service';
-import { ModelSelectionService } from './ui/model-selection.service';
 import { SnackBarCommonNotificationsService } from './ui/snackbar-notifications.service';
 import { TrainingQueueService } from './ui/training-queue.service';
+import { RunningTasksService } from './http/running-tasks.service';
 
 //
 //
@@ -45,7 +45,6 @@ export class CoreAppServiceModule {
 				UiNotificationService,
 				ProgressIndicationService,
 				TrainingQueueService,
-				ModelSelectionService,
 				HttpErrorHandlingService,
 				TenantService,
 				FilterService,
@@ -55,6 +54,7 @@ export class CoreAppServiceModule {
 				AppPrincipalService,
 				QueryParamsService,
 				TopicModelService,
+				RunningTasksService,
 				SnackBarCommonNotificationsService
 			],
 		};

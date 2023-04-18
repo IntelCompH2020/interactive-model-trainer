@@ -14,7 +14,7 @@
 				"SUCCESSFUL-CREATION": "The item got created without errors.",
 				"SUCCESSFUL-UPDATE": "The item got updated without errors.",
 				"SUCCESSFUL-DELETION": "The item got deleted without errors.",
-				"OPERATION-STARTED": "Operation started. You will be notified when completed.",
+				"OPERATION-STARTED": "Operation started.",
 				"SUCCESSFUL-OPERATION": "The operation completed without errors.",
 				"SUCCESSFUL-OPERATION-REFRESH-PAGE": "The operation completed without errors. The page got refreshed.",
 				"UNSUCCESSFUL-OPERATION": "An error occured. Operation failed."
@@ -22,6 +22,13 @@
 			"SELECT": {
 				"NONE": "None",
 				"ALL": "All"
+			},
+			"TOOLTIP": {
+				"RENAME": "Rename",
+				"UPDATE": "Edit / Update",
+				"COPY": "Clone / Copy",
+				"DELETE": "Delete",
+				"NOT-EDITABLE": "You cannot modify this field"
 			}
 		},
 		"NAVIGATION": {
@@ -56,7 +63,9 @@
 			"DOMAIN-MODELS": "Domain models",
 			"WORD-LISTS": "Word Lists",
 			"STOPWORDS-EQUIVALENCES": "Stopwords & Equivalences",
+			"STOPWORDS-EQUIVALENCES-SUBTEXT": "Used for topic modeling",
 			"KEYWORDS": "Keywords",
+			"KEYWORDS-SUBTEXT": "Used for domain classification",
 			"SEARCH": "Search...",
 			"VIEW-PROFILE": "View Profile",
 			"SETTINGS": "Settings",
@@ -68,7 +77,12 @@
 			"PRIVACY-POLICY": "Privacy Policy",
 			"VISIT": "Visit",
 			"FACEBOOK-TOOLTIP": "Visit facebook",
-			"TWITTER-TOOLTIP": "Visit twitter"
+			"TWITTER-TOOLTIP": "Visit twitter",
+			"TASKS": {
+				"RUNNING": "Running tasks",
+				"FINISHED": "Finished tasks",
+				"CLEAR-ALL": "Clear all finished"
+			}
 		},
 		"HOME-COMPONENT": {
 			"START": "Start",
@@ -77,14 +91,21 @@
 			"CORPUS-DESCRIPTION": "Use this space to select a corpus from the Data Lake to be used with the training of a model. You can also create a new corpus by merging other available ones or select a subcorpus based on a category.",
 			"MODELS": "Models",
 			"MODELS-DESCRIPTION": "Use this space to select a model to work with create a new model, curate a model or manage the available models.",
-			"STOPWORDS-EQUIVALENCES": "Stopwords & Equivalencies",
-			"STOPWORDS-EQUIVALENCES-DESCRIPTION": "Use this space to manage your lists of stopwords and equivalencies or create new ones.",
+			"STOPWORDS-EQUIVALENCES": "Stopwords & Equivalences",
+			"STOPWORDS-EQUIVALENCES-DESCRIPTION": "Use this space to manage your lists of stopwords and equivalences or create new ones.",
 			"RECENT": "Recent",
 			"HOW-TO": "How to",
 			"HOW-TO-CORPUS-DESCRIPTION": "Create a new corpus or combine them",
 			"HOW-TO-MODELS-DESCRIPTION": "Create and train a model",
 			"HOW-TO-WORD-LIST": "Word List",
 			"HOW-TO-WORD-LIST-DESCRIPTION": "Manage your list of items"
+		},
+		"RENAME-DIALOG": {
+			"TITLE": "Rename item",
+			"OLD-NAME": "Old name",
+			"NEW-NAME": "New name",
+			"CANCEL": "Cancel",
+			"SUBMIT": "Rename"
 		},
 		"CORPUS-COMPONENT": {
 			"RAW": {
@@ -104,7 +125,7 @@
 			},
 			"RAW-CORPUS": "Raw Corpora",
 			"LOGICAL-CORPUS": "Logical corpora",
-			"EXPORT": "Export",
+			"EXPORT": "Download schema",
 			"CURATE": "Curate",
 			"NONE-SELECTED": "No corpus selected",
 			"DETAILS": "Details",
@@ -190,7 +211,7 @@
 					"MERGE": "Merge"
 				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Logical Corpus"
+					"TITLE": "Rename logical corpus"
 				}
 			}
 		},
@@ -198,6 +219,7 @@
 			"CURATE": "Curate",
 			"CURATE-OPTIONS": {
 				"LABEL-TOPICS": "Label topics",
+				"LABEL-TOPIC": "Update label",
 				"SHOW-SIMILAR-TOPICS": "Show similar topics",
 				"FUSE-TOPICS": "Fuse topics",
 				"SORT-TOPICS": "Sort topics",
@@ -247,6 +269,7 @@
 					"CORPUS": "Corpus Name",
 					"DESCRIPTION": "Description",
 					"ADVANCED-OPTIONS": "Advanced options",
+					"ADVANCED-PREPROCESSING-OPTIONS": "Advanced options for preprocessing",
 					"PRIVATE": "Private",
 					"TYPE": "Type",
 					"CLASS-PLACEHOLDER": "Class",
@@ -386,8 +409,26 @@
 						"HTM": "Hierarchical topic model algorithm under which the 2-level model’s training corpus is going to be generated, ‘htm-ws’ or ‘htm-ds’."
 					}
 				},
+				"PREPROCESSING-PARAMETERS": {
+					"MIN-LEMMAS": "Minimum # of words",
+					"NO-BELOW": "No below",
+					"NO-ABOVE": "No above",
+					"KEEP-N": "Maximum # of words",
+					"STOPWORDS": "Stopwords",
+					"STOPWORDS-PLACEHOLDER": "Choose stopwords",
+					"EQUIVALENCES": "Equivalences",
+					"EQUIVALENCES-PLACEHOLDER": "Choose equivalences"
+				},
+				"PREPROCESSING-PARAMETERS-TOOLTIPS": {
+					"MIN-LEMMAS": "Minimum number of words to keep document in corpus",
+						"NO-BELOW": "Remove words with less than no_below occurrences",
+						"NO-ABOVE": "Remove words appearing in more than a given percentage of documents",
+						"KEEP-N": "Maximum number of words in vocabulary",
+						"STOPWORDS": "Stopwords to be used",
+						"EQUIVALENCES": "Equivalences to be used"
+				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Topic Model"
+					"TITLE": "Rename topic model"
 				},
 				"TOPIC-MODEL-TYPES": {
 					"MALLET-LDA": "Mallet",
@@ -406,9 +447,11 @@
 				"SEARCH-PLACEHOLDER": "Filter by topic label",
 				"FILTER": "Filter",
 				"ADD-NEW": "New sub-model",
+				"ADD-NEW-TOOLTIP": "You have to select a root (not hierarchical) topic model and one of its topics first",
 				"ID": "Id",
 				"SIZE": "Size",
 				"LABEL": "Label",
+				"NEW-LABEL": "New label",
 				"WORD-DESCRIPTION": "Word description",
 				"DOCS-ACTIVE": "# of docs active",
 				"ENTROPY": "Entropy",
@@ -417,7 +460,9 @@
 					"WORD-DESCRIPTION-PLACEHOLDER": "Word description"
 				},
 				"RENAME-TOPIC-DIALOG": {
-					"TITLE": "Change Topic Label"
+					"TITLE": "Change Topic Label",
+					"OLD-LABEL": "Old label",
+					"NEW-LABEL": "New label"
 				}
 			},
 			"DOMAIN-MODELS-LISTING-COMPONENT": {
@@ -463,11 +508,25 @@
 					"SELECTED-KEYWORDS": "Selected keywords",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
-					"TYPE": "Type",
-					"TYPE-PLACEHOLDER": "Type",
-					"CLASS-PLACEHOLDER": "Class",
-					"NUMBER-OF-HEADS": "Number of Heads",
-					"DEPTH": "Depth",
+					"ADVANCED-FOR-AL-OPTIONS": "Advanced options for Active Learning (AL)",
+					"PARAMETERS": {
+						"METHOD": "Method",
+						"METHOD-OPTIONS": {
+							"EMBEDDING": "Embedding",
+							"COUNT": "Count"
+						},
+						"WEIGHTING-FACTOR": "Weighting factor",
+						"NUMBER-OF-ELEMENTS": "# of elements",
+						"MINIMUM-SCORE": "Minimum score",
+						"MODEL-NAME": "Model name"
+					},
+					"PARAMETERS-TOOLTIPS": {
+						"METHOD": "Selection method: 'embedding' or 'count'",
+						"WEIGHTING-FACTOR": "Weighting factor for the title components. Keyword matches with title words are weighted by this factor",
+						"NUMBER-OF-ELEMENTS": "Maximum number of elements in the output list. The default is a huge number that, in practice, means there is no limit",
+						"MINIMUM-SCORE": "Minimum score. Only elements strictly above s_min are selected",
+						"MODEL-NAME": "Name of the SBERT model. Available pretrained models can be found in https://www.sbert.net/docs/pretrained_models.html"
+					},
 					"CANCEL": "Cancel",
 					"SUBMIT": "Create"
 				},
@@ -482,11 +541,15 @@
 					"TOPIC-WEIGHT": "Topic Weight",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
-					"TYPE": "Type",
-					"TYPE-PLACEHOLDER": "Type",
-					"CLASS-PLACEHOLDER": "Class",
-					"NUMBER-OF-HEADS": "Number of Heads",
-					"DEPTH": "Depth",
+					"ADVANCED-FOR-AL-OPTIONS": "Advanced options for Active Learning (AL)",
+					"PARAMETERS": {
+						"NUMBER-OF-ELEMENTS": "# of elements",
+						"MINIMUM-SCORE": "Minimum score"
+					},
+					"PARAMETERS-TOOLTIPS": {
+						"NUMBER-OF-ELEMENTS": "Maximum number of elements in the output list. The default is a huge number that, in practice, means there is no limit",
+						"MINIMUM-SCORE": "Minimum score. Only elements strictly above s_min are selected"
+					},
 					"CANCEL": "Cancel",
 					"SUBMIT": "Create"
 				},
@@ -498,28 +561,70 @@
 					"TARGET-CATEGORY": "Target Category",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
-					"TYPE": "Type",
-					"TYPE-PLACEHOLDER": "Type",
-					"CLASS-PLACEHOLDER": "Class",
-					"NUMBER-OF-HEADS": "Number of Heads",
-					"DEPTH": "Depth",
+					"ADVANCED-FOR-AL-OPTIONS": "Advanced options for Active Learning (AL)",
+					"PARAMETERS": {
+						"NUMBER-OF-ELEMENTS": "# of elements",
+						"MINIMUM-SCORE": "Minimum score"
+					},
+					"PARAMETERS-TOOLTIPS": {
+						"NUMBER-OF-ELEMENTS": "Maximum number of elements in the output list. The default is a huge number that, in practice, means there is no limit",
+						"MINIMUM-SCORE": "Minimum score. Only elements strictly above s_min are selected"
+					},
 					"CANCEL": "Cancel",
 					"SUBMIT": "Create"
 				},
+				"CLASSIFIER-PARAMETERS": {
+					"MODEL-TYPE": "Model type",
+					"MODEL-NAME":"Model name",
+					"MAX-IMBALANCE": "Maximum imbalance",
+					"NMAX": "Maximum # of docs",
+					"FREEZE-ENCODER": "Freeze encoder",
+					"FREEZE-ENCODER-OPTIONS": {
+						"YES": "True",
+						"NO": "False"
+					},
+					"EPOCHS": "Epochs",
+					"BATCH-SIZE": "Batch size"
+				},
+				"CLASSIFIER-PARAMETERS-TOOLTIPS": {
+					"MODEL-TYPE": "Type of transformer for ClassificationModel (e.g. roberta, mpnet), see https://simpletransformers.ai/docs/classification-specifics/#supported-model-types",
+					"MODEL-NAME": "Name of the simpletransformer model (e.g. roberta_base, all-mpnet-base-v2)",
+					"MAX-IMBALANCE": "Maximum ratio negative vs positive samples in the training set",
+					"NMAX": "Maximum number of documents in the training set",
+					"FREEZE-ENCODER": "If True, the embedding layer is fixed, and not fine-tuned. During learning, only the layers after the encoder of the sentence transformer are updated",
+					"EPOCHS": "Number of epochs",
+					"BATCH-SIZE": "Only for GPU use"
+				},
+				"ACTIVE-LEARNING-PARAMETERS": {
+					"N-DOCS": "# of documents",
+					"SAMPLER": "Sampler",
+					"SAMPLER-OPTIONS": {
+						"EXTREMES": "Extremes",
+						"RANDOM": "Random"
+					},
+					"P-RATIO": "Ratio of samples",
+					"TOP-PROB": "Selection probability"
+				},
+				"ACTIVE-LEARNING-PARAMETERS-TOOLTIPS": {
+					"N-DOCS": "Number of docs to show each AL round",
+					"SAMPLER": "Sample selection algorithm: 'random' or 'extremes'",
+					"P-RATIO": "Ratio of high-score samples. The rest will be low-score samples. (Used for sampler='extremes' only)",
+					"TOP-PROB": "(Approximate) probability of selecting the doc with the highest score in a single sampling. This parameter is used to control the randomness of the stochastic sampling: if top_prob=1, the samples with the highest score are taken deterministically. top_prob=0 is equivalent to random sampling. (Used for sampler='extremes' only)"
+				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Domain Model"
-				},
-				"DOMAIN-MODEL-TYPES": {
-					"TRANSFORMERS": "Transformers",
-					"OTHER": "Other"
-				},
-				"DOMAIN-MODEL-SUBTYPES": {
-					"ROBERTA": "RoBERTa",
-					"BERT": "BERT"
+					"TITLE": "Rename domain model"
 				}
 			},
 			"MODEL-DETAILS-COMPONENT": {
 				"TITLE": "Training Parameters"
+			},
+			"MODEL-PATCH-COMPONENT": {
+				"TITLE": "Update model",
+				"NAME": "Name",
+				"DESCRIPTION": "Description",
+				"PRIVATE": "Private",
+				"SUBMIT": "Save",
+				"CANCEL": "Cancel"
 			},
 			"PY-LDA-VIS-MODAL": {
 				"TITLE": "Topic LDA visualization"
@@ -548,13 +653,15 @@
 			"TYPE": "Type",
 			"LOCATION": "Location",
 			"MORE-DETAILS": "More Details",
+			"MORE-DETAILS-SHOW": "Show wordlist",
 			"KEYWORDS-LISTING-COMPONENT": {
 				"FILTER-TITLE": "Keywords",
 				"SEARCH-PLACEHOLDER": "Filter by keyword list name",
 				"FILTER": "Filter",
 				"ADD-NEW": "Add keywords",
-				"ADD-NEW-FROM-FILE": "Form file",
+				"ADD-NEW-FROM-FILE": "Import from file",
 				"ADD-NEW-MANUALLY": "Manually",
+				"ADD-NEW-MERGE": "Merge existing keyword lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
@@ -582,20 +689,21 @@
 					"SUBMIT": "Create"
 				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Keyword"
+					"TITLE": "Rename keywords list"
 				}
 			},
-			"STOPWORDS-AND-EQUIVALENCIES-COMPONENT": {
+			"STOPWORDS-AND-EQUIVALENCES-COMPONENT": {
 				"STOPWORDS": "Stopwords",
-				"EQUIVALENCIES": "Equivalencies"
+				"EQUIVALENCES": "Equivalences"
 			},
 			"STOPWORDS-LISTING-COMPONENT": {
 				"FILTER-TITLE": "Stopwords",
 				"SEARCH-PLACEHOLDER": "Filter by stopwords list name",
 				"FILTER": "Filter",
 				"ADD-NEW": "Add stopwords",
-				"ADD-NEW-FROM-FILE": "Form file",
+				"ADD-NEW-FROM-FILE": "Import form file",
 				"ADD-NEW-MANUALLY": "Manually",
+				"ADD-NEW-MERGE": "Merge existing stopword lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
@@ -624,16 +732,17 @@
 					"SUBMIT": "Create"
 				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Stopword"
+					"TITLE": "Rename stopwords list"
 				}
 			},
-			"EQUIVALENCIES-LISTING-COMPONENT": {
-				"FILTER-TITLE": "Equivalencies",
-				"SEARCH-PLACEHOLDER": "Filter by equivalencies list name",
+			"EQUIVALENCES-LISTING-COMPONENT": {
+				"FILTER-TITLE": "Equivalences",
+				"SEARCH-PLACEHOLDER": "Filter by equivalences list name",
 				"FILTER": "Filter",
 				"ADD-NEW": "Add Equivalences",
-				"ADD-NEW-FROM-FILE": "Form file",
+				"ADD-NEW-FROM-FILE": "Import form file",
 				"ADD-NEW-MANUALLY": "Manually",
+				"ADD-NEW-MERGE": "Merge existing equivalence lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
@@ -656,7 +765,7 @@
 					"TERM-PLACEHOLDER": "Term",
 					"TERM": "Term",
 					"ADD-EQUIVALENCE": "Add equivalence",
-					"ADD-EQUIVALENCE-HINT": "Insert a term and its equivalence to append it to equivalencies list",
+					"ADD-EQUIVALENCE-HINT": "Insert a term and its equivalence to append it to equivalences list",
 					"EQUIVALENCE": "Equivalence",
 					"EQUIVALENCE-PLACEHOLDER": "Equivalence",
 					"PRIVATE": "Private",
@@ -664,8 +773,22 @@
 					"SUBMIT": "Create"
 				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename Equivalence"
+					"TITLE": "Rename equivalences list"
 				}
+			},
+			"WORD-LIST-DETAILS-COMPONENT": {
+				"TITLE": "Wordlist items"
+			},
+			"WORD-LIST-MERGE-DIALOG": {
+				"NAME": "Name",
+				"DESCRIPTION": "Description",
+				"PRIVATE": "Private",
+				"ACTIONS": "Actions",
+				"VIEW-LIST": "View list",
+				"NO-LISTS": "No lists available",
+				"ONLY-ONE-LIST": "There must be at least two lists available to merge",
+				"CANCEL": "Cancel",
+				"SUBMIT": "Merge"
 			}
 		},
 		"TENANT-CHOOSE-DIALOG": {

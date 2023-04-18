@@ -17,6 +17,8 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+
 @RestController
 @RequestMapping(path = "api/logical-corpus", produces = MediaType.APPLICATION_JSON_VALUE)
 public class LogicalCorpusController {
@@ -32,18 +34,14 @@ public class LogicalCorpusController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<LogicalCorpus> GetAll(@RequestBody CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
-
-        //logger.debug("querying {}", Keyword.class.getSimpleName());
-
-        //this.censorFactory.censor(KeywordCensor.class).censor(lookup.getProject());
-
-        List<LogicalCorpus> corpus = logicalCorpusService.getAll(lookup);
-
-        //this.auditService.track(AuditableAction.Keyword_Query, "lookup", lookup);
-
-        return new QueryResult<>(corpus, corpus.size());
-
+    public QueryResult<LogicalCorpus> GetAll(@RequestBody CorpusLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return logicalCorpusService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @PostMapping("create")

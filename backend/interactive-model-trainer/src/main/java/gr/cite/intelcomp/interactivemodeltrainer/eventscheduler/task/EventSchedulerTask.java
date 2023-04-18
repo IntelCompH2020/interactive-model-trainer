@@ -8,6 +8,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.EventSchedulerPr
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.EventProcessingStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.ScheduledEventHandler;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.CheckTasksScheduledEventHandler;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundomaintraining.RunDomainTrainingScheduledEventHandler;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.RunTrainingScheduledEventHandler;
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import gr.cite.tools.data.query.Ordering;
@@ -45,7 +46,7 @@ public class EventSchedulerTask {
     }
 
     public void process() {
-        logger.debug("Scheduled task running");
+        logger.trace("Scheduled task running");
         EntityManagerFactory entityManagerFactory = applicationContext.getBean(EntityManagerFactory.class);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -76,7 +77,7 @@ public class EventSchedulerTask {
         } finally {
             if (entityManager != null) {
                 entityManager.close();
-                logger.debug("Scheduled task finished");
+                logger.trace("Scheduled task finished");
             }
         }
     }
@@ -99,6 +100,7 @@ public class EventSchedulerTask {
         candidate = scheduledEventQuery.first();
         if (candidate != null) {
             ScheduledEventStatus previousState = candidate.getStatus();
+            candidate = entityManager.find(ScheduledEventEntity.class, candidate.getId());
             candidate.setStatus(ScheduledEventStatus.PROCESSING);
             candidate = entityManager.merge(candidate);
             entityManager.persist(candidate);
@@ -211,6 +213,9 @@ public class EventSchedulerTask {
                 case RUN_HIERARCHICAL_TRAINING:
                 case RESET_MODEL:
                     handler = applicationContext.getBean(RunTrainingScheduledEventHandler.class);
+                    break;
+                case RUN_ROOT_DOMAIN_TRAINING:
+                    handler = applicationContext.getBean(RunDomainTrainingScheduledEventHandler.class);
                     break;
                 case CHECK_RUNNING_TRAINING_TASKS:
                     handler = applicationContext.getBean(CheckTasksScheduledEventHandler.class);

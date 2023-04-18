@@ -1,0 +1,13 @@
+<div class="row m-0 button-tabs">
+    <button mat-stroked-button [class.background-gray]="selectedView === ViewSelection.Stopwords" (click)="goToStopwords()">
+        {{'APP.WORD-LIST-COMPONENT.STOPWORDS-AND-EQUIVALENCES-COMPONENT.STOPWORDS' | translate}}
+    </button>
+    <button mat-stroked-button [class.background-gray]="selectedView === ViewSelection.equivalences" (click)="goToEquivalencies()">
+        {{'APP.WORD-LIST-COMPONENT.STOPWORDS-AND-EQUIVALENCES-COMPONENT.EQUIVALENCES' | translate}}
+    </button>
+</div>
+
+<ng-container [ngSwitch]="selectedView">
+    <app-stopwords-listing #stopWordsListingComponent (onStopwordSelect)="onSelectItem($event)"  *ngSwitchCase="ViewSelection.Stopwords"></app-stopwords-listing>
+    <app-equivalences-listing #equivalencesListingComponent (onEquivalenceSelect)="onSelectItem($event)"  *ngSwitchCase="ViewSelection.equivalences"></app-equivalences-listing>
+</ng-container>

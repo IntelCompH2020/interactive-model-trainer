@@ -8,8 +8,8 @@ export interface Keyword extends BaseEntity {
     visibility: WordListVisibility;
     wordlist: string[];
     creation_date: Moment;
-    creator?: string;
-    location?: string; 
+    creator: string;
+    location: string; 
 }
 
 export interface KeywordListPersist extends BaseEntityPersist {
@@ -18,6 +18,6 @@ export interface KeywordListPersist extends BaseEntityPersist {
     visibility: WordListVisibility;
     wordlist: string[];
     creation_date: Moment;
-    creator?: string;
-    location?: string;
+    creator: string;
+    location: string;
 }

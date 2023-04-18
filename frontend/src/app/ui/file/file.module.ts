@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { CommonUiModule } from "@common/ui/common-ui.module";
-import { FileExportDialogComponent } from "./file-export-dialog.component";
+import { FileExportDialogComponent } from "./file-export-dialog/file-export-dialog.component";
 
 @NgModule({
 	imports: [CommonUiModule],

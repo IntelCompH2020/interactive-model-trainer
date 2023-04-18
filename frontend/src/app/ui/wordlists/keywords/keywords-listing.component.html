@@ -1,5 +1,5 @@
 
-<div class="row align-items-center mt-3" style="min-height: 7rem; padding-right: 2rem;">
+<div class="row align-items-center pb-4">
     <div class="col-auto">
         <h4>
             {{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.FILTER-TITLE' | translate}}
@@ -48,10 +48,11 @@
         </button>
 
         <mat-menu #addKeywordsMenu="matMenu">
-            <button mat-menu-item (click)="newKeywordFromFile()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button>        
-            <button mat-menu-item (click)="newKeywordManually()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MANUALLY' | translate}}</button>        
+            <button mat-menu-item (click)="addNewKeywordFromFile()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button>        
+            <button mat-menu-item (click)="addNewKeywordManually()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MANUALLY' | translate}}</button>
+            <button mat-menu-item (click)="addNewKeywordMerge()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MERGE' | translate}}</button>        
         </mat-menu>
     </div> 
 </div>
 
-<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" ></app-listing>
+<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"></app-listing>

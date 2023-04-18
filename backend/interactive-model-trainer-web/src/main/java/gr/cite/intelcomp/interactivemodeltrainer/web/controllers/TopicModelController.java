@@ -1,7 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
@@ -11,24 +10,29 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.model.TopicModelService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
+import gr.cite.intelcomp.interactivemodeltrainer.web.model.ModelPatchInfo;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.QueryResult;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.RenameInfo;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
+
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
 @RestController
 @RequestMapping(path = "api/topic-model", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -49,9 +53,14 @@ public class TopicModelController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<TopicModel> GetAll(@RequestBody TopicModelLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<TopicModel> models = topicModelService.getAll(lookup);
-        return new QueryResult<>(models, models.size());
+    public QueryResult<TopicModel> GetAll(@RequestBody TopicModelLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return topicModelService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @GetMapping("{name}")
@@ -71,6 +80,18 @@ public class TopicModelController {
     @Transactional
     public void Rename(@Valid @RequestBody RenameInfo model) throws InterruptedException, IOException, ApiException {
         topicModelService.rename(ModelType.TOPIC, model.getOldName(), model.getNewName());
+    }
+
+    @PatchMapping("{name}/patch")
+    @Transactional
+    public void Patch(@PathVariable("name") String name, @RequestBody ModelPatchInfo model) {
+        topicModelService.patch(name, model.getDescription(), model.getVisibility());
+    }
+
+    @PatchMapping("{parentName}/{name}/patch")
+    @Transactional
+    public void Patch(@PathVariable("parentName") String parentName, @PathVariable("name") String name, @RequestBody ModelPatchInfo model) {
+        topicModelService.patch(parentName, name, model.getDescription(), model.getVisibility());
     }
 
     @DeleteMapping("{name}/delete")
@@ -125,11 +146,14 @@ public class TopicModelController {
 
     @PostMapping("/{name}/topics/all")
     @Transactional
-    public QueryResult<Topic> GetAllTopics(@PathVariable("name") String name, @RequestBody TopicLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<Topic> models = topicModelService.getAllTopics(name, lookup);
-        lookup.setPage(null);
-        int count = topicModelService.getAllTopics(name, lookup).size();
-        return new QueryResult<>(models, count);
+    public QueryResult<Topic> GetAllTopics(@PathVariable("name") String name, @RequestBody TopicLookup lookup) {
+        return extractQueryResultWithCount((n, l) -> {
+            try {
+                return topicModelService.getAllTopics(n, l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, name, lookup);
     }
 
     @PostMapping("/{name}/topics/labels")
@@ -171,19 +195,24 @@ public class TopicModelController {
 
     @GetMapping("train/logs/{name}")
     @Transactional
-    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
+    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
+        try {
+            return Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
+        } catch (IOException e) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return List.of("ERROR: Logs not found.");
+        }
     }
 
     @GetMapping("train/logs/{parent}/{name}")
     @Transactional
-    public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
-    }
-
-    @GetMapping("tasks/{task}/status")
-    public TrainingTaskRequestStatus getTaskStatus(@PathVariable(name = "task") UUID task) {
-        return trainingTaskRequestService.getTaskStatus(task);
+    public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName, HttpServletResponse response) {
+        try {
+            return Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
+        } catch (IOException e) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return List.of("ERROR: Logs not found.");
+        }
     }
 
 

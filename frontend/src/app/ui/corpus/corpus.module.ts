@@ -15,9 +15,9 @@ import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MergedCorpusTableComponent } from './logical-corpus-listing/new-logical-corpus/merged-corpus-table/merged-corpus-table.component';
 import { NewMergedFieldComponent } from './logical-corpus-listing/new-logical-corpus/new-merged-field/new-merged-field.component';
-import { RenameLogicalCorpusComponent } from './logical-corpus-listing/rename-logical-corpus/rename-logical-corpus.component';
 import { NewLogicalCorpusFromFileComponent } from './logical-corpus-listing/new-logical-corpus-from-file/new-logical-corpus-from-file.component';
 import { FileModule } from '../file/file.module';
+import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
 
 @NgModule({
   declarations: [
@@ -29,8 +29,7 @@ import { FileModule } from '../file/file.module';
     LogicalCorpusListingComponent,
     MergeLogicalCorpusComponent,
     MergedCorpusTableComponent,
-    NewMergedFieldComponent,
-    RenameLogicalCorpusComponent
+    NewMergedFieldComponent
   ],
   imports: [
     CommonModule,
@@ -39,7 +38,8 @@ import { FileModule } from '../file/file.module';
     CorpusRoutingModule,
     CommonFormsModule,
     DragDropModule,
-    FileModule
+    FileModule,
+    RenameDialogModule
   ],
   providers:[
     RawCorpusService,

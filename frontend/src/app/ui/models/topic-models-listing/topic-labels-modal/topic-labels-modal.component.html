@@ -8,15 +8,15 @@
     <thead class="table-head-gray">
       <tr>
         <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ID' | translate}}</th>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.WORD-DESCRIPTION' | translate}}</th>
         <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.LABEL' | translate}}</th>
-        <th>
-          New Label
-        </th>
+        <th>{{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.NEW-LABEL' | translate}}</th>
       </tr>
     </thead>
     <tbody class="bg-white" [formGroup]="formGroup">
       <tr *ngFor="let topic of topics; index as i">
         <td>{{topic.id}}</td>
+        <td>{{topic.wordDescription}}</td>
         <td>{{topic.label}}</td>
         <td>
           <input mat-input [formControl]="labelsInputs.controls[i]">

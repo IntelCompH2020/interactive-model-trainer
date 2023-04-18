@@ -4,7 +4,7 @@
 
 <mat-dialog-content *ngIf="formGroup">
     <div class="row mt-3" [formGroup]="formGroup">
-        <div class="col-5">
+        <div class="col-12 col-lg-6">
             <mat-form-field class="w-100" appearance="outline">
                 <mat-label>{{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.NAME' |
                     translate}}</mat-label>
@@ -31,7 +31,7 @@
                 </mat-select>
             </mat-form-field>
         </div>
-        <div class="col-7">
+        <div class="col-12 col-lg-6">
             <mat-form-field class="w-100" appearance="outline">
                 <mat-label>{{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.DESCRIPTION' |
                     translate}}</mat-label>
@@ -62,14 +62,28 @@
         </div>
     </div>
     <div class="row" *ngIf="advanced">
-        <p *ngIf="!advancedParams.length" class="mt-2">No advanced options currently available</p>
         <div *ngIf="advancedParams.length" class="col-12 mt-4">
             <app-model-parameters-table [parameters]="advancedParams"
                 [formGroup]="formGroup"></app-model-parameters-table>
         </div>
     </div>
 
-    <div class="mb-2" *ngIf="!advanced"></div>
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="advancedForPreprocessing"
+            [disabled]="!availableStopwords || !availableEquivalencies">
+                {{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.ADVANCED-PREPROCESSING-OPTIONS' |
+                translate}}</mat-checkbox>
+        </div>
+    </div>
+    <div class="row" *ngIf="advancedForPreprocessing">
+        <div *ngIf="advancedParams.length" class="col-12 mt-4">
+            <app-model-parameters-table [parameters]="advancedParamsForPreprocessing"
+                [formGroup]="preprocessingFormGroup" [maxParamsPerRow]="4"></app-model-parameters-table>
+        </div>
+    </div>
+
+    <div class="mb-2" *ngIf="!advancedForPreprocessing"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup">
@@ -79,7 +93,7 @@
             | translate}}</button>
     </div>
     <div class="col-auto">
-        <button mat-raised-button [disabled]="!formGroup.valid" color="accent"
+        <button mat-raised-button [disabled]="!valid" color="accent"
             (click)="create()">{{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.SUBMIT'
             | translate}}</button>
     </div>

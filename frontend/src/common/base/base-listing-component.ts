@@ -119,7 +119,7 @@ export abstract class BaseListingComponent<ItemModel, LookupModel extends Lookup
 		this.router.navigate([], { queryParams: { 'lookup': this.queryParamsService.serializeLookup(tmpLookup), 'lv': ++this.lv }, replaceUrl: true });
 	}
 
-	private setupVisibleColumns(fields: string[]) {
+	protected setupVisibleColumns(fields: string[]) {
 		this.visibleColumns = this.gridColumns.filter(x => x.prop && fields.includes(x.prop.toString())).map(x => x.prop);
 	}
 

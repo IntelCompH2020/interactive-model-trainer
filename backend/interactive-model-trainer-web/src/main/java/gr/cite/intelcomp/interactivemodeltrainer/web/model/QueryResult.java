@@ -10,6 +10,12 @@ public class QueryResult<M> {
 		this.items = items;
 		this.count = count;
 	}
+	public QueryResult(List<M> items)
+	{
+		this.items = items;
+		if (items != null) this.count = items.size();
+		else this.count = 0;
+	}
 
 	public List<M> items;
 	public long count;

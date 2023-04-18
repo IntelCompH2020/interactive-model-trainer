@@ -32,6 +32,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
+
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrainingScheduledEventHandler {
@@ -49,7 +53,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
 
     @Override
     public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
-        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TRAINING)) {
+        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING)) {
             return handleTraining(scheduledEvent, entityManager);
         } else return EventProcessingStatus.Error;
     }
@@ -66,7 +70,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                 TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
                 Long runningTasks = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.PENDING)
-                        .jobName("trainModels", "trainDomainModels")
+                        .jobName(TRAIN_TOPIC_MODELS_SERVICE_NAME, TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                         .count();
                 if (runningTasks >= config.get().getParallelTrainingsThreshold()) {
                     logger.debug("Currently running tasks have reached the limit ({}), postponing train task to run again in {} seconds...", config.get().getParallelTrainingsThreshold(), config.get().getPostponePeriodInSeconds());
@@ -76,7 +80,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
 
                 TrainingTaskRequestEntity trainingTaskRequest = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.NEW)
-                        .jobName("trainDomainModels")
+                        .jobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                         .ids(trainingTaskRequestId).first();
                 try {
                     if (!EventProcessingStatus.Postponed.equals(status)) {
@@ -124,12 +128,12 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
 
         String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getTask(), params));
         paramMap.put("COMMANDS", commands);
-        String logFile = trainingTaskRequest.getConfig().replace("dc_config.json", "execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started running training task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started running domain classification task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();

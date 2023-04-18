@@ -89,7 +89,8 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
       let targetField: LogicalCorpusField = this.getLogicalCorpusFieldByName(event.targetFieldName);
 
       this.dialog.open(NewMergedFieldComponent, {
-        minWidth: '25rem',
+        width: "50rem",
+        maxWidth: "90vw",
         disableClose: true
       })
         .afterClosed()

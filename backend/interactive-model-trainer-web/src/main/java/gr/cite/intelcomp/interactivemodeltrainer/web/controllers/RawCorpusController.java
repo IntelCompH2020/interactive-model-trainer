@@ -18,6 +18,8 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.List;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+
 @RestController
 @RequestMapping(path = "api/raw-corpus", produces = MediaType.APPLICATION_JSON_VALUE)
 public class RawCorpusController {
@@ -34,7 +36,12 @@ public class RawCorpusController {
     @PostMapping("all")
     @Transactional
     public QueryResult<RawCorpus> GetAll(@RequestBody CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<RawCorpus> corpus = rawCorpusService.getAll(lookup);
-        return new QueryResult<>(corpus, corpus.size());
+        return extractQueryResultWithCount(l -> {
+            try {
+                return rawCorpusService.getAll(lookup);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 }

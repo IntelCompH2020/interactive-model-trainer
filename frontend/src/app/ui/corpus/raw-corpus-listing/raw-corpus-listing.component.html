@@ -1,5 +1,5 @@
 
-<div class="row align-items-center" style="min-height: 7rem; padding-right: 2rem;">
+<div class="row align-items-center pt-4 pb-4">
     <div class="col-auto">
         <h4>
             {{'APP.CORPUS-COMPONENT.RAW-CORPUS-LISTING-COMPONENT.FILTER-TITLE' | translate}}
@@ -45,4 +45,4 @@
     </div>  -->
 </div>
 
-<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" ></app-listing>
+<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" ></app-listing>

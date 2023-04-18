@@ -14,6 +14,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.ModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
+import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import io.kubernetes.client.openapi.ApiException;
@@ -31,10 +32,13 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
 
     private final ContainerServicesProperties containerServicesProperties;
 
+    private final TopicModelingParametersService topicModelingParametersService;
+
     @Autowired
-    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties) {
+    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties, TopicModelingParametersService topicModelingParametersService) {
         super(builderFactory, dockerService);
         this.containerServicesProperties = containerServicesProperties;
+        this.topicModelingParametersService = topicModelingParametersService;
     }
 
     @Override
@@ -43,6 +47,16 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
         lookup.setModelType(ModelType.TOPIC);
         List<? extends ModelEntity> data = dockerService.listModels(lookup);
         return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data);
+    }
+
+    @Override
+    public void patch(String name, String description, String visibility) {
+        this.topicModelingParametersService.updateRootConfigurationFile(name, description, visibility);
+    }
+
+    @Override
+    public void patch(String parentName, String name, String description, String visibility) {
+        this.topicModelingParametersService.updateHierarchicalConfigurationFile(parentName, name, description, visibility);
     }
 
     @SuppressWarnings("unchecked")
@@ -80,37 +94,37 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     }
 
     public String getPyLDAvis(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "pyLDAvis.html");
         return Files.readString(file);
     }
 
     public String getD3(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "d3.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvisLibrary(String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "ldavis.v3.0.0.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvis(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "pyLDAvis.html");
         return Files.readString(file);
     }
 
     public String getD3(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "d3.js");
         return Files.readString(file);
     }
 
     public String getPyLDAvisLibrary(String parentName, String name) throws IOException {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
         Path file = Path.of(modelFolder, "TMmodel", "ldavis.v3.0.0.js");
         return Files.readString(file);
     }

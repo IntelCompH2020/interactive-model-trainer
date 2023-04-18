@@ -2,31 +2,31 @@
 
     <div class="col-11">
         <div class="row align-items-center">
-            <div *ngIf="modelSelecrionService.model" class="col-auto">
-                <mat-icon>model_training</mat-icon>
+            <div class="col-auto " *ngIf="trainingModels?.length">
+                {{'APP.FOOTER.TASKS.RUNNING' | translate}}: 
             </div>
-            <div *ngIf="modelSelecrionService.model" class="col-auto">
-                <div class="footer-selected-model">{{modelSelecrionService.model}}</div>
-            </div>
-            <div *ngIf="modelSelecrionService.corpus" class="col-auto">
-                <mat-icon>content_copy</mat-icon>
-            </div>
-            <div *ngIf="modelSelecrionService.corpus" class="col-auto">
-                <div class="footer-selected-model">{{modelSelecrionService.corpus.name}}</div>
-            </div>
-
-            <!-- <div class="col-auto" *ngIf="trainingModels?.length">
-                <button mat-button (click)="makeAllFinished()">
-                    make all finished
-                </button>
-            </div> -->
-            <div class="col-auto" *ngIf="trainingModels?.length">
-                Training tasks: 
-            </div>
-            <div class="col-auto d-flex align-items-center">
+            <div class="col-auto mr-3 d-flex align-items-center" *ngIf="trainingModels?.length">
                 <button mat-icon-button (click)="openTrainingDialog(item)" *ngFor="let item of trainingModels" [class.finished]="item.finished" [matTooltip]="item.label" class="training-model-item">
                     <mat-icon>
                         model_training
+                    </mat-icon>
+                </button>
+            </div>
+            <div class="col-auto" *ngIf="finishedModels?.length">
+                {{'APP.FOOTER.TASKS.FINISHED' | translate}}: 
+            </div>
+            <div class="col-auto mr-3 d-flex align-items-center" *ngIf="finishedModels?.length">
+                <button mat-icon-button (click)="openTrainingDialog(item)" *ngFor="let item of finishedModels" [class.finished]="item.finished" [matTooltip]="item.label" class="training-model-item">
+                    <mat-icon>
+                        model_training
+                    </mat-icon>
+                </button>
+            </div>
+            <div class="col-auto" *ngIf="finishedModels?.length">
+                <button mat-raised-button color="accent" (click)="clearAllFinished()" [disabled]="clearingFinished">
+                    {{'APP.FOOTER.TASKS.CLEAR-ALL' | translate}}
+                    <mat-icon *ngIf="clearingFinished">
+                        <mat-spinner color="accent" diameter="20"></mat-spinner>
                     </mat-icon>
                 </button>
             </div>

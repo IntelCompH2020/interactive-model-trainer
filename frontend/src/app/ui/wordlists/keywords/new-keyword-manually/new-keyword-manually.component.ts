@@ -1,10 +1,11 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { WordListVisibility } from '@app/core/enum/wordlist-visibility.enum';
 import { Keyword } from '@app/core/model/keyword/keyword.model';
 import { KeywordService } from '@app/core/services/http/keyword.service';
+import { TranslateService } from '@ngx-translate/core';
 import { nameof } from 'ts-simple-nameof';
 import { KeywordEditorModel } from '../keyword-editor.model';
 
@@ -18,12 +19,20 @@ export class NewKeywordManuallyComponent implements OnInit {
   formGroup: FormGroup;
   editorModel: KeywordEditorModel;
 
+  get keyword(): Keyword {
+    return this.data?.keywordList as Keyword
+  }
+
   protected get keywordsFormArray(): FormArray {
     return this.formGroup.get(nameof<Keyword>(x => x.wordlist)) as FormArray;
   }
 
   get keywords(): readonly string[] {
     return this.keywordsFormArray?.value;
+  }
+
+  get isNew(): boolean {
+    return this.data?.keywordList === undefined;
   }
 
   get valid(): boolean {
@@ -39,11 +48,12 @@ export class NewKeywordManuallyComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<NewKeywordManuallyComponent>,
     private keywordService: KeywordService,
+    protected language: TranslateService,
     @Inject(MAT_DIALOG_DATA) private data
   ) {
     this.editorModel = new KeywordEditorModel();
     if (data?.keywordList) {
-      this.editorModel.fromModel(data.keywordList as Keyword);
+      this.editorModel.fromModel(this.keyword);
       this.currentKeyword = '';
     }
     this.formGroup = this.editorModel.buildForm();

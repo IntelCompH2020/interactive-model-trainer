@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Keyword } from '@app/core/model/keyword/keyword.model';
 import { KeywordLookup } from '@app/core/query/keyword.lookup';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 import { BaseHttpService } from '@common/base/base-http.service';
 import { InstallationConfigurationService } from '@common/installation-configuration/installation-configuration.service';
 import { QueryResult } from '@common/model/query-result';
@@ -28,18 +29,18 @@ export class KeywordService {
     return this.http.delete<void>(url);
   }
 
+  copy(name: string): Observable<void> {
+    const url = `${this.apiBase}/copy/${name}`;
+    return this.http.post<void>(url, {});
+  }
+
   create(keyword: Keyword): Observable<void> {
     const url = `${this.apiBase}/create`;
     return this.http.post<void>(url, keyword);
   }
 
-  rename(renameKeywordListist: RenameKeyword): Observable<void> {
+  rename(rename: RenamePersist): Observable<void> {
     const url = `${this.apiBase}/rename`;
-    return this.http.put<void>(url, renameKeywordListist);
+    return this.http.put<void>(url, rename);
   }
-}
-
-interface RenameKeyword {
-  oldName: string;
-  newName: string;
 }

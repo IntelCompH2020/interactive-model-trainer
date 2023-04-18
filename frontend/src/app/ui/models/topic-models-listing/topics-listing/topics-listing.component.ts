@@ -10,24 +10,19 @@ import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
-import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
 import { ColumnMode, ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
-import { TrainingModelProgressComponent } from '@common/modules/training-model-progress/training-model-progress.component';
 import { TranslateService } from '@ngx-translate/core';
 import { DatatableComponent, SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { HierarchicalTopicModelEditorModel } from '../new-hierarchical-topic-model/hierarchical-topic-model-editor.model';
 import { NewHierarchicalTopicModelComponent } from '../new-hierarchical-topic-model/new-hierarchical-topic-model.component';
-// import { NewTopicModelComponent } from './new-topic-model/new-topic-model.component';
-// import { RenameTopicModelComponent } from './rename-topic-model/rename-topic-model.component';
 
 @Component({
   selector: 'app-topics-listing',
@@ -56,6 +51,10 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     return this._topicSelected;
   }
 
+  get canCreateSubmodel(): boolean {
+    return this.topicSelected && this.model.hierarchyLevel == 0;
+  }
+
   SelectionType = SelectionType;
 
   @ViewChild('topics_list') table: DatatableComponent;
@@ -80,6 +79,8 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
         nameof<Topic>(x => x.label),
         nameof<Topic>(x => x.wordDescription),
         nameof<Topic>(x => x.docsActive),
+        nameof<Topic>(x => x.topicCoherence),
+        nameof<Topic>(x => x.topicEntropy)
       ]
     };
 
@@ -92,6 +93,7 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
           prop: nameof<Topic>(x => x.id),
           sortable: true,
           resizeable: true,
+          alwaysShown: true,
           maxWidth: 50,
           languageName: 'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ID'
         },
@@ -150,7 +152,6 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     public enumUtils: AppEnumUtils,
     protected dialog: MatDialog,
     protected topicModelService: TopicModelService,
-    private trainingModelQueueService: TrainingQueueService,
     private formBuilder: FormBuilder
 
   ) {
@@ -158,6 +159,15 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     this.lookup = this.initializeLookup();
 
     this._buildFilterEditorConfiguration();
+
+    setTimeout(() => {
+      this.setupVisibleColumns([
+        nameof<Topic>(x => x.size),
+        nameof<Topic>(x => x.label),
+        nameof<Topic>(x => x.wordDescription),
+        nameof<Topic>(x => x.docsActive)
+      ]);
+    }, 0);
   }
 
   ngOnInit(): void {
@@ -215,25 +225,6 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     });
   }
 
-  onColumnsChanged(event: ColumnsChangedEvent) {
-    this.onTopicSelect.emit(null);
-    this.onTopicLookup.emit(new TopicLookup());
-    this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
-  }
-
-  private onColumnsChangedInternal(columns: string[]) {
-    // Here are defined the projection fields that always requested from the api.
-    this.lookup.project = {
-      fields: [
-        nameof<Topic>(x => x.id),
-        nameof<Topic>(x => x.label),
-        ...columns
-      ]
-    };
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
-    this.onTopicLookup.emit(this.lookup);
-  }
-
   onRowActivated($event: RowActivateEvent) {
     if ($event.type === 'click') {
       const topic: Topic = $event.row as Topic;
@@ -254,10 +245,11 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
 
   addNewTopicSubModel(): void {
     this.dialog.open(NewHierarchicalTopicModelComponent, {
-      minWidth: '50rem',
+      width: "80rem",
       maxWidth: '90vw',
       disableClose: true,
       data: {
+        parent: this.model,
         topic: this._topicSelected
       }
     })
@@ -266,33 +258,7 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
         takeUntil(this._destroyed),
         filter(x => x)
       ).subscribe(result => {
-        if (result) this.openTrainingDialog(result);
+        if (result) this.snackbars.operationStarted();
       })
-  }
-
-  openTrainingDialog(data: any): void {
-    this.trainingModelQueueService.addItem({
-      label: data.model['name'],
-      finished: false,
-      model: data.model,
-      task: data.task
-    })
-    this.dialog.open(TrainingModelProgressComponent, {
-      id: data.task,
-      minWidth: '80vw',
-      disableClose: true,
-      data
-    })
-      .afterClosed()
-      .pipe(
-        takeUntil(this._destroyed)
-      )
-      .subscribe((response) => {
-        if (response) this.snackbars.operationStarted();
-        else {
-          this.trainingModelQueueService.removeItem(data.task);
-          this.trainingModelQueueService.taskCompleted.next("__REFRESH__");
-        }
-      });
   }
 }

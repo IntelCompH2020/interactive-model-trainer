@@ -2,6 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
@@ -44,7 +45,11 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
             if (fields.hasField(this.asIndexer(DomainModelEntity._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(DomainModelEntity._tag))) m.setTag(d.getTag());
             if (fields.hasField(this.asIndexer(DomainModelEntity._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._corpus))) m.setCorpus(d.getCorpus());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._corpus))) m.setCorpus(
+                    d.getCorpus()
+                            .replaceAll("^(.*)/", "")
+                            .replace(".json", "")
+            );
             if (fields.hasField(this.asIndexer(DomainModelEntity._creator))) m.setCreator(d.getCreator());
             if (fields.hasField(this.asIndexer(DomainModelEntity._location))) m.setLocation(d.getLocation());
             if (fields.hasField(this.asIndexer(DomainModelEntity._creation_date))) m.setCreation_date(d.getCreation_date());

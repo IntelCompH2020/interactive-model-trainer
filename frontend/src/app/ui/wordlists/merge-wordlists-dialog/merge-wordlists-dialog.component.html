@@ -1,0 +1,117 @@
+<!-- <div mat-dialog-title>
+  <h5></h5>
+</div> -->
+
+<mat-dialog-content>
+  <div class="row mt-3" [formGroup]="formGroup">
+    <div class="col-12 col-lg-6">
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>{{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.NAME'
+          | translate}}</mat-label>
+        <input type="text" formControlName="name" matInput>
+        <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="col-12 col-lg-6">
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>{{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.DESCRIPTION'
+          | translate}}</mat-label>
+        <textarea rows="4" formControlName="description" matInput></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="row" [formGroup]="formGroup">
+    <div class="col-12">
+      <table class="table table-bordered text-center">
+        <thead class="table-head-gray">
+          <tr>
+            <th>
+              {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.NAME'
+              | translate}}</th>
+            <th>
+              {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.DESCRIPTION'
+              | translate}}</th>
+            <th colspan="2">
+              {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.ACTIONS'
+              | translate}}</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white" *ngIf="!listsLoading && lists.length > 1">
+          <tr *ngFor="let list of lists; index as i">
+            <td>
+              {{list.name}}
+            </td>
+            <td>
+              {{list.description}}
+            </td>
+            <td>
+              <button mat-raised-button (click)="viewDetails(list)">
+                {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.VIEW-LIST'
+                | translate}}
+              </button>
+            </td>
+            <td>
+              <button *ngIf="isListSelected(list)" color="accent" mat-icon-button mat-raised-button
+                (click)="removeList(list)">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <button *ngIf="!isListSelected(list)" mat-icon-button mat-raised-button (click)="addList(list)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tbody class="bg-white" *ngIf="listsLoading">
+          <tr>
+            <td colspan="3" class="text-center w-100 p-2">
+              <mat-spinner color="accent" diameter="40"></mat-spinner>
+            </td>
+          </tr>
+        </tbody>
+        <tbody class="bg-white" *ngIf="!listsLoading && lists.length === 0">
+          <tr>
+            <td colspan="3" class="text-center w-100 p-2">
+              <p>
+                {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.NO-LISTS'
+                | translate}}
+              </p>
+            </td>
+          </tr>
+        </tbody>
+        <tbody class="bg-white" *ngIf="!listsLoading && lists.length < 2">
+          <tr>
+            <td colspan="3" class="text-center w-100 p-2">
+              <p>
+                {{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.ONLY-ONE-LIST'
+                | translate}}
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-auto">
+      <mat-checkbox (change)="onPrivateChange($event)"
+        [checked]="isPrivate">{{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.PRIVATE'
+        | translate}}</mat-checkbox>
+    </div>
+  </div>
+
+  <div class="mb-2"></div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-button (click)="close()">{{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.CANCEL'
+      | translate}}</button>
+  </div>
+  <div class="col-auto">
+    <button mat-raised-button [disabled]="!valid" color="accent"
+      (click)="submit()">{{'APP.WORD-LIST-COMPONENT.WORD-LIST-MERGE-DIALOG.SUBMIT'
+      | translate}}</button>
+  </div>
+</mat-dialog-actions>

@@ -17,5 +17,4 @@ public class TrainingScheduledEventData {
     public UUID getTrainingTaskRequestId() {
         return trainingTaskRequestId;
     }
-
 }

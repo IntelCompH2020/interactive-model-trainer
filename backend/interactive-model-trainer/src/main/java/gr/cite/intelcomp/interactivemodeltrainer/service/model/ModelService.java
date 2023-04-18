@@ -22,6 +22,10 @@ public abstract class ModelService<M extends Model, L extends Lookup> {
 
     public abstract List<M> getAll(L lookup) throws IOException, InterruptedException, ApiException;
 
+    public abstract void patch(String name, String description, String visibility);
+
+    public abstract void patch(String parentName, String name, String description, String visibility);
+
     public void copy(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
         dockerService.copyModel(modelType, name);
     }

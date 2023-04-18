@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { DomainModel } from '@app/core/model/model/domain-model.model';
 import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
@@ -9,11 +10,9 @@ import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackb
 import { BaseComponent } from '@common/base/base.component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
-import { DataTableDomainModelTypeFormatPipe } from '@common/formatting/pipes/domain-model-type.pipe';
 import { DataTableTopicModelTypeFormatPipe } from '@common/formatting/pipes/topic-model-type.pipe';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { error } from 'console';
 import { Subscription } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { DomainModelsListingComponent } from './domain-models-listing/domain-models-listing.component';
@@ -41,6 +40,14 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     if (title && title.length <= 30) return title;
   }
 
+  get isTopicModelListing() {
+    return this.selectedModelType === ModelType.Topic;
+  }
+
+  get isDomainModelListing() {
+    return this.selectedModelType === ModelType.Domain;
+  }
+
   selectedModelType: ModelType;
   ModelType = ModelType;
   modelSelectionSubscription: Subscription;
@@ -55,15 +62,17 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   curatingModel: boolean = false;
 
   private onRefresh: () => void;
-  private onEditItem: () => void;
-  private onEditTopic: () => void;
+  private onRenameItem: () => void;
+  private onUpdateItem: () => void;
+  private onCopyItem: () => void;
+  private onRenameTopic: () => void;
   private onFuseTopics: () => void;
   private onDeleteTopics: () => void;
   private onDeleteTopic: () => void;
   private onSortTopics: () => void;
-  private onReset: () => void;
+  private onResetItem: () => void;
   private showSimilarTopics: () => void;
-  private onSetLabels: () => void;
+  private onSetTopicLabels: () => void;
 
   constructor(
     private dialog: MatDialog,
@@ -79,8 +88,13 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
   ngOnInit(): void { }
 
-  onEdit(): void {
-    this.onEditItem?.();
+  onEdit(updateAll: boolean = false): void {
+    if (updateAll) this.onUpdateItem?.();
+    else this.onRenameItem?.();
+  }
+
+  onCopy(): void {
+    this.onCopyItem?.();
   }
 
   onAttach(activeComponent: Component): void {
@@ -99,15 +113,17 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     this.modelDetails = [];
     this.topicDetails = [];
     this.onRefresh = null;
-    this.onEditItem = null;
-    this.onEditTopic = null;
+    this.onRenameItem = null;
+    this.onUpdateItem = null;
+    this.onCopyItem = null;
+    this.onRenameTopic = null;
     this.onFuseTopics = null;
     this.onDeleteTopics = null;
     this.onDeleteTopic = null;
     this.onSortTopics = null;
-    this.onReset = null;
+    this.onResetItem = null;
     this.showSimilarTopics = null;
-    this.onSetLabels = null;
+    this.onSetTopicLabels = null;
 
     switch (true) {
       case activeComponent instanceof TopicModelsListingComponent: {
@@ -136,11 +152,19 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           castedActiveComponent.refresh();
         }
 
-        this.onEditItem = () => {
+        this.onRenameItem = () => {
           castedActiveComponent.edit(this.modelSelected as TopicModel);
         }
 
-        this.onEditTopic = () => {
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.modelSelected as TopicModel, true);
+        }
+
+        this.onCopyItem = () => {
+          castedActiveComponent.copy(this.modelSelected as TopicModel);
+        }
+
+        this.onRenameTopic = () => {
           this.curatingModel = true;
           castedActiveComponent.editTopic(this.modelSelected as TopicModel, this.topicSelected as Topic, () => {
             this.curatingModel = false;
@@ -175,7 +199,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           });
         }
 
-        this.onReset = () => {
+        this.onResetItem = () => {
           this.topicModelReseting = true;
           castedActiveComponent.resetModel(this.modelSelected as TopicModel, () => {
             this.topicModelReseting = false;
@@ -186,7 +210,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           castedActiveComponent.showSimilar(this.modelSelected as TopicModel);
         }
 
-        this.onSetLabels = () => {
+        this.onSetTopicLabels = () => {
           this.curatingModel = true;
           castedActiveComponent.setLabels(this.modelSelected as TopicModel, () => {
             this.curatingModel = false;
@@ -208,8 +232,20 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           }
         );
 
-        this.onEditItem = () => {
+        this.onRefresh = () => {
+          castedActiveComponent.refresh();
+        }
+
+        this.onRenameItem = () => {
           castedActiveComponent.edit(this.modelSelected as DomainModel);
+        }
+
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.modelSelected as DomainModel, true);
+        }
+
+        this.onCopyItem = () => {
+          castedActiveComponent.copy(this.modelSelected as DomainModel);
         }
 
         break;
@@ -275,7 +311,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       this.topicModelService.pyLDAvisHierarchicalUrl(parentName, this.modelSelected.name).subscribe(url => {
         this.dialog.open(PyLDAComponent,
           {
-            maxWidth: '80vw',
+            maxWidth: "90vw",
             height: 'auto',
             disableClose: true,
             data: {
@@ -290,7 +326,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       this.topicModelService.pyLDAvisUrl(this.modelSelected.name).subscribe(url => {
         this.dialog.open(PyLDAComponent,
           {
-            maxWidth: '80vw',
+            maxWidth: "90vw",
             height: 'auto',
             disableClose: true,
             data: {
@@ -344,15 +380,15 @@ export class ModelsComponent extends BaseComponent implements OnInit {
             this.trainingParamsLoading = false;
             this.dialog.open(ModelDetailsComponent,
               {
-                width: '90vw',
-                maxWidth: '40rem',
+                width: '40rem',
+                maxWidth: "90vw",
                 maxHeight: '90vh',
                 disableClose: true,
                 data: {
                   model: response?.items[0]
                 }
               }
-            )
+            );
           }, error => {
             this.trainingParamsLoading = false;
             console.error(error);
@@ -424,12 +460,8 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         value: model.location || "-"
       },
       {
-        label: 'APP.MODELS-COMPONENT.TYPE',
-        value: (new DataTableDomainModelTypeFormatPipe(this.enumUtils)).transform(model.type)
-      },
-      {
         label: 'APP.MODELS-COMPONENT.TRAINED-CORPUS',
-        value: '-'
+        value: model.TrDtSet || "-"
       },
       {
         label: 'APP.MODELS-COMPONENT.MORE-DETAILS',

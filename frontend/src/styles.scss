@@ -174,3 +174,7 @@
 mat-spinner {
     margin: 0px auto;
 }
+
+.mat-button-disabled, input[readonly] {
+    cursor: not-allowed !important;
+}

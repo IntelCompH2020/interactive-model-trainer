@@ -52,8 +52,8 @@
 			"CORPUS-DESCRIPTION": "Use this space to select a corpus from the Data Lake to be used with the training of a model. You can also create a new corpus by merging other available ones or select a subcorpus based on a category.",
 			"MODELS":"Models",
 			"MODELS-DESCRIPTION": "Use this space to select a model to work with create a new model, curate a model or manage the available models.",
-			"STOPWORDS-EQUIVALENCES":"Stopwords & Equivalencies",
-			"STOPWORDS-EQUIVALENCES-DESCRIPTION": "Use this space to manage your lists of stopwords and equivalencies or create new ones.",
+			"STOPWORDS-EQUIVALENCES":"Stopwords & equivalences",
+			"STOPWORDS-EQUIVALENCES-DESCRIPTION": "Use this space to manage your lists of stopwords and equivalences or create new ones.",
 			"RECENT": "Recent",
 			"HOW-TO": "How to",
 			"HOW-TO-CORPUS-DESCRIPTION": "Create a new corpus or combine them",
@@ -282,7 +282,7 @@
 				"FILTER-OPTIONS":{
 					"CREATION-DATE-PLACEHOLDER":"Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My equivalencies"
+					"MINE-ITEMS": "My equivalences"
 				},
 				"NEW-KEYWORD-FROM-FILE-DIALOG":{
 					"NAME-PLACEHOLDER":"Name",
@@ -304,9 +304,9 @@
 					"SUBMIT": "Create"
 				}
 			},
-			"STOPWORDS-AND-EQUIVALENCIES-COMPONENT":{
+			"STOPWORDS-AND-EQUIVALENCES-COMPONENT":{
 				"STOPWORDS": "Stopwords",
-				"EQUIVALENCIES": "Equivalencies"
+				"EQUIVALENCES": "equivalences"
 			},
 			"STOPWORDS-LISTING-COMPONENT":{
 				"FILTER-TITLE": "Stopwords",
@@ -340,9 +340,9 @@
 					"SUBMIT": "Create"
 				}
 			},
-			"EQUIVALENCIES-LISTING-COMPONENT":{
-				"FILTER-TITLE": "Equivalencies",
-				"SEARCH-PLACEHOLDER": "Filter by equivalencies list name",
+			"EQUIVALENCES-LISTING-COMPONENT":{
+				"FILTER-TITLE": "equivalences",
+				"SEARCH-PLACEHOLDER": "Filter by equivalences list name",
 				"FILTER": "Filter",
 				"ADD-NEW": "Add Equivalences",
 				"ADD-NEW-FROM-FILE":"Form file",
@@ -350,7 +350,7 @@
 				"FILTER-OPTIONS":{
 					"CREATION-DATE-PLACEHOLDER":"Creation Date",
 					"CREATOR-PLACEHOLDER": "Creator...",
-					"MINE-ITEMS": "My equivalencies"
+					"MINE-ITEMS": "My equivalences"
 				},
 				"NEW-EQUIVALENCE-FROM-FILE-DIALOG":{
 					"NAME-PLACEHOLDER":"Name",
@@ -366,7 +366,7 @@
 					"TERM-PLACEHOLDER": "Term",
 					"TERM": "Term",
 					"ADD-EQUIVALENCE":"Add equivalence",
-					"ADD-EQUIVALENCE-HINT": "Insert a term and its equivalence to append it to equivalencies list",
+					"ADD-EQUIVALENCE-HINT": "Insert a term and its equivalence to append it to equivalences list",
 					"EQUIVALENCE":"Equivalence",
 					"EQUIVALENCE-PLACEHOLDER":"Equivalence",
 					"PRIVATE":"Private",

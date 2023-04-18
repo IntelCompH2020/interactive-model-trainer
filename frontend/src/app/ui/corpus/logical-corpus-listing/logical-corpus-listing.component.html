@@ -1,5 +1,5 @@
 
-<div class="row align-items-center" style="min-height: 7rem; padding-right: 2rem;">
+<div class="row align-items-center pt-4 pb-4">
     <div class="col-auto">
         <h4>
             {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.FILTER-TITLE' | translate}}
@@ -39,19 +39,16 @@
         </mat-menu>
     </div> 
     <div class="col-auto">
-        <button mat-raised-button [matMenuTriggerFor]="addKeywordsMenu" color="accent">
-            {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.ADD-NEW' | translate}}
-            <mat-icon>
-                arrow_drop_down
-            </mat-icon>
+        <button mat-raised-button color="accent" (click)="addNewCorpusManually()">
+            {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.ADD-NEW-MANUALLY' | translate}}
         </button>
 
-        <mat-menu #addKeywordsMenu="matMenu">        
+        <!-- <mat-menu #addKeywordsMenu="matMenu">        
             <button mat-menu-item (click)="addNewCorpusManually()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.ADD-NEW-MANUALLY' | translate}}</button>        
             <button mat-menu-item (click)="addNewCorpusFromFile()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button>
-        </mat-menu>
+        </mat-menu> -->
 
     </div>
 </div>
 
-<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" ></app-listing>
+<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"></app-listing>

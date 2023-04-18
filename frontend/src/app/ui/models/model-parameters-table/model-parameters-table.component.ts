@@ -1,8 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, ValidationErrors } from '@angular/forms';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { TopicModelParam } from '../topic-models-listing/topic-model-params.model';
 
 @Component({
   selector: 'app-model-parameters-table',
@@ -12,11 +11,12 @@ import { TopicModelParam } from '../topic-models-listing/topic-model-params.mode
 export class ModelParametersComponent implements OnInit {
 
   @Input() formGroup: FormGroup;
-  @Input() parameters: TopicModelParam[] = [];
+  @Input() parameters: ModelParam[] = [];
   @Input() maxParamsPerRow?: number = 6;
 
   trackByIndex = (index: any, _item: any) => index;
   trackByItem = (_index: number, item: any) => item.name;
+  trackByLabel = (_index: number, item: any) => item;
 
   get paramRows(): ParamRow[] {
     let pages = Math.ceil(this.parameters.length / this.maxParamsPerRow);
@@ -46,5 +46,25 @@ export class ModelParametersComponent implements OnInit {
 }
 
 interface ParamRow {
-  parameters: TopicModelParam[];
+  parameters: ModelParam[];
+}
+
+export interface ModelParam {
+  name: string;
+  realName?: string;
+  displayName: string;
+  placeholder?: string;
+  type: string;
+  default?: string | number | boolean | string[] | number[];
+  tooltip?: string;
+  validation?: {
+    min?: string | number;
+    max?: string | number;
+    step?: string | number;
+    options?: {
+      displayName: string;
+      value: string | number | boolean;
+    }[];
+    rawOptions?: string[] | number[];
+  }
 }

@@ -17,10 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageCorpus.InnerPaths.DATASETS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageLists.InnerPaths.WORDLISTS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
 
 @Service
 @Primary
@@ -47,24 +49,41 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setCreator(userId.toString());
         contents.setTrainer(config.getType());
         contents.setCreationDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSD").format(Date.from(Instant.now())));
-        contents.setTrDtSet("/data/datasets/" + config.getCorpusId() + ".json");
+        contents.setTrDtSet(DATASETS_ROOT + config.getCorpusId() + ".json");
         HashMap<String, Object> tmParams = new HashMap<>();
+        HashMap<String, Object> preprocParams = new HashMap<>();
         //Extracting parameter names
         config.getParameters().keySet().forEach((key) -> {
             if (key.split("\\.").length > 1) {
                 String paramValue = config.getParameters().get(key);
                 try {
                     if (paramValue != null) {
-                        if ("labels".equals(key.split("\\.")[1]))
-                            tmParams.put(key.split("\\.")[1], "/data/wordlists/" + paramValue);
-                        else {
-                            Double numValue = Double.valueOf(paramValue);
-                            if (isWholeNumber(numValue)) tmParams.put(key.split("\\.")[1], numValue.intValue());
-                            else tmParams.put(key.split("\\.")[1], numValue);
+                        if ("Preproc".equals(key.split("\\.")[0])) {
+                            if ("stopwords".equals(key.split("\\.")[1]) || "equivalences".equals(key.split("\\.")[1])) {
+                                preprocParams.put(key.split("\\.")[1], paramValue.split(","));
+                            } else {
+                                preprocParams.put(key.split("\\.")[1], paramValue);
+                            }
+                        } else {
+                            if ("labels".equals(key.split("\\.")[1]))
+                                tmParams.put(key.split("\\.")[1], WORDLISTS_ROOT + paramValue);
+                            else {
+                                Double numValue = Double.valueOf(paramValue);
+                                if (isWholeNumber(numValue)) tmParams.put(key.split("\\.")[1], numValue.intValue());
+                                else tmParams.put(key.split("\\.")[1], numValue);
+                            }
                         }
                     } else {
-                        if ("labels".equals(key.split("\\.")[1])) tmParams.put(key.split("\\.")[1], "");
-                        else tmParams.put(key.split("\\.")[1], null);
+                        if ("Preproc".equals(key.split("\\.")[0])) {
+                            if ("stopwords".equals(key.split("\\.")[1]) || "equivalences".equals(key.split("\\.")[1])) {
+                                preprocParams.put(key.split("\\.")[1], new String[]{});
+                            } else {
+                                preprocParams.put(key.split("\\.")[1], null);
+                            }
+                        } else {
+                            if ("labels".equals(key.split("\\.")[1])) tmParams.put(key.split("\\.")[1], "");
+                            else tmParams.put(key.split("\\.")[1], null);
+                        }
                     }
                 } catch (NumberFormatException e) {
                     tmParams.put(key.split("\\.")[1], paramValue);
@@ -77,15 +96,15 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setTmParams(tmParams);
         contents.setHierarchyLevel(0);
         contents.setHtmVersion(null);
-        contents.setPreProcessing(new TopicModelingParametersModel.PreprocessingParameters());
+        contents.setPreProcessing(new TopicModelingParametersModel.PreprocessingParameters(preprocParams));
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + config.getName();
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + config.getName();
             Path modelFolderPath = Path.of(modelFolder);
             if (!Files.isDirectory(modelFolderPath)) {
                 Files.createDirectory(modelFolderPath);
             }
-            Path filePath = Path.of(modelFolder, "trainconfig.json");
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
             Path logs = Path.of(modelFolder, "execution.log");
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
@@ -102,6 +121,37 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         }
 
         return null;
+    }
+
+    @Override
+    public void updateRootConfigurationFile(String name, String description, String visibility) {
+        try {
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
+            Path modelFolderPath = Path.of(modelFolder);
+            if (!Files.isDirectory(modelFolderPath)) {
+                Files.createDirectory(modelFolderPath);
+            }
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
+            TopicModelingParametersModel contents = this.jsonHandlingService.fromJson(TopicModelingParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
+            contents.setDescription(description);
+            contents.setVisibility(visibility);
+            String json = jsonHandlingService.toJsonSafe(contents);
+            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
+    }
+
+    @Override
+    public TopicModelingParametersModel getRootConfigurationModel(String name) {
+        try {
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + name;
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
+            return this.jsonHandlingService.fromJson(TopicModelingParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+            return new TopicModelingParametersModel();
+        }
     }
 
     @Override
@@ -123,7 +173,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 try {
                     if (paramValue != null) {
                         if ("labels".equals(key.split("\\.")[1]))
-                            tmParams.put(key.split("\\.")[1], "/data/wordlists/" + paramValue);
+                            tmParams.put(key.split("\\.")[1], WORDLISTS_ROOT + paramValue);
                         else {
                             Double numValue = Double.valueOf(paramValue);
                             if (isWholeNumber(numValue)) tmParams.put(key.split("\\.")[1], numValue.intValue());
@@ -149,14 +199,14 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
         contents.setTmParams(tmParams);
 
         try {
-            String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                     + "/" + params.getParentName()
                     + "/" + params.getName();
             Path modelFolderPath = Path.of(modelFolder);
             if (!Files.isDirectory(modelFolderPath)) {
                 Files.createDirectory(modelFolderPath);
             }
-            Path filePath = Path.of(modelFolder, "trainconfig.json");
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
             Path logs = Path.of(modelFolder, "execution.log");
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
@@ -169,32 +219,63 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
             return filePath;
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage());
         }
 
         return null;
     }
 
     @Override
+    public void updateHierarchicalConfigurationFile(String parentName, String name, String description, String visibility) {
+        try {
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
+            Path modelFolderPath = Path.of(modelFolder);
+            if (!Files.isDirectory(modelFolderPath)) {
+                Files.createDirectory(modelFolderPath);
+            }
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
+            HierarchicalTopicModelingParametersModel contents = this.jsonHandlingService.fromJson(HierarchicalTopicModelingParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
+            contents.setDescription(description);
+            contents.setVisibility(visibility);
+            String json = jsonHandlingService.toJsonSafe(contents);
+            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    @Override
+    public HierarchicalTopicModelingParametersModel getHierarchicalConfigurationFile(String parentName, String name) {
+        try {
+            String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class) + "/" + parentName + "/" + name;
+            Path filePath = Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
+            return this.jsonHandlingService.fromJson(HierarchicalTopicModelingParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return new HierarchicalTopicModelingParametersModel();
+        }
+    }
+
+    @Override
     public Path getHierarchicalConfigurationFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                 + "/" + config.getParentName()
                 + "/" + config.getName();
-        return Path.of(modelFolder, "trainconfig.json");
+        return Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
     }
 
     @Override
     public Path getHierarchicalConfigurationParentFile(TrainingTaskRequestPersist config) {
-        String modelFolder = containerServicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
+        String modelFolder = containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class)
                 + "/" + config.getParentName();
-        return Path.of(modelFolder, "trainconfig.json");
+        return Path.of(modelFolder, TM_MODEL_CONFIG_FILE_NAME);
     }
 
     private static boolean isWholeNumber(Double number) {
         return number - Math.floor(number) == 0;
     }
 
-    private static class TopicModelingParametersModel {
+    public static final class TopicModelingParametersModel {
         private String name;
         private String description;
         private String visibility;
@@ -311,18 +392,33 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
             }
         }
 
-        public static class HTM {
-            public static final String HTM_DS = "htm-ds";
-            public static final String HTM_WS = "htm-ws";
-        }
+        public static final class PreprocessingParameters {
 
-        private static class PreprocessingParameters {
-            private Integer minLemas = 15;
-            private Double noBelow = 15.0;
-            private Double noAbove = 0.4;
-            private Integer keepN = 100000;
-            private ArrayList<String> stopwords = new ArrayList<>();
-            private ArrayList<String> equivalences = new ArrayList<>();
+            private PreprocessingParameters(HashMap<String, Object> preprocParams) throws NumberFormatException {
+                this.minLemas = Integer.valueOf((String) preprocParams.get("minLemmas"));
+                this.noBelow = Double.valueOf((String) preprocParams.get("noBelow"));
+                this.noAbove = Double.valueOf((String) preprocParams.get("noAbove"));
+                this.keepN = Integer.valueOf((String) preprocParams.get("keepN"));
+                List<String> _stopwords = new ArrayList<>(List.of((String[]) preprocParams.get("stopwords")));
+                this.stopwords = _stopwords.stream()
+                        .filter(word -> word.length() > 0)
+                        .map(word -> WORDLISTS_ROOT + word + ".json")
+                        .collect(Collectors.toList());
+                List<String> _equivalences = new ArrayList<>(List.of((String[]) preprocParams.get("equivalences")));
+                this.equivalences = _equivalences.stream()
+                        .filter(word -> word.length() > 0)
+                        .map(word -> WORDLISTS_ROOT + word + ".json")
+                        .collect(Collectors.toList());
+            }
+
+            public PreprocessingParameters() {}
+
+            private Integer minLemas;
+            private Double noBelow;
+            private Double noAbove;
+            private Integer keepN;
+            private List<String> stopwords = new ArrayList<>();
+            private List<String> equivalences = new ArrayList<>();
 
             @JsonProperty("min_lemas")
             public Integer getMinLemas() {
@@ -364,7 +460,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 this.keepN = keepN;
             }
 
-            public ArrayList<String> getStopwords() {
+            public List<String> getStopwords() {
                 return stopwords;
             }
 
@@ -372,7 +468,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 this.stopwords = stopwords;
             }
 
-            public ArrayList<String> getEquivalences() {
+            public List<String> getEquivalences() {
                 return equivalences;
             }
 
@@ -383,7 +479,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
 
     }
 
-    private static class HierarchicalTopicModelingParametersModel {
+    public static class HierarchicalTopicModelingParametersModel {
         private String name;
         private String description;
         private String visibility;
@@ -509,11 +605,23 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
             this.embeddings = embeddings;
         }
 
-        public static class HTM {
-            public static final String HTM_DS = "htm-ds";
-            public static final String HTM_WS = "htm-ws";
+    }
+
+    public static final class HierarchicalTopicModelingParametersEnhancedModel extends HierarchicalTopicModelingParametersModel {
+        private String parentName;
+
+        public String getParentName() {
+            return parentName;
         }
 
+        public void setParentName(String parentName) {
+            this.parentName = parentName;
+        }
+    }
+
+    public static final class HTM {
+        public static final String HTM_DS = "htm-ds";
+        public static final String HTM_WS = "htm-ws";
     }
 
 }

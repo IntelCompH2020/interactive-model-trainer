@@ -2,6 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runt
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gr.cite.intelcomp.interactivemodeltrainer.audit.AuditableAction;
+import gr.cite.intelcomp.interactivemodeltrainer.cashe.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
@@ -37,6 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
+
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class RunTrainingScheduledEventHandlerImpl implements RunTrainingScheduledEventHandler {
@@ -45,12 +50,14 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
     private final JsonHandlingService jsonHandlingService;
     private final ApplicationContext applicationContext;
     private final RunTrainingSchedulerEventConfig config;
+    private final CacheLibrary cacheLibrary;
 
     @Autowired
-    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, ContainerManagementService containerManagementService, RunTrainingSchedulerEventConfig config, ScheduledEventManageService scheduledEventManageService, QueryFactory queryFactory) {
+    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, ContainerManagementService containerManagementService, RunTrainingSchedulerEventConfig config, ScheduledEventManageService scheduledEventManageService, QueryFactory queryFactory, CacheLibrary cacheLibrary) {
         this.jsonHandlingService = jsonHandlingService;
         this.applicationContext = applicationContext;
         this.config = config;
+        this.cacheLibrary = cacheLibrary;
     }
 
     @Override
@@ -77,7 +84,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                 TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
                 Long runningTasks = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.PENDING)
-                        .jobName("trainModels", "trainDomainModels")
+                        .jobName(TRAIN_TOPIC_MODELS_SERVICE_NAME, TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                         .count();
                 if (runningTasks >= config.get().getParallelTrainingsThreshold()) {
                     logger.debug("Currently running tasks have reached the limit ({}), postponing train task to run again in {} seconds...", config.get().getParallelTrainingsThreshold(), config.get().getPostponePeriodInSeconds());
@@ -87,7 +94,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
                 TrainingTaskRequestEntity trainingTaskRequest = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.NEW)
-                        .jobName("trainModels")
+                        .jobName(TRAIN_TOPIC_MODELS_SERVICE_NAME)
                         .ids(trainingTaskRequestId).first();
                 try {
                     if (!EventProcessingStatus.Postponed.equals(status)) {
@@ -185,12 +192,12 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("COMMANDS", "topicmodeling.py --preproc --train --config " + trainingTaskRequest.getConfig());
-        String logFile = trainingTaskRequest.getConfig().replace("trainconfig.json", "execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(TM_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started running training task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started running topic modeling task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
@@ -207,12 +214,12 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("COMMANDS", "topicmodeling.py --hierarchical --config " + parentConfig + " --config_child " + config);
-        String logFile = config.replace("trainconfig.json", "execution.log");
+        String logFile = config.replace(TM_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started preparing hierarchical training task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started preparing hierarchical topic modeling task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
@@ -226,12 +233,12 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("COMMANDS", "topicmodeling.py --train --config " + trainingTaskRequest.getConfig());
-        String logFile = trainingTaskRequest.getConfig().replace("trainconfig.json", "execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(TM_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started running hierarchical training task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started running hierarchical topic modeling task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
@@ -257,7 +264,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started running reset task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started running topic model reset task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();

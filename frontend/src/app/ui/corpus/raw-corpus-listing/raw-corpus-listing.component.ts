@@ -9,7 +9,7 @@ import { RawCorpusLookup } from '@app/core/query/raw-corpus.lookup';
 import { RawCorpusService } from '@app/core/services/http/raw-corpus.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
-import { FileExportDialogComponent } from '@app/ui/file/file-export-dialog.component';
+import { FileExportDialogComponent } from '@app/ui/file/file-export-dialog/file-export-dialog.component';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
@@ -93,6 +93,7 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
         prop: nameof<RawCorpus>(x => x.name),
         sortable: true,
         resizeable: true,
+        alwaysShown: true,
         languageName: 'APP.CORPUS-COMPONENT.NAME'
       },
       {
@@ -139,6 +140,15 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
   ) { 
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		this.lookup = this.initializeLookup();
+
+    setTimeout(() => {
+      this.setupVisibleColumns([
+        nameof<RawCorpus>(x => x.name),
+        nameof<RawCorpus>(x => x.description),
+        nameof<RawCorpus>(x => x.records),
+        nameof<RawCorpus>(x => x.source)
+      ]);
+    }, 0);
   }
 
   ngOnInit(): void {
@@ -157,6 +167,7 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
     let data = JSON.stringify(corpus);
     this.dialog.open(FileExportDialogComponent, {
       width: '25rem',
+      maxWidth: "90vw",
       disableClose: true,
       data:{
         name: corpus.name,
@@ -190,22 +201,6 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
       this.refresh();
     });
   }
-
-  onColumnsChanged(event: ColumnsChangedEvent) {
-		this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
-	}
-
-	private onColumnsChangedInternal(columns: string[]) {
-		// Here are defined the projection fields that always requested from the api.
-		this.lookup.project = {
-			fields: [
-				nameof<RawCorpus>(x => x.id),
-        nameof<RawCorpus>(x => x.schema),
-				...columns
-			]
-		};
-		this.onPageLoad({ offset: 0 } as PageLoadEvent);
-	}
 
   onRowActivated($event: RowActivateEvent){
     if($event.type === 'click'){

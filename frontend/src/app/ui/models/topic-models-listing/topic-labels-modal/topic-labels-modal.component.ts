@@ -52,6 +52,7 @@ export class TopicLabelsComponent implements OnInit {
     _lookup.project = {
       fields: [
         nameof<Topic>(x => x.id),
+        nameof<Topic>(x => x.wordDescription),
         nameof<Topic>(x => x.label)
       ]
     };
@@ -89,7 +90,7 @@ export class TopicLabelsComponent implements OnInit {
         this.formGroup.patchValue({"labels": labels});
         this.formGroup.markAsDirty();
       }
-    })
+    });
     reader.readAsText(files[0]);
   }
 

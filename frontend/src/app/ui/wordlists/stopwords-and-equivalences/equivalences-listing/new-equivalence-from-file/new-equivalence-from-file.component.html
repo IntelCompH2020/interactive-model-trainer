@@ -1,0 +1,80 @@
+<!-- <div mat-dialog-title>
+    
+</div> -->
+
+<mat-dialog-content>
+    <div class="row pt-3">
+        <div class="col-12">
+            <mat-form-field class="padding-margin-none w-100" appearance="outline">
+                <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.NAME'
+                    | translate}}</mat-label>
+                <input type="text" matInput [value]="formGroup.get('name').value" readonly
+                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.NAME-PLACEHOLDER' | translate">
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+        <div class="col-3">
+            <div class="row align-items-center">
+                <div class="col-12 text-center">
+                    <span>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.FILE' |
+                        translate}}</span>
+                </div>
+                <div class="col-12 text-center">
+                    <span>{{file.name}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-9">
+            <h6 class="text-center">
+                {{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.OVERVIEW' |
+                translate}}
+            </h6>
+            <div class="wordlist-container p-1 bg-white">
+                <mat-chip-list>
+                    <mat-chip *ngFor="let item of wordlist; let index = index">
+                        {{item}}
+                    </mat-chip>
+                </mat-chip-list>
+            </div>
+        </div>
+    </div>
+
+    <div class="row align-items-center mt-3 mb-3">
+        <div class="col-2">
+            <button mat-stroked-button
+                (click)="fileInput.click()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.LOAD-FILE'
+                | translate}}</button>
+        </div>
+        <input #fileInput type="file" hidden accept="application/json, text/plain" (change)="onFileSelected($event.target.files)">
+        <div class="col-10">
+            <mat-form-field appearance="outline" class="padding-margin-none w-100">
+                <input type="text" matInput [value]="file?.name ? '/data/wordlists/' + file?.name : ''" readonly>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-auto">
+            <mat-checkbox (change)="onPrivateChange($event)"
+                [checked]="isPrivate">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.PRIVATE'
+                | translate}}</mat-checkbox>
+        </div>
+    </div>
+
+    <div class="mb-2"></div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <div class="col-auto">
+        <button mat-button
+            (click)="close()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.CANCEL'
+            | translate}}</button>
+    </div>
+    <div class="col-auto">
+        <button mat-raised-button color="accent" [disabled]="!valid"
+            (click)="submit()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-FROM-FILE-DIALOG.SUBMIT'
+            | translate}}</button>
+    </div>
+</mat-dialog-actions>

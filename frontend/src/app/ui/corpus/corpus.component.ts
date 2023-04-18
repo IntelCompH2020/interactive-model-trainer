@@ -122,27 +122,27 @@ export class CorpusComponent extends BaseComponent implements OnInit {
     return [
       {
         label: 'APP.CORPUS-COMPONENT.NAME',
-        value: corpus.name,
+        value: corpus.name || '-',
       },
       {
         label: 'APP.CORPUS-COMPONENT.DESCRIPTION',
-        value: corpus.description
+        value: corpus.description || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.RAW.RECORDS',
-        value: corpus.records
+        value: corpus.records || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.RAW.SOURCE',
-        value: corpus.source
+        value: corpus.source || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.RAW.DOWNLOAD-DATE',
-        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(corpus.download_date)
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(corpus.download_date) || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.VISIBILITY',
-        value: corpus.visibility
+        value: corpus.visibility || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.TYPE',
@@ -160,23 +160,23 @@ export class CorpusComponent extends BaseComponent implements OnInit {
     return [
       {
         label: 'APP.CORPUS-COMPONENT.NAME',
-        value: corpus.name,
+        value: corpus.name || '-',
       },
       {
         label: 'APP.CORPUS-COMPONENT.DESCRIPTION',
-        value: corpus.description
+        value: corpus.description || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.LOGICAL.CREATION-DATE',
-        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(corpus.creation_date)
+        value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(corpus.creation_date) || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.LOGICAL.CREATOR',
-        value: corpus.creator
+        value: corpus.creator || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.VISIBILITY',
-        value: corpus.visibility
+        value: corpus.visibility || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.TYPE',

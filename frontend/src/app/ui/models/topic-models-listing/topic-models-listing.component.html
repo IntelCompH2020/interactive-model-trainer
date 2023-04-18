@@ -1,4 +1,4 @@
-<div class="row align-items-center" style="min-height: 7rem; padding-right: 2rem;">
+<div class="row align-items-center pb-4">
     <div class="col-auto">
         <h4>
             {{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.FILTER-TITLE' | translate}}
@@ -49,7 +49,7 @@
 
 <app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
     [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
-    (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)"
+    (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
     [treeFromRelation]="'TrDtSet'" [treeToRelation]="'name'" (treeAction)="onTreeAction($event)">
 </app-listing>
 <app-topics-listing [model]="selectedModel" (onTopicLookup)="onTopicLookup($event)"

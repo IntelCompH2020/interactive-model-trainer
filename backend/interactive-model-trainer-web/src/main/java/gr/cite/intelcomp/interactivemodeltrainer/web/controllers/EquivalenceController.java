@@ -18,8 +18,10 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+
 @RestController
-@RequestMapping(path = "api/equivalencies", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "api/equivalences", produces = MediaType.APPLICATION_JSON_VALUE)
 public class EquivalenceController {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(EquivalenceController.class));
@@ -34,9 +36,14 @@ public class EquivalenceController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<Equivalence> GetAll(@RequestBody WordListLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<Equivalence> equivalences = equivalenceService.getAll(lookup);
-        return new QueryResult<>(equivalences, equivalences.size());
+    public QueryResult<Equivalence> GetAll(@RequestBody WordListLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return equivalenceService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @PostMapping("create")

@@ -18,6 +18,8 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+
 @RestController
 @RequestMapping(path = "api/keywords", produces = MediaType.APPLICATION_JSON_VALUE)
 public class KeywordController {
@@ -34,9 +36,14 @@ public class KeywordController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<Keyword> GetAll(@RequestBody WordListLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<Keyword> keywords = keywordService.getAll(lookup);
-        return new QueryResult<>(keywords, keywords.size());
+    public QueryResult<Keyword> GetAll(@RequestBody WordListLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return keywordService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @PostMapping("create")

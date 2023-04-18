@@ -6,7 +6,7 @@ import { TopicModel, TopicModelPersist } from '@app/core/model/model/topic-model
 import { TopicModelSubtype } from '@app/core/enum/topic-model-subtype.enum';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
-import { determineValidation, Trainer } from '../topic-model-params.model';
+import { determineValidation, TopicModelTrainer } from '../topic-model-params.model';
 
 export class TopicModelEditorModel extends BaseEditorModel implements TopicModelPersist {
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
@@ -111,7 +111,7 @@ export class TopicModelEditorModel extends BaseEditorModel implements TopicModel
 		return this;
 	}
 
-	buildForm(context: ValidationContext = null, disabled: boolean = false, trainer: Trainer = 'mallet'): FormGroup {
+	buildForm(context: ValidationContext = null, disabled: boolean = false, trainer: TopicModelTrainer = 'mallet'): FormGroup {
 		if (context == null) { context = this.createValidationContext(trainer); }
 
 		return this.formBuilder.group({
@@ -167,7 +167,7 @@ export class TopicModelEditorModel extends BaseEditorModel implements TopicModel
 		});
 	}
 
-	createValidationContext(trainer: Trainer): ValidationContext {
+	createValidationContext(trainer: TopicModelTrainer): ValidationContext {
 
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();

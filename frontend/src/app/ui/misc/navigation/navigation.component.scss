@@ -103,6 +103,17 @@
 	}
 }
 
+.subtext {
+	line-height: 1rem;
+	font-size: 1rem;
+	font-style: italic;
+	padding: 0;
+	margin: 0;
+	color: #787878;
+	display: block;
+	transform: translateY(-1.4rem);
+}
+
 @media screen and (max-width:1410px) {
 	.search-input{
 		min-width: unset;

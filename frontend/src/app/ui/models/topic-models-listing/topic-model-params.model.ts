@@ -1,6 +1,7 @@
 import { ValidatorFn, Validators } from "@angular/forms";
+import { ModelParam } from "../model-parameters-table/model-parameters-table.component";
 
-export function malletParams(advanced: boolean): TopicModelParam[] {
+export function malletParams(advanced: boolean): ModelParam[] {
   if (!advanced) return [
     {
       name: 'numberOfTopics',
@@ -129,7 +130,7 @@ export function malletParams(advanced: boolean): TopicModelParam[] {
   ];
 }
 
-export function prodLDAParams(advanced: boolean): TopicModelParam[] {
+export function prodLDAParams(advanced: boolean): ModelParam[] {
   if (!advanced) return [
     {
       name: 'numberOfTopics',
@@ -420,7 +421,7 @@ export function prodLDAParams(advanced: boolean): TopicModelParam[] {
   ];
 }
 
-export function CTMParams(advanced: boolean): TopicModelParam[] {
+export function CTMParams(advanced: boolean): ModelParam[] {
   if (!advanced) return [
     {
       name: 'numberOfTopics',
@@ -762,7 +763,7 @@ export function CTMParams(advanced: boolean): TopicModelParam[] {
   ];
 }
 
-export function sparkLDAParams(advanced: boolean): TopicModelParam[] {
+export function sparkLDAParams(advanced: boolean): ModelParam[] {
   if (!advanced) return [
     {
       name: 'numberOfTopics',
@@ -874,7 +875,88 @@ export function sparkLDAParams(advanced: boolean): TopicModelParam[] {
   ];
 }
 
-export function hierarchicalParams(): TopicModelParam[] {
+export function preprocessingParams(stopwords: string[], equivalences: string[]): ModelParam[] {
+  return [
+    {
+      name: 'minLemmas',
+      realName: 'minLemmas',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.MIN-LEMMAS',
+      type: 'number',
+      default: 15,
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.MIN-LEMMAS',
+      validation: {
+        min: 1,
+        max: null,
+        step: 1
+      }
+    },
+    {
+      name: 'noBelow',
+      realName: 'noBelow',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.NO-BELOW',
+      type: 'number',
+      default: 10,
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.NO-BELOW',
+      validation: {
+        min: 1,
+        max: null,
+        step: 1
+      }
+    },
+    {
+      name: 'noAbove',
+      realName: 'noAbove',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.NO-ABOVE',
+      type: 'number',
+      default: 0.6,
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.NO-ABOVE',
+      validation: {
+        min: 0.01,
+        max: 1,
+        step: 0.01
+      }
+    },
+    {
+      name: 'keepN',
+      realName: 'keepN',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.KEEP-N',
+      type: 'number',
+      default: 100000,
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.KEEP-N',
+      validation: {
+        min: 1,
+        max: null,
+        step: 1
+      }
+    },
+    {
+      name: 'stopwords',
+      realName: 'stopwords',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.STOPWORDS',
+      placeholder: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.STOPWORDS-PLACEHOLDER',
+      type: 'rawmultiselect',
+      default: [],
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.STOPWORDS',
+      validation: {
+        rawOptions: stopwords
+      }
+    },
+    {
+      name: 'equivalences',
+      realName: 'equivalences',
+      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.EQUIVALENCES',
+      placeholder: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS.EQUIVALENCES-PLACEHOLDER',
+      type: 'rawmultiselect',
+      default: [],
+      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.PREPROCESSING-PARAMETERS-TOOLTIPS.EQUIVALENCES',
+      validation: {
+        rawOptions: equivalences
+      }
+    },
+  ];
+}
+
+export function hierarchicalParams(): ModelParam[] {
   return [
     {
       name: 'thr',
@@ -912,9 +994,9 @@ export function hierarchicalParams(): TopicModelParam[] {
   ]
 }
 
-export function determineValidation(trainer: Trainer, key: string): ValidatorFn[] {
+export function determineValidation(trainer: TopicModelTrainer, key: string): ValidatorFn[] {
   let validators: ValidatorFn[] = [];
-  const params: TopicModelParam[] = extractAllTopicModelParametersByTrainer(trainer);
+  const params: ModelParam[] = extractAllTopicModelParametersByTrainer(trainer);
   const paramIndex = getParamIndex(params, key);
   if (paramIndex != -1) {
     const param = params[paramIndex];
@@ -926,14 +1008,28 @@ export function determineValidation(trainer: Trainer, key: string): ValidatorFn[
   return validators;
 }
 
-function getParamIndex(params: TopicModelParam[], key: string): number {
+export function determinePreprocessingValidation(key: string): ValidatorFn[] {
+  let validators: ValidatorFn[] = [];
+  const params: ModelParam[] = preprocessingParams([], []);
+  const paramIndex = getParamIndex(params, key);
+  if (paramIndex != -1) {
+    const param = params[paramIndex];
+    if (param.default != null) validators.push(Validators.required);
+    if (param.validation.max) validators.push(Validators.max(Number(param.validation.max)));
+    if (param.validation.min) validators.push(Validators.min(Number(param.validation.min)));
+  }
+
+  return validators;
+}
+
+function getParamIndex(params: ModelParam[], key: string): number {
   for (const [i, param] of params.entries()) {
     if (param.name === key) return i;
   }
   return -1;
 }
 
-export function extractAllTopicModelParameters(): TopicModelParam[] {
+export function extractAllTopicModelParameters(): ModelParam[] {
   let params = [];
 
   params.push(...malletParams(false));
@@ -948,7 +1044,7 @@ export function extractAllTopicModelParameters(): TopicModelParam[] {
   return params;
 }
 
-export function extractAllTopicModelParametersByTrainer(trainer: Trainer): TopicModelParam[] {
+export function extractAllTopicModelParametersByTrainer(trainer: TopicModelTrainer): ModelParam[] {
   let params = [];
 
   if (trainer === "mallet") {
@@ -970,22 +1066,4 @@ export function extractAllTopicModelParametersByTrainer(trainer: Trainer): Topic
   return params;
 }
 
-export interface TopicModelParam {
-  name: string;
-  realName?: string;
-  displayName: string;
-  type: string;
-  default?: string | number | boolean;
-  tooltip?: string;
-  validation?: {
-    min?: string | number;
-    max?: string | number;
-    step?: string | number;
-    options?: {
-      displayName: string;
-      value: string | number | boolean;
-    }[]
-  }
-}
-
-export type Trainer = "mallet" | "prodLDA" | "ctm" | "sparkLDA" | "all";
+export type TopicModelTrainer = "mallet" | "prodLDA" | "ctm" | "sparkLDA" | "all";

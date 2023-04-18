@@ -4,6 +4,10 @@ $border-color: #dee2e6;
     border: 1px solid $border-color !important;
 }
 
+::ng-deep .mat-select-panel {
+    min-width: calc(100% + 5vw) !important;
+}
+
 table {
     & th {
         text-align: center;
@@ -30,6 +34,10 @@ table {
         & input {
             text-align: center;
             width: 100%;
+
+            &.ng-invalid {
+                color: red;
+            }
         }
 
         & select {

@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
 import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
+import gr.cite.intelcomp.interactivemodeltrainer.cashe.*;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.*;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
@@ -18,7 +18,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.*;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
-import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionService;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
 import org.apache.commons.compress.utils.Lists;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,30 +39,30 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
+
 @Service
 public class DockerServiceImpl implements DockerService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DockerServiceImpl.class));
     private final ObjectMapper mapper;
     private final JsonHandlingService jsonHandlingService;
-    private static final String fileSeparator = FileSystems.getDefault().getSeparator();
     private final ContainerServicesProperties containerServicesProperties;
-    private final UserScope userScope;
-    private final ExecutionService executionService;
     private final ClaimExtractor claimExtractor;
     private final CurrentPrincipalResolver currentPrincipalResolver;
     private final ContainerManagementService dockerExecutionService;
+    private final CacheLibrary cacheLibrary;
 
     @Autowired
-    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, UserScope userScope, ExecutionService executionService, ClaimExtractor claimExtractor, CurrentPrincipalResolver currentPrincipalResolver, ObjectMapper mapper, ContainerManagementService dockerExecutionService) {
+    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ClaimExtractor claimExtractor, CurrentPrincipalResolver currentPrincipalResolver, ObjectMapper mapper, ContainerManagementService dockerExecutionService, CacheLibrary cacheLibrary) {
         this.jsonHandlingService = jsonHandlingService;
         this.containerServicesProperties = containerServicesProperties;
-        this.userScope = userScope;
-        this.executionService = executionService;
         this.claimExtractor = claimExtractor;
         this.currentPrincipalResolver = currentPrincipalResolver;
         this.mapper = mapper;
         this.dockerExecutionService = dockerExecutionService;
+        this.cacheLibrary = cacheLibrary;
         this.mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS"));
     }
 
@@ -184,61 +182,33 @@ public class DockerServiceImpl implements DockerService {
 
     @Override
     public List<WordListEntity> listWordLists(WordListLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageLists.LIST_ALL_CMD);
-
-        String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
-
-        Map<String, WordListEntity> wordLists = mapper.readValue(result, new TypeReference<>() {
-        });
-
         List<WordListEntity> data = new ArrayList<>();
-        if (wordLists == null) return data;
-        wordLists.forEach((key, value) -> {
-            value.setLocation(key);
-            data.add(value);
-        });
+        WordlistCachedEntity cached = (WordlistCachedEntity) cacheLibrary.get(CommandType.WORDLIST_GET.name());
+        if (cached == null || cached.isDirty()) {
+            List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageLists.LIST_ALL_CMD);
+
+            String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
+
+            Map<String, WordListEntity> wordLists = mapper.readValue(result, new TypeReference<>() {
+            });
+
+            if (wordLists == null) return data;
+            wordLists.forEach((key, value) -> {
+                value.setLocation(key);
+                data.add(value);
+            });
+            WordlistCachedEntity toCache = new WordlistCachedEntity();
+            toCache.setPayload(data);
+            cacheLibrary.update(toCache);
+        } else {
+            data.addAll(cached.getPayload());
+        }
 
         return applyLookup(data, lookup);
     }
 
-    @Override
-    public List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<CorpusEntity> result = Lists.newArrayList();
-
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
-        if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
-            command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_LOGICAL_CMD);
-        } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
-            command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_DOWNLOADED_CMD);
-        }
-
-        String response = this.dockerExecutionService.execCommand(CommandType.CORPUS_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
-
-        //this.executionService.updateStatus(executionEntity.getId(), Status.FINISHED);
-
-        if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
-            Map<String, LogicalCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
-            });
-            List<LogicalCorpusEntity> data = new ArrayList<>();
-            if (corpus == null) return data;
-            corpus.forEach((key, value) -> {
-                value.setLocation(key);
-                data.add(value);
-            });
-
-            result.addAll(applyLookup(data, lookup));
-        } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
-            Map<String, RawCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
-            });
-            List<RawCorpusEntity> data = new ArrayList<>();
-            if (corpus == null) return data;
-            data.addAll(corpus.values());
-
-            result.addAll(applyLookup(data, lookup));
-        }
-
-        //Get the raw corpora added by users
+    //Get the raw corpora added by users
 //        if (CorpusType.RAW.equals(lookup.getCorpusType())) {
 //            command = new ArrayList<>(DockerProperties.ManageCorpus.ENTRY_CMD);
 //            command.add(DockerProperties.ManageCorpus.LIST_ALL_LOGICAL_CMD);
@@ -251,6 +221,54 @@ public class DockerServiceImpl implements DockerService {
 //            result.addAll(applyLookup(data, lookup));
 //        }
 
+    @Override
+    public List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
+        List<CorpusEntity> result = Lists.newArrayList();
+        if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
+            List<LogicalCorpusEntity> data = new ArrayList<>();
+            LogicalCorpusCachedEntity cached = (LogicalCorpusCachedEntity) cacheLibrary.get(CommandType.CORPUS_GET_LOGICAL.name());
+            if (cached == null || cached.isDirty()) {
+                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
+                command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_LOGICAL_CMD);
+
+                String response = this.dockerExecutionService.execCommand(CommandType.CORPUS_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
+
+                Map<String, LogicalCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
+                });
+                if (corpus == null) return data;
+                corpus.forEach((key, value) -> {
+                    value.setLocation(key);
+                    data.add(value);
+                });
+                LogicalCorpusCachedEntity toCache = new LogicalCorpusCachedEntity();
+                toCache.setPayload(data);
+                cacheLibrary.update(toCache);
+            } else {
+                data.addAll(cached.getPayload());
+            }
+            result.addAll(applyLookup(data, lookup));
+        } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
+            List<RawCorpusEntity> data = new ArrayList<>();
+            RawCorpusCachedEntity cached = (RawCorpusCachedEntity) cacheLibrary.get(CommandType.CORPUS_GET_RAW.name());
+            if (cached == null || cached.isDirty()) {
+                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
+                command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_DOWNLOADED_CMD);
+
+                String response = this.dockerExecutionService.execCommand(CommandType.CORPUS_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
+
+                Map<String, RawCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
+                });
+                if (corpus == null) return data;
+                data.addAll(corpus.values());
+                RawCorpusCachedEntity toCache = new RawCorpusCachedEntity();
+                toCache.setPayload(data);
+                cacheLibrary.update(toCache);
+            } else {
+                data.addAll(cached.getPayload());
+            }
+            result.addAll(applyLookup(data, lookup));
+        }
+
         return result;
     }
 
@@ -258,42 +276,55 @@ public class DockerServiceImpl implements DockerService {
     public List<? extends ModelEntity> listModels(ModelLookup lookup) throws InterruptedException, IOException, ApiException {
         List<ModelEntity> result = new ArrayList<>();
 
-        List<String> command;
         if (ModelType.DOMAIN.equals(lookup.getModelType())) {
-            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
-            command.add(ContainerServicesProperties.ManageDomainModels.LIST_ALL_DOMAIN_CMD);
+            List<DomainModelEntity> data = new ArrayList<>();
+            DomainModelCachedEntity cached = (DomainModelCachedEntity) cacheLibrary.get(CommandType.MODEL_GET_DOMAIN.name());
+            if (cached == null || cached.isDirty()) {
+                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+                command.add(ContainerServicesProperties.ManageDomainModels.LIST_ALL_DOMAIN_CMD);
+
+                String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
+
+                Map<String, DomainModelEntity> models = mapper.readValue(response, new TypeReference<>() {
+                });
+                if (models == null) return data;
+                models.forEach((key, value) -> {
+                    value.setLocation(DC_MODELS_ROOT + key);
+                    data.add(value);
+                });
+                DomainModelCachedEntity toCache = new DomainModelCachedEntity();
+                toCache.setPayload(data);
+                cacheLibrary.update(toCache);
+            } else {
+                data.addAll(cached.getPayload());
+            }
+            result.addAll(applyLookup(data, lookup));
         } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
-            command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
-            command.add(ContainerServicesProperties.ManageTopicModels.LIST_ALL_TM_MODELS_CMD);
+            List<TopicModelEntity> data = new ArrayList<>();
+            TopicModelCachedEntity cached = (TopicModelCachedEntity) cacheLibrary.get(CommandType.MODEL_GET_TOPIC.name());
+            if (cached == null || cached.isDirty()) {
+                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+                command.add(ContainerServicesProperties.ManageTopicModels.LIST_ALL_TM_MODELS_CMD);
+
+                String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
+
+                Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
+                });
+                if (models == null) return data;
+                models.forEach((key, value) -> {
+                    value.setLocation(TM_MODELS_ROOT + key);
+                    data.add(value);
+                });
+                TopicModelCachedEntity toCache = new TopicModelCachedEntity();
+                toCache.setPayload(data);
+                cacheLibrary.update(toCache);
+            } else {
+                data.addAll(cached.getPayload());
+            }
+            result.addAll(applyLookup(data, lookup));
         } else {
             logger.error("ModelType not defined");
             return result;
-        }
-
-        String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
-
-        if (ModelType.DOMAIN.equals(lookup.getModelType())) {
-            Map<String, DomainModelEntity> models = mapper.readValue(response, new TypeReference<>() {
-            });
-            List<DomainModelEntity> data = new ArrayList<>();
-            if (models == null) return data;
-            models.forEach((key, value) -> {
-                value.setLocation("/data/DCmodels/" + key);
-                data.add(value);
-            });
-
-            result.addAll(applyLookup(data, lookup));
-        } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
-            Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
-            });
-            List<TopicModelEntity> data = new ArrayList<>();
-            if (models == null) return data;
-            models.forEach((key, value) -> {
-                value.setLocation("/data/TMmodels/" + key);
-                data.add(value);
-            });
-
-            result.addAll(applyLookup(data, lookup));
         }
 
         return result;
@@ -315,7 +346,7 @@ public class DockerServiceImpl implements DockerService {
             List<DomainModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/TMmodels/" + key);
+                value.setLocation(DC_MODELS_ROOT + key);
                 data.add(value);
             });
 
@@ -326,7 +357,7 @@ public class DockerServiceImpl implements DockerService {
             List<TopicModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation("/data/TMmodels/" + key);
+                value.setLocation(TM_MODELS_ROOT + key);
                 data.add(value);
             });
 
@@ -356,6 +387,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(result);
 
         this.deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_LISTS);
+        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
     }
 
     @Override
@@ -378,6 +410,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(result);
 
         this.deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_CORPUS);
+        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
     }
 
     @Override
@@ -387,6 +420,7 @@ public class DockerServiceImpl implements DockerService {
         command.add(name);
 
         this.dockerExecutionService.execCommand(CommandType.WORDLIST_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
+        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
     }
 
     @Override
@@ -396,6 +430,7 @@ public class DockerServiceImpl implements DockerService {
         command.add(name);
 
         this.dockerExecutionService.execCommand(CommandType.CORPUS_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
+        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
     }
 
     @Override
@@ -409,8 +444,14 @@ public class DockerServiceImpl implements DockerService {
             command.add(ContainerServicesProperties.ManageDomainModels.COPY_CMD);
         }
         command.add(name);
+        command.add(name + "-copy");
 
         this.dockerExecutionService.execCommand(CommandType.MODEL_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
+        if (ModelType.TOPIC.equals(modelType)) {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+        } else {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+        }
     }
 
     @Override
@@ -423,6 +464,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
 
         checkResult(result);
+        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
     }
 
     @Override
@@ -435,6 +477,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.CORPUS_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
 
         checkResult(result);
+        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
     }
 
     @Override
@@ -453,6 +496,11 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
+        if (ModelType.TOPIC.equals(modelType)) {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+        } else {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+        }
     }
 
     @Override
@@ -464,6 +512,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
 
         checkResult(result);
+        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
     }
 
     @Override
@@ -475,6 +524,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.CORPUS_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
 
         checkResult(result);
+        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
     }
 
     @Override
@@ -492,24 +542,38 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
+        if (ModelType.TOPIC.equals(modelType)) {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+            cacheLibrary.remove(TopicCachedEntity.CODE + name);
+        } else {
+            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+        }
     }
 
     @Override
     public List<TopicEntity> listTopics(String name, TopicLookup lookup) throws IOException, ApiException, InterruptedException {
-        List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
-        command.add(ContainerServicesProperties.ManageTopicModels.LIST_TOPICS_CMD);
-        command.add(name);
-
-        String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
-        response = response.replace("INFO:TMmodel:-- -- -- Topic model object (TMmodel) successfully created", "");
-
-        ArrayList<TopicEntity> topics = mapper.readValue(response, new TypeReference<>() {});
         List<TopicEntity> data = new ArrayList<>();
-        if (topics == null) return data;
-        for (int i = 0; i < topics.size(); i++) {
-            topics.get(i).setId(i);
+        TopicCachedEntity cached = (TopicCachedEntity) cacheLibrary.get(TopicCachedEntity.CODE + name);
+        if (cached == null || cached.isDirty()) {
+            List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageTopicModels.LIST_TOPICS_CMD);
+            command.add(name);
+
+            String response = this.dockerExecutionService.execCommand(CommandType.TOPIC_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
+            response = response.replace("INFO:TMmodel:-- -- -- Topic model object (TMmodel) successfully created", "");
+
+            ArrayList<TopicEntity> topics = mapper.readValue(response, new TypeReference<>() {});
+            if (topics == null) return data;
+            for (int i = 0; i < topics.size(); i++) {
+                topics.get(i).setId(i);
+            }
+            data.addAll(topics);
+            TopicCachedEntity toCache = new TopicCachedEntity();
+            toCache.setPayload(data);
+            cacheLibrary.update(toCache, TopicCachedEntity.CODE + name);
+        } else {
+            data.addAll(cached.getPayload());
         }
-        data.addAll(topics);
 
         return new ArrayList<>(applyLookup(data, lookup));
     }
@@ -559,6 +623,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(response);
 
         deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_MODELS);
+        cacheLibrary.setDirtyByKey(TopicCachedEntity.CODE + name);
     }
 
     @Override
@@ -583,6 +648,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(response);
 
         deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_MODELS);
+        cacheLibrary.setDirtyByKey(TopicCachedEntity.CODE + name);
     }
 
     @Override
@@ -594,6 +660,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.TOPIC_SORT, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
+        cacheLibrary.setDirtyByKey(TopicCachedEntity.CODE + name);
     }
 
     @Override
@@ -618,5 +685,6 @@ public class DockerServiceImpl implements DockerService {
         checkResult(response);
 
         deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_MODELS);
+        cacheLibrary.setDirtyByKey(TopicCachedEntity.CODE + name);
     }
 }

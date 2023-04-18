@@ -8,7 +8,6 @@ import { RoleType } from '@app/core/enum/role-type.enum';
 import { BaseEnumUtilsService } from '@common/base/base-enum-utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import { CorpusValidFor } from '../enum/corpus-valid-for.enum';
-import { DomainModelSubType, DomainModelType } from '../enum/domain-model-type.enum';
 import { TopicModelSubtype } from '../enum/topic-model-subtype.enum';
 import { TopicModelType } from '../enum/topic-model.-type.enum';
 
@@ -77,22 +76,6 @@ export class AppEnumUtils extends BaseEnumUtilsService {
 			case TopicModelSubtype.Mallet: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.MALLET');
 			case TopicModelSubtype.Hierarchical: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.HIERARCHICAL');
 			case TopicModelSubtype.All: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.ALL');
-			default: return '-';
-		}
-	}
-
-	public toDomainModelTypeString(value: DomainModelType): string {
-		switch (value) {
-			case DomainModelType.Transformers: return this.language.instant('APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.DOMAIN-MODEL-TYPES.TRANSFORMERS');
-			case DomainModelType.Other: return this.language.instant('APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.DOMAIN-MODEL-TYPES.OTHER');
-			default: return '-';
-		}
-	}
-
-	public toDomainModelSubtypeString(value: DomainModelSubType): string {
-		switch (value) {
-			case DomainModelSubType.BERT: return this.language.instant('APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.DOMAIN-MODEL-SUBTYPES.BERT');
-			case DomainModelSubType.RoBERTa: return this.language.instant('APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.DOMAIN-MODEL-SUBTYPES.ROBERTA');
 			default: return '-';
 		}
 	}

@@ -1,5 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 
 import java.util.ArrayList;
@@ -58,10 +59,12 @@ public class LogicalCorpusJson extends CorpusJson {
         this.valid_for = valid_for;
     }
 
+    @JsonProperty("Dtsets")
     public List<LocalDataset> getDtsets() {
         return Dtsets;
     }
 
+    @JsonProperty("Dtsets")
     public void setDtsets(List<LocalDataset> dtsets) {
         Dtsets = dtsets;
     }

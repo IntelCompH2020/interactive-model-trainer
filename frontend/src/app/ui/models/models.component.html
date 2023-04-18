@@ -1,5 +1,5 @@
 <div class="row m-0 h-100">
-    <div class="col-12 col-lg-8 pr-5 pt-3 pb-3">
+    <div class="col-12 col-lg-8 p-4">
         <router-outlet (activate)="onAttach($event)"></router-outlet>
     </div>
 
@@ -13,15 +13,53 @@
                                 {{modelTitle}}
                             </h5>
                         </div>
-                        <div class="col-auto">
-                            <button mat-icon-button (click)="onEdit()"
-                                [disabled]="curatingModel">
+                        <div class="col-auto" *ngIf="isTopicModelListing">
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.RENAME')"
+                                [disabled]="curatingModel" (click)="onEdit()">
                                 <mat-icon>
                                     edit
                                 </mat-icon>
                             </button>
-                            <button mat-icon-button (click)="onDelete()"
-                                [disabled]="curatingModel">
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.UPDATE')"
+                                [disabled]="curatingModel" (click)="onEdit(true)">
+                                <mat-icon>
+                                    update
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.COPY')"
+                                [disabled]="curatingModel" (click)="onCopy()">
+                                <mat-icon>
+                                    content_copy
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')"
+                                [disabled]="curatingModel" (click)="onDelete()">
+                                <mat-icon>
+                                    delete
+                                </mat-icon>
+                            </button>
+                        </div>
+                        <div class="col-auto" *ngIf="isDomainModelListing">
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.RENAME')"
+                                (click)="onEdit()">
+                                <mat-icon>
+                                    edit
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.UPDATE')"
+                                (click)="onEdit(true)">
+                                <mat-icon>
+                                    update
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.COPY')"
+                                (click)="onCopy()">
+                                <mat-icon>
+                                    content_copy
+                                </mat-icon>
+                            </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')"
+                                (click)="onDelete()">
                                 <mat-icon>
                                     delete
                                 </mat-icon>
@@ -39,7 +77,8 @@
                             {{item.value}}
                         </div>
                         <div *ngIf="item.button" class="col-6">
-                            <button mat-raised-button color="accent" [disabled]="trainingParamsLoading" (click)="item.action()">
+                            <button mat-raised-button color="accent" [disabled]="trainingParamsLoading"
+                                (click)="item.action()">
                                 {{item.value | translate}}
                                 <mat-icon *ngIf="trainingParamsLoading">
                                     <mat-spinner color="accent" diameter="20"></mat-spinner>
@@ -52,7 +91,7 @@
                         <ng-container *ngIf="selectedModelType == ModelType.Topic">
                             <div class="col-auto">
                                 <button mat-raised-button color="accent" [disabled]="curatingModel"
-                                    class="rounded-button" [matMenuTriggerFor]="newModelMenu">
+                                    class="rounded-button mb-2" [matMenuTriggerFor]="newModelMenu">
                                     {{'APP.MODELS-COMPONENT.CURATE' | translate}}
                                     <mat-icon>
                                         arrow_drop_down
@@ -63,7 +102,8 @@
                                 </button>
                                 <mat-menu #newModelMenu="matMenu">
                                     <button mat-menu-item
-                                        (click)="onSetLabels()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPICS' |
+                                        (click)="onSetTopicLabels()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPICS'
+                                        |
                                         translate}}</button>
                                     <button mat-menu-item
                                         (click)="showSimilarTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.SHOW-SIMILAR-TOPICS'
@@ -81,14 +121,14 @@
                             </div>
                             <div class="col-auto">
                                 <button mat-raised-button (click)="showPyLDAvis()" color="accent"
-                                    class="rounded-button">
+                                    class="rounded-button mb-2">
                                     {{'APP.MODELS-COMPONENT.LDA-VIS' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
                                 <button mat-raised-button (click)="onReset()"
                                     [disabled]="topicModelReseting || curatingModel" color="accent"
-                                    class="rounded-button">
+                                    class="rounded-button mb-2">
                                     {{'APP.MODELS-COMPONENT.RESET' | translate}}
                                     <mat-icon *ngIf="topicModelReseting">
                                         <mat-spinner color="accent" diameter="20"></mat-spinner>
@@ -98,8 +138,8 @@
                         </ng-container>
                         <ng-container *ngIf="selectedModelType == ModelType.Domain">
                             <div class="col-auto">
-                                <button mat-raised-button color="accent" [disabled]="true"
-                                    class="rounded-button" [matMenuTriggerFor]="newModelMenu">
+                                <button mat-raised-button color="accent" [disabled]="true" class="rounded-button mb-2"
+                                    [matMenuTriggerFor]="newModelMenu">
                                     {{'APP.MODELS-COMPONENT.CURATE' | translate}}
                                     <mat-icon>
                                         arrow_drop_down
@@ -115,20 +155,20 @@
                                 </mat-menu>
                             </div>
                             <div class="col-auto">
-                                <button mat-raised-button (click)="retrain()" color="accent"
-                                    class="rounded-button" disabled>
+                                <button mat-raised-button (click)="retrain()" color="accent" class="rounded-button mb-2"
+                                    disabled>
                                     {{'APP.MODELS-COMPONENT.RETRAIN' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
                                 <button mat-raised-button (click)="classify()" color="accent"
-                                    class="rounded-button" disabled>
+                                    class="rounded-button mb-2" disabled>
                                     {{'APP.MODELS-COMPONENT.CLASSIFY' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
                                 <button mat-raised-button (click)="evaluate()" color="accent"
-                                    class="rounded-button" disabled>
+                                    class="rounded-button mb-2" disabled>
                                     {{'APP.MODELS-COMPONENT.EVALUATE' | translate}}
                                 </button>
                             </div>
@@ -143,12 +183,14 @@
                                 </h5>
                             </div>
                             <div class="col-auto">
-                                <button mat-icon-button (click)="onEditTopic()">
+                                <button mat-icon-button (click)="onRenameTopic()"
+                                    [matTooltip]="language.instant('APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPIC')">
                                     <mat-icon>
                                         edit
                                     </mat-icon>
                                 </button>
-                                <button mat-icon-button (click)="onDeleteTopic()">
+                                <button mat-icon-button (click)="onDeleteTopic()"
+                                    [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')">
                                     <mat-icon>
                                         delete
                                     </mat-icon>

@@ -3,29 +3,23 @@ package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runt
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.TrainingScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 
 import java.util.UUID;
 
 public class RunTrainingScheduledEventData extends TrainingScheduledEventData {
 
-    private final String corpusId;
-    private final String parameters;
+    private final TrainingTaskRequestPersist request;
 
     @JsonCreator
     public RunTrainingScheduledEventData(
             @JsonProperty("trainingTaskRequestId") UUID trainingTaskRequestId,
-            @JsonProperty("corpusId") String corpusId,
-            @JsonProperty("parameters") String parameters) {
+            @JsonProperty("request") TrainingTaskRequestPersist request) {
         super(trainingTaskRequestId);
-        this.corpusId = corpusId;
-        this.parameters = parameters;
+        this.request = request;
     }
 
-    public String getCorpusId() {
-        return corpusId;
-    }
-
-    public String getParameters() {
-        return parameters;
+    public TrainingTaskRequestPersist getRequest() {
+        return request;
     }
 }

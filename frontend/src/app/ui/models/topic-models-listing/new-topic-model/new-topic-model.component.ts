@@ -3,19 +3,25 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
-import { TopicModelSubtype } from '@app/core/enum/topic-model-subtype.enum';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { TopicModel } from '@app/core/model/model/topic-model.model';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { TranslateService } from '@ngx-translate/core';
 import { nameof } from 'ts-simple-nameof';
 import { TopicModelEditorModel } from './topic-model-editor.model';
-import { CTMParams, malletParams, prodLDAParams, sparkLDAParams, TopicModelParam } from '../topic-model-params.model';
+import { CTMParams, malletParams, preprocessingParams, prodLDAParams, sparkLDAParams } from '../topic-model-params.model';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
+import { ModelParam } from '../../model-parameters-table/model-parameters-table.component';
+import { TopicModelPreprocessingEditorModel } from './topic-model-preprocessing-editor.model';
+import { StopwordService } from '@app/core/services/http/stopword.service';
+import { EquivalenceService } from '@app/core/services/http/equivalence.service';
+import { StopwordLookup } from '@app/core/query/stopword.lookup';
+import { Stopword } from '@app/core/model/stopword/stopword.model';
+import { EquivalenceLookup } from '@app/core/query/equivalence.lookup';
+import { Equivalence } from '@app/core/model/equivalence/equivalence.model';
 
 @Component({
   selector: 'app-new-topic-model',
@@ -27,6 +33,8 @@ export class NewTopicModelComponent implements OnInit {
   availableTypes: TopicModelType[];
 
   availableCorpora: string[];
+  availableStopwords: string[];
+  availableEquivalencies: string[];
 
   TopicModelType = TopicModelType;
   selectedType: TopicModelType = TopicModelType.mallet;
@@ -34,14 +42,21 @@ export class NewTopicModelComponent implements OnInit {
 
   editorModel: TopicModelEditorModel;
   formGroup: FormGroup;
+  preprocessingEditorModel: TopicModelPreprocessingEditorModel;
+  preprocessingFormGroup: FormGroup;
 
   advanced: boolean = false;
+  advancedForPreprocessing: boolean = false;
 
   get isPrivate(): boolean {
     return !!(this.formGroup?.get(nameof<TopicModel>(x => x.visibility))?.value === ModelVisibility.Private);
   }
 
-  get params(): TopicModelParam[] {
+  get valid(): boolean {
+    return this.formGroup?.valid && this.preprocessingFormGroup?.valid;
+  }
+
+  get params(): ModelParam[] {
     if (this.selectedType == TopicModelType.mallet) return malletParams(false);
     else if (this.selectedType == TopicModelType.prodLDA) return prodLDAParams(false);
     else if (this.selectedType == TopicModelType.CTM) return CTMParams(false);
@@ -49,7 +64,7 @@ export class NewTopicModelComponent implements OnInit {
     return [];
   }
 
-  get advancedParams(): TopicModelParam[] {
+  get advancedParams(): ModelParam[] {
     if (this.selectedType == TopicModelType.mallet) return malletParams(true);
     else if (this.selectedType == TopicModelType.prodLDA) return prodLDAParams(true);
     else if (this.selectedType == TopicModelType.CTM) return CTMParams(true);
@@ -57,25 +72,44 @@ export class NewTopicModelComponent implements OnInit {
     return [];
   }
 
+  get advancedParamsForPreprocessing(): ModelParam[] {
+    return preprocessingParams(this.availableStopwords, this.availableEquivalencies);
+  }
+
   constructor(
     private dialogRef: MatDialogRef<NewTopicModelComponent>,
     public enumUtils: AppEnumUtils,
     private topicModelService: TopicModelService,
     private corpusService: LogicalCorpusService,
+    private stopwordService: StopwordService,
+    private equivalenceService: EquivalenceService,
     protected formBuilder: FormBuilder = new FormBuilder(),
-    public translate: TranslateService,
-    protected modelSelectionService: ModelSelectionService
+    public translate: TranslateService
   ) {
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
     this.availableTypes = this.availableTypes.filter(t => t !== TopicModelType.all);
   
-    const lookup = new LogicalCorpusLookup();
-    lookup.project = {fields: [nameof<LogicalCorpus>(x => x.name)]};
-    lookup.corpusValidFor = "TM";
-    this.corpusService.query(lookup).subscribe((response) => {
+    const corpusLookup = new LogicalCorpusLookup();
+    corpusLookup.project = {fields: [nameof<LogicalCorpus>(x => x.name)]};
+    corpusLookup.corpusValidFor = "TM";
+    this.corpusService.query(corpusLookup).subscribe((response) => {
       const corpora = response.items;
       this.availableCorpora = corpora.map(corpus => corpus.name)
-    })
+    });
+
+    const stopwordLookup = new StopwordLookup();
+    stopwordLookup.project = {fields: [nameof<Stopword>(x => x.name)]};
+    this.stopwordService.query(stopwordLookup).subscribe((response) => {
+      const stopwords = response.items;
+      this.availableStopwords = stopwords.map(stopword => stopword.name)
+    });
+
+    const equivalenceLookup = new EquivalenceLookup();
+    equivalenceLookup.project = {fields: [nameof<Equivalence>(x => x.name)]};
+    this.equivalenceService.query(equivalenceLookup).subscribe((response) => {
+      const equivalences = response.items;
+      this.availableEquivalencies = equivalences.map(equivalence => equivalence.name)
+    });
   }
 
   ngOnInit(): void {
@@ -83,9 +117,8 @@ export class NewTopicModelComponent implements OnInit {
       this.editorModel = new TopicModelEditorModel();
       this.formGroup = this.editorModel.buildForm(null, false, this.selectedType);
       this.formGroup.get('type').setValue(this.selectedType);
-      let corpusToSet: string = (this.modelSelectionService.corpus?.name && this.modelSelectionService.corpus?.valid_for === "TM") ? this.modelSelectionService.corpus?.name : "";
-      if (this.selectedCorpus) corpusToSet = this.selectedCorpus;
-      this.formGroup.get('corpus').setValue(corpusToSet);
+      this.preprocessingEditorModel = new TopicModelPreprocessingEditorModel();
+      this.preprocessingFormGroup = this.preprocessingEditorModel.buildForm();
       this.setDefaultParamValues();
     }, 0);
   }
@@ -181,6 +214,14 @@ export class NewTopicModelComponent implements OnInit {
       parameters['TM.thetas_thr'] = this.formGroup.get('thetasThreshold').value;
     }
 
+    //PREPROCESSING
+    parameters['Preproc.minLemmas'] = this.preprocessingFormGroup.get('minLemmas').value;
+    parameters['Preproc.noBelow'] = this.preprocessingFormGroup.get('noBelow').value;
+    parameters['Preproc.noAbove'] = this.preprocessingFormGroup.get('noAbove').value;
+    parameters['Preproc.keepN'] = this.preprocessingFormGroup.get('keepN').value;
+    parameters['Preproc.stopwords'] = (this.preprocessingFormGroup.get('stopwords').value as string[]).join(',');
+    parameters['Preproc.equivalences'] = (this.preprocessingFormGroup.get('equivalences').value as string[]).join(',');
+
     const model: any = {
       name: this.formGroup.get('name').value,
       description: this.formGroup.get('description').value,
@@ -194,12 +235,14 @@ export class NewTopicModelComponent implements OnInit {
     this.topicModelService.train(model).subscribe(
       response => {
         this.dialogRef.close({
+          label: model.name,
+          finished: false,
           model,
-          task: response.id
+          task: response.id,
+          startedAt: new Date()
         });
       },
-      error => {
-        console.error(error);
+      _error => {
         this.dialogRef.close(null);
       }
     );
@@ -211,6 +254,9 @@ export class NewTopicModelComponent implements OnInit {
     }
     for (let param of this.advancedParams) {
       this.formGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
+    }
+    for (let param of this.advancedParamsForPreprocessing) {
+      this.preprocessingFormGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
     }
   }
 

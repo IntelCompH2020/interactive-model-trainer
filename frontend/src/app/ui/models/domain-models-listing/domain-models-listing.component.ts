@@ -9,10 +9,10 @@ import { DomainModelLookup } from '@app/core/query/domain-model.lookup';
 import { RawCorpusLookup } from '@app/core/query/raw-corpus.lookup';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
-import { ModelSelectionService } from '@app/core/services/ui/model-selection.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
-import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
+import { RenameDialogComponent } from '@app/ui/rename-dialog/rename-dialog.component';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
@@ -21,17 +21,17 @@ import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
 import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
-import { TrainingModelProgressComponent } from '@common/modules/training-model-progress/training-model-progress.component';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
 import { Observable } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { ModelPatchComponent } from '../model-patch/model-patch-modal.component';
 import { DomainModelFromCategoryNameComponent } from './domain-model-from-category-name/domain-model-from-category-name.component';
 import { DomainModelFromKeywordsComponent } from './domain-model-from-keywords/domain-model-from-keywords.component';
 import { DomainModelFromSelectionFunctionComponent } from './domain-model-from-selection-function/domain-model-from-selection-function.component';
-import { RenameDomainModelComponent } from './rename-domain-model/rename-domain-model.component';
+import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
 
 @Component({
 	selector: 'app-domain-models-listing',
@@ -69,7 +69,11 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				nameof<DomainModel>(x => x.id),
 				nameof<DomainModel>(x => x.name),
 				nameof<DomainModel>(x => x.description),
+				nameof<DomainModel>(x => x.visibility),
 				nameof<DomainModel>(x => x.tag),
+				nameof<DomainModel>(x => x.TrDtSet),
+				nameof<DomainModel>(x => x.creator),
+				nameof<DomainModel>(x => x.location),
 				nameof<DomainModel>(x => x.creation_date)
 			]
 		};
@@ -82,6 +86,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			prop: nameof<DomainModel>(x => x.name),
 			sortable: true,
 			resizeable: true,
+			alwaysShown: true,
 			languageName: 'APP.MODELS-COMPONENT.NAME'
 		},
 		{
@@ -104,6 +109,12 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			languageName: 'APP.MODELS-COMPONENT.CREATION-DATE'
 		},
 		{
+			prop: nameof<DomainModel>(x => x.TrDtSet),
+			sortable: true,
+			resizeable: true,
+			languageName: 'APP.MODELS-COMPONENT.CORPUS'
+		},
+		{
 			prop: nameof<DomainModel>(x => x.creator),
 			sortable: true,
 			resizeable: true,
@@ -114,9 +125,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			sortable: false,
 			resizeable: true,
 			languageName: 'APP.MODELS-COMPONENT.LOCATION'
-		},
-
-		]);
+		}]);
 	}
 
 	constructor(
@@ -131,8 +140,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		public enumUtils: AppEnumUtils,
 		protected dialog: MatDialog,
 		protected domainModelService: DomainModelService,
-		private trainingQueueService: TrainingQueueService,
-		private modelSelectionService: ModelSelectionService,
+		private trainingModelQueueService: TrainingQueueService,
 		private pipeService: PipeService,
 		private formBuilder: FormBuilder
 	) {
@@ -140,6 +148,15 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this.lookup = this.initializeLookup();
 
 		this._buildFilterEditorConfiguration();
+
+		setTimeout(() => {
+      this.setupVisibleColumns([
+				nameof<DomainModel>(x => x.name),
+				nameof<DomainModel>(x => x.description),
+				nameof<DomainModel>(x => x.tag),
+				nameof<DomainModel>(x => x.creation_date)
+			]);
+    }, 0);
 	}
 
 	ngOnInit(): void {
@@ -147,36 +164,72 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._setUpFiltersFormGroup();
 		this._setUpLikeFilterFormGroup();
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+
+		this.trainingModelQueueService.taskCompleted.subscribe((task) => {
+			if (task.finished) this.refresh();
+		});
 	}
 
 	public refresh(): void {
-    this.onDomainModelSelect.emit(null);
-    this._domainModelSelected = null;
-    this.modelSelectionService.model = "";
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
-  }
+		this.onDomainModelSelect.emit(null);
+		this._domainModelSelected = null;
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
 
-	public edit(model: DomainModel): void {
-    this.dialog.open(RenameDomainModelComponent, {
-      width: '25rem',
-      disableClose: true,
-      data: {
-        model
-      }
-    })
-      .afterClosed()
-      .pipe(
-        filter(x => x),
-        takeUntil(this._destroyed)
-      )
-      .subscribe(() => {
-        this.snackbars.successfulUpdate();
-        this.refresh();
-      });
-  }
+	public edit(model: DomainModel, updateAll: boolean = false): void {
+		if (updateAll) {
+			this.dialog.open(ModelPatchComponent,
+				{
+					width: "40rem",
+					maxWidth: "90vw",
+					disableClose: true,
+					data: {
+						model,
+						modelType: "DOMAIN"
+					}
+				}
+			)
+				.afterClosed()
+				.pipe(
+					filter(x => x),
+					takeUntil(this._destroyed)
+				)
+				.subscribe(() => {
+					this.snackbars.successfulUpdate();
+					this.refresh();
+				});
+		} else {
+			this.dialog.open(RenameDialogComponent, {
+				width: '25rem',
+				maxWidth: "90vw",
+				disableClose: true,
+				data: {
+					name: model.name,
+					title: this.language.instant('APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
+				}
+			})
+				.afterClosed()
+				.pipe(
+					filter(x => x),
+					takeUntil(this._destroyed)
+				)
+				.subscribe((rename: RenamePersist) => {
+					this.domainModelService.rename(rename).subscribe((_response) => {
+						this.snackbars.successfulUpdate();
+						this.refresh();
+					});
+				});
+		}
+	}
+
+	public copy(model: DomainModel): void {
+		this.domainModelService.copy(model.name).subscribe(
+			_response => this.refresh()
+		);
+	}
 
 	private _buildFilterEditorConfiguration(): void {
-    this.filterEditorConfiguration = {
+		this.filterEditorConfiguration = {
 			items: [
 				{
 					key: 'createdAt',
@@ -200,84 +253,50 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				},
 			]
 		};
-  }
+	}
 
 	private _setUpLikeFilterFormGroup(): void {
-    this.likeFilterFormGroup = new FormGroup({
-      like: new FormControl("")
-    });
-    this.likeFilterFormGroup.valueChanges.pipe(
-      takeUntil(this._destroyed),
-      debounceTime(600)
-    ).subscribe(filterChanges => {
-      this.lookup.like = filterChanges["like"];
-      this.refresh();
-    });
-  }
+		this.likeFilterFormGroup = new FormGroup({
+			like: new FormControl("")
+		});
+		this.likeFilterFormGroup.valueChanges.pipe(
+			takeUntil(this._destroyed),
+			debounceTime(600)
+		).subscribe(filterChanges => {
+			this.lookup.like = filterChanges["like"];
+			this.refresh();
+		});
+	}
 
 	private _setUpFiltersFormGroup(): void {
 		this.filterFormGroup = this.formBuilder.group(
-      this.filterEditorConfiguration.items.reduce((aggr, current) => ({ ...aggr, [current.key]: null }), {})
-    )
-    this.filterFormGroup.valueChanges.pipe(
-      takeUntil(this._destroyed),
-      debounceTime(600)
-    ).subscribe(filterChanges => {
-      this.lookup = Object.assign(this.lookup, filterChanges);
-      this.refresh();
-    });
-	}
-
-	onColumnsChanged(event: ColumnsChangedEvent) {
-		this.onDomainModelSelect.emit(null);
-    this._domainModelSelected = null;
-		this.onColumnsChangedInternal(event.properties.map(x => x.toString()));
-	}
-
-	private onColumnsChangedInternal(columns: string[]) {
-		// Here are defined the projection fields that always requested from the api.
-		this.lookup.project = {
-			fields: [
-				nameof<DomainModel>(x => x.id),
-				nameof<DomainModel>(x => x.name),
-				...columns
-			]
-		};
-		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+			this.filterEditorConfiguration.items.reduce((aggr, current) => ({ ...aggr, [current.key]: null }), {})
+		)
+		this.filterFormGroup.valueChanges.pipe(
+			takeUntil(this._destroyed),
+			debounceTime(600)
+		).subscribe(filterChanges => {
+			this.lookup = Object.assign(this.lookup, filterChanges);
+			this.refresh();
+		});
 	}
 
 	onRowActivated($event: RowActivateEvent) {
 		const selectedModel: DomainModel = $event.row as DomainModel;
-    if ($event.type === 'click') {
-      if (this._domainModelSelected && selectedModel.name === this._domainModelSelected.name) return;
+		if ($event.type === 'click') {
+			if (this._domainModelSelected && selectedModel.name === this._domainModelSelected.name) return;
 			this.onDomainModelSelect.emit(selectedModel);
-      this._domainModelSelected = selectedModel;
-      this.modelSelectionService.model = this._domainModelSelected.name;
-    }
+			this._domainModelSelected = selectedModel;
+		}
 	}
-
-	// newDomainModelFromSourceFile(): void {
-	// 	this.dialog.open(
-	// 		DomainModelFromSourceFileComponent,
-	// 		{
-	// 			minWidth: '50rem',
-	// 			disableClose: true
-	// 		}
-	// 	)
-	// 		.afterClosed()
-	// 		.pipe(
-	// 			filter(x => x),
-	// 			takeUntil(this._destroyed)
-	// 		)
-	// 		.subscribe(() => this.openTrainingModelDialog());
-	// }
 
 	newDomainModelFromKeywords(): void {
 		this.dialog.open(
 			DomainModelFromKeywordsComponent,
 			{
 				width: '80rem',
-				maxWidth: '95vw',
+				maxWidth: "90vw",
+				maxHeight: '90vh',
 				disableClose: true
 			}
 		)
@@ -286,7 +305,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				filter(x => x),
 				takeUntil(this._destroyed)
 			)
-			.subscribe(() => this.openTrainingModelDialog());
+			.subscribe(() => this.snackbars.operationStarted());
 	}
 
 	newDomainModelFromSelectionFunction(): void {
@@ -294,7 +313,8 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			DomainModelFromSelectionFunctionComponent,
 			{
 				width: '80rem',
-				maxWidth: '95vw',
+				maxWidth: "90vw",
+				maxHeight: '90vh',
 				disableClose: true
 			}
 		)
@@ -303,7 +323,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				filter(x => x),
 				takeUntil(this._destroyed)
 			)
-			.subscribe(() => this.openTrainingModelDialog());
+			.subscribe(() => this.snackbars.operationStarted());
 	}
 
 	newDomainModelFromCategoryName(): void {
@@ -311,7 +331,8 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			DomainModelFromCategoryNameComponent,
 			{
 				width: '80rem',
-				maxWidth: '95vw',
+				maxWidth: "90vw",
+				maxHeight: '90vh',
 				disableClose: true
 			}
 		)
@@ -320,24 +341,8 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				filter(x => x),
 				takeUntil(this._destroyed)
 			)
-			.subscribe(() => this.openTrainingModelDialog());
+			.subscribe(() => this.snackbars.operationStarted());
 
-	}
-
-	openTrainingModelDialog(): void {
-		this.dialog.open(TrainingModelProgressComponent, {
-			disableClose: true,
-			minWidth: '80vw'
-		})
-			.afterClosed()
-			.pipe(
-				takeUntil(this._destroyed),
-				filter(x => x)
-			)
-			.subscribe(() => this.trainingQueueService.addItem({
-				label: 'my label',
-				finished: false
-			}));
 	}
 
 }

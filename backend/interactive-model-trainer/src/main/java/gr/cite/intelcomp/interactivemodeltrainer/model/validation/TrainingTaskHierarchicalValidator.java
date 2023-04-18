@@ -42,7 +42,7 @@ public class TrainingTaskHierarchicalValidator implements ConstraintValidator<Va
         else {
             if (value.getHierarchical()) {
                 if (value.getParentName() != null && value.getParentName().trim().length() > 0) {
-                    Path path = Path.of(servicesProperties.getServices().get("training").getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), value.getParentName().trim());
+                    Path path = Path.of(servicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), value.getParentName().trim());
                     File directory = new File(String.valueOf(path));
                     try {
                         if (!directory.isDirectory()) {

@@ -1,6 +1,10 @@
 import { Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomainModel } from '@app/core/model/model/domain-model.model';
+import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
+import { TrainingQueueItem } from '@app/core/services/ui/training-queue.service';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -10,14 +14,15 @@ import { Subject } from 'rxjs';
 })
 export class TrainingModelProgressComponent implements OnInit, OnDestroy {
 
-  runningTime = '00:00:00';
-  epochTime = '00:00:00';
+  runningTime = '--:--:--';
   progressPercent = '10';
-  progressInfo = 'Connecting with the training service...';
+  progressInfo: SafeHtml = 'Connecting with the training service...';
 
   logTimerId: any;
+  clockUpdateTimerId: any;
 
   taskFinished: boolean = false;
+  finishedTask: TrainingQueueItem = undefined;
 
   scroll: Subject<number> = new Subject<number>();
   scrollHeight: number = 0;
@@ -25,12 +30,38 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
   private _details: {}[] = [];
   private _summaries: {}[] = [];
 
+  get trainingItem(): TrainingQueueItem {
+    return this.finishedTask || this.data.item as TrainingQueueItem;
+  }
+
+  get model() {
+    return this.trainingItem.model;
+  }
+
+  get startedAt() {
+    return this.trainingItem.startedAt;
+  }
+
+  get finishedAt() {
+    return this.trainingItem.finishedAt;
+  }
+
+  get details() {
+    return this._details;
+  }
+
+  get summaries() {
+    return this._summaries;
+  }
+
   @ViewChild('logsConsole') protected scrollConsoleElement: ElementRef;
 
   constructor(
     private dialogRef: MatDialogRef<TrainingModelProgressComponent>,
     @Inject(MAT_DIALOG_DATA) private data: any,
-    private modelService: TopicModelService
+    private topicModelService: TopicModelService,
+    private domainModelService: DomainModelService,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
@@ -38,44 +69,90 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
     this._populateSummaries();
 
     this.logTimerId = setInterval(() => {
-      if (this.model.parentName) {
-        this.modelService.getHierarchicalTrainLogs(this.model.parentName, this.model.name)
-        .subscribe(result => {
-          let _logs = "";
-          for (let line of result) {
-            _logs += line + "\n";
-          }
-          if (_logs !== "" && !this.taskFinished) this.progressInfo = _logs;
-          setTimeout(() => {
-            this.scroll.next(this.scrollConsoleElement?.nativeElement.scrollHeight);
-          }, 0);
-        },
-          (error: any) => {
-            console.error(error);
-          })
+      if (this.model.TMparam) {
+        if (this.model.parentName) {
+          this.topicModelService.getHierarchicalTrainLogs(this.model.parentName, this.model.name)
+            .subscribe(result => {
+              if (this.taskFinished) {
+                clearInterval(this.logTimerId);
+              }
+              this._updateLogs(result);
+            },
+              (error: any) => {
+                this.progressInfo = error.error[0];
+                clearInterval(this.logTimerId);
+              });
+        } else {
+          this.topicModelService.getTrainLogs(this.model.name)
+            .subscribe(result => {
+              if (this.taskFinished) {
+                clearInterval(this.logTimerId);
+              }
+              this._updateLogs(result);
+            },
+              (error: any) => {
+                this.progressInfo = error.error[0];
+                clearInterval(this.logTimerId);
+              });
+        }
       } else {
-        this.modelService.getTrainLogs(this.model.name)
-        .subscribe(result => {
-          let _logs = "";
-          for (let line of result) {
-            _logs += line + "\n";
-          }
-          if (_logs !== "" && !this.taskFinished) this.progressInfo = _logs;
-          setTimeout(() => {
-            this.scroll.next(this.scrollConsoleElement?.nativeElement.scrollHeight);
-          }, 0);
-        },
-          (error: any) => {
-            console.error(error);
-          })
+        this.domainModelService.getTrainLogs(this.model.name)
+            .subscribe(result => {
+              if (this.taskFinished) {
+                clearInterval(this.logTimerId);
+              }
+              this._updateLogs(result);
+            },
+              (error: any) => {
+                this.progressInfo = error.error[0];
+                clearInterval(this.logTimerId);
+              });
       }
-      
+
     }, 5000);
+
+    this.clockUpdateTimerId = setInterval(() => {
+      if (this.taskFinished && this.finishedAt) {
+        clearInterval(this.clockUpdateTimerId);
+        const timePassed: number = new Date(this.finishedAt).valueOf() - new Date(this.startedAt).valueOf();
+        const timePassedInSeconds = timePassed / 1000;
+        this.runningTime = this._extractTimeString(Math.floor(timePassedInSeconds));
+      } else {
+        const now: Date = new Date();
+        const timePassed: number = now.valueOf() - new Date(this.startedAt).valueOf();
+        const timePassedInSeconds = timePassed / 1000;
+        this.runningTime = this._extractTimeString(Math.floor(timePassedInSeconds));
+      }
+    }, 1000);
 
     this.scroll.subscribe((scroll) => {
       this.scrollHeight = scroll;
-    })
+    });
+  }
 
+  private _updateLogs(result: any): void {
+    this.progressInfo = "";
+    let _logs = "";
+    for (let line of result) {
+      _logs += line + "<br>";
+    }
+    if (_logs !== "") this.progressInfo = this.sanitizer.bypassSecurityTrustHtml(_logs);
+    setTimeout(() => {
+      this.scroll.next(this.scrollConsoleElement?.nativeElement.scrollHeight);
+    }, 0);
+  }
+
+  private _extractTimeString(time: number): string {
+    var hours: any = Math.floor(time / 3600);
+    var minutes: any = Math.floor((time - (hours * 3600)) / 60);
+    var seconds: any = Math.floor(time - (hours * 3600) - (minutes * 60));
+
+    if (hours < 10) { hours = "0" + hours; }
+    if (minutes < 10) { minutes = "0" + minutes; }
+    if (seconds < 10) { seconds = "0" + seconds; }
+
+    var timeString = hours + ':' + minutes + ':' + seconds;
+    return timeString;
   }
 
   ngOnDestroy(): void {
@@ -83,36 +160,42 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
   }
 
   private _populateDetails() {
-    this._details = [
-      {
-        label: 'Training model',
-        value: this.model.name
-      },
-      {
-        label: 'Type',
-        value: this.model.type
-      },
-      {
-        label: 'Topics',
-        value: this.model.parameters['TM.ntopics']
-      },
-      {
-        label: 'Corpus',
-        value: this.model.corpusId
-      },
-      // {
-      //   label: 'Train size',
-      //   value: '20308'
-      // },
-      // {
-      //   label: 'Validation size',
-      //   value: '9129'
-      // },
-      // {
-      //   label: 'Batch size',
-      //   value: '8'
-      // },
-    ];
+    if (this.model.TMparam) {
+      this._details = [
+        {
+          label: 'Training model',
+          value: this.model.name || '-'
+        },
+        {
+          label: 'Trainer',
+          value: this.model.trainer || '-'
+        },
+        {
+          label: 'Topics',
+          value: this.model.TMparam['ntopics'] || '-'
+        },
+        {
+          label: 'Training dataset',
+          value: this.model.TrDtSet || '-'
+        },
+        {
+          label: 'Hierarchy level',
+          value: this.model['hierarchy-level'] === undefined ? '-' : this.model['hierarchy-level']
+        }
+      ];
+    } else {
+      this._details = [
+        {
+          label: 'Model name',
+          value: this.model.name || '-'
+        },
+        {
+          label: 'Training dataset',
+          value: this.model.corpus?.replace("/data/datasets/", "").replace(".json", "") || '-'
+        }
+      ];
+    }
+    
   }
 
   private _populateSummaries(): void {
@@ -140,11 +223,14 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
     ];
   }
 
-  finishTask(): void {
-    clearInterval(this.logTimerId);
-    this.progressInfo += "\n\n------Training task completed.------";
-    this.progressPercent = "100";
-    this.taskFinished = true;
+  finishTask(task: TrainingQueueItem): void {
+    if (!this.taskFinished) {
+      clearInterval(this.logTimerId);
+      this.finishedTask = task;
+      this.progressInfo += "<br>------Training task completed.------";
+      this.progressPercent = "100";
+      this.taskFinished = true;
+    }
   }
 
   finish(): void {
@@ -152,18 +238,6 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
   }
   hide(): void {
     this.dialogRef.close(true);
-  }
-
-  get model() {
-    return this.data.model;
-  }
-
-  get details() {
-    return this._details;
-  }
-
-  get summaries() {
-    return this._summaries;
   }
 
 }

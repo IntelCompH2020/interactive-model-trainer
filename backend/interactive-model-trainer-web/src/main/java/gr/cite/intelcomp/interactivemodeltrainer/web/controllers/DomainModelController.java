@@ -8,22 +8,27 @@ import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.Train
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.DomainModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.model.DomainModelService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
+import gr.cite.intelcomp.interactivemodeltrainer.web.model.ModelPatchInfo;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.QueryResult;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.RenameInfo;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
 @RestController
 @RequestMapping(path = "api/domain-model", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -44,9 +49,14 @@ public class DomainModelController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<DomainModel> GetAll(@RequestBody DomainModelLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<DomainModel> models = domainModelService.getAll(lookup);
-        return new QueryResult<>(models, models.size());
+    public QueryResult<DomainModel> GetAll(@RequestBody DomainModelLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return domainModelService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @PostMapping("{name}/copy")
@@ -59,6 +69,12 @@ public class DomainModelController {
     @Transactional
     public void Rename(@Valid @RequestBody RenameInfo model) throws InterruptedException, IOException, ApiException {
         domainModelService.rename(ModelType.DOMAIN, model.getOldName(), model.getNewName());
+    }
+
+    @PatchMapping("{name}/patch")
+    @Transactional
+    public void Patch(@PathVariable("name") String name, @RequestBody ModelPatchInfo model) {
+        domainModelService.patch(name, model.getDescription(), model.getVisibility());
     }
 
     @DeleteMapping("{name}/delete")
@@ -75,8 +91,13 @@ public class DomainModelController {
 
     @GetMapping("train/logs/{name}")
     @Transactional
-    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName) throws IOException {
-        return Files.readAllLines(Path.of(containerServicesProperties.getServices().get("domainTraining").getModelsFolder(ContainerServicesProperties.ManageDomainModels.class), modelName, "execution.log"));
+    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
+        try {
+            return Files.readAllLines(Path.of(containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class), modelName, "execution.log"));
+        } catch (IOException e) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return List.of("ERROR: Logs not found.");
+        }
     }
 
 }

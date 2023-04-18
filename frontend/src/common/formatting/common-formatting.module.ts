@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { DataTableDateFormatPipe, DateFormatPipe } from '@common/formatting/pipes/date-format.pipe';
 import { DataTableDateTimeFormatPipe, DateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
-import { DataTableDomainModelTypeFormatPipe } from './pipes/domain-model-type.pipe';
 import { SecondsToTimePipe } from './pipes/seconds-to-time.pipe';
 import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe';
 
@@ -17,7 +16,6 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
-		DataTableDomainModelTypeFormatPipe,
 		SecondsToTimePipe
 	],
 	exports: [
@@ -26,7 +24,6 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
-		DataTableDomainModelTypeFormatPipe,
 		SecondsToTimePipe
 	],
 	providers: [
@@ -35,7 +32,6 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
-		DataTableDomainModelTypeFormatPipe,
 		SecondsToTimePipe
 	]
 })

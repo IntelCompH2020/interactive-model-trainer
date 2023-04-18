@@ -18,6 +18,8 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+
 @RestController
 @RequestMapping(path = "api/stopwords", produces = MediaType.APPLICATION_JSON_VALUE)
 public class StopwordController {
@@ -34,9 +36,14 @@ public class StopwordController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<Stopword> GetAll(@RequestBody WordListLookup lookup) throws InterruptedException, IOException, ApiException {
-        List<Stopword> stopwords = stopwordService.getAll(lookup);
-        return new QueryResult<>(stopwords, stopwords.size());
+    public QueryResult<Stopword> GetAll(@RequestBody WordListLookup lookup) {
+        return extractQueryResultWithCount(l -> {
+            try {
+                return stopwordService.getAll(l);
+            } catch (IOException | InterruptedException | ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }, lookup);
     }
 
     @PostMapping("create")

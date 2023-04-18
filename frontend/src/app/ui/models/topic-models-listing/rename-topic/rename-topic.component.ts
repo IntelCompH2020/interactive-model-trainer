@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { Topic } from "@app/core/model/model/topic-model.model";
 import { TopicLookup } from "@app/core/query/topic.lookup";
 import { TopicModelService } from "@app/core/services/http/topic-model.service";
+import { TranslateService } from "@ngx-translate/core";
 import { nameof } from "ts-simple-nameof";
 
 @Component({
@@ -32,6 +33,7 @@ export class RenameTopicComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<RenameTopicComponent>,
     private topicModelService: TopicModelService,
+    protected language: TranslateService,
     @Inject(MAT_DIALOG_DATA) private data
   ) {
     this.formGroup = new FormGroup({

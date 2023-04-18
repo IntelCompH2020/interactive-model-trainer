@@ -4,7 +4,7 @@
         <div class="col-12">
 
             <div class="row">
-                <div class="col-3 details-container" >
+                <div class="col-12 col-lg-5 details-container">
                     <div class="row mt-2 mb-2 justify-content-between" *ngFor="let item of details">
                         <div class="col-auto">
                             {{item.label}}
@@ -14,7 +14,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-3">
+                <!-- <div class="col-3">
                     <h6>{{'COMMONS.TRAINING-MODEL-PROGRESS.SUMMARY' | translate}}</h6>
                     <div class="row m-0 p-1 justify-content-between bg-white summary-item" *ngFor="let item of summaries">
                         <div class="col-auto p-0">
@@ -24,10 +24,9 @@
                             {{item.value}}
                         </div>
                     </div>
-                </div>
-                <div #logsConsole [scrollTop]="scrollHeight" class="col-6 text-white logs-console" style="background-color: black;">
-                    {{progressInfo}}
-                </div>
+                </div> -->
+                <div #logsConsole [scrollTop]="scrollHeight" [innerHTML]="progressInfo"
+                    class="col-12 col-lg-7 text-white logs-console" style="background-color: black;"></div>
             </div>
 
 
@@ -41,33 +40,29 @@
                             {{runningTime}}
                         </div>
                     </div>
-                    <div class="row justify-content-between">
-                        <div class="col-auto">
-                            {{'COMMONS.TRAINING-MODEL-PROGRESS.EPOCH-TIME' | translate}}
-                        </div>
-                        <div class="col-auto">
-                            {{epochTime}}
-                        </div>
-                    </div>
                 </div>
                 <div class="col">
                     <div class="progress w-100">
-                        <div class="progress-bar" role="progressbar" [ngStyle]="{'width': progressPercent + '%'}" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" role="progressbar" [ngStyle]="{'width': progressPercent + '%'}"
+                            aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
                             {{progressPercent}} %
                         </div>
-                      </div>
+                    </div>
                 </div>
             </div>
 
             <div class="row justify-content-end">
-                <div class="col-auto">
+                <!-- <div class="col-auto">
                     <button mat-button disabled>{{'COMMONS.TRAINING-MODEL-PROGRESS.CANCEL' | translate}}</button>
+                </div> -->
+                <div class="col-auto">
+                    <button mat-raised-button [disabled]="!taskFinished" color="accent"
+                        (click)="finish()">{{'COMMONS.TRAINING-MODEL-PROGRESS.FINISH' | translate}}</button>
                 </div>
                 <div class="col-auto">
-                    <button mat-raised-button [disabled]="!taskFinished" color="accent" (click)="finish()">{{'COMMONS.TRAINING-MODEL-PROGRESS.FINISH' | translate}}</button>
-                </div>
-                <div class="col-auto">
-                    <button mat-button [disabled]="taskFinished" (click)="hide()"><mat-icon>visibility_off</mat-icon>{{'COMMONS.TRAINING-MODEL-PROGRESS.HIDE' | translate}}</button>
+                    <button mat-button
+                        (click)="hide()"><mat-icon>visibility_off</mat-icon>{{'COMMONS.TRAINING-MODEL-PROGRESS.HIDE' |
+                        translate}}</button>
                 </div>
             </div>
         </div>
