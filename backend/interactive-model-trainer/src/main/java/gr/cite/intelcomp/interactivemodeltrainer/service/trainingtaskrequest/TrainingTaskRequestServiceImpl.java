@@ -17,7 +17,9 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundo
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.RunTrainingScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
-import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
+import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersService;
@@ -78,8 +80,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
 
     private void updateCache(TopicModelingParametersModel model, UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        TrainingQueueItem item = new TrainingQueueItem();
-        item.setModel(model);
+        TrainingTaskQueueItem item = new TrainingTaskQueueItem();
+        item.setPayload(model);
         item.setTask(task);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
@@ -102,8 +104,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         HierarchicalTopicModelingParametersEnhancedModel enhancedModel = objectMapper.convertValue(model, HierarchicalTopicModelingParametersEnhancedModel.class);
         enhancedModel.setParentName(parentName);
 
-        TrainingQueueItem item = new TrainingQueueItem();
-        item.setModel(enhancedModel);
+        TrainingTaskQueueItem item = new TrainingTaskQueueItem();
+        item.setPayload(enhancedModel);
         item.setTask(task);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
@@ -123,8 +125,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     private void updateCache(DomainClassificationParametersModel model, UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
 
-        TrainingQueueItem item = new TrainingQueueItem();
-        item.setModel(model);
+        TrainingTaskQueueItem item = new TrainingTaskQueueItem();
+        item.setPayload(model);
         item.setTask(task);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
@@ -320,10 +322,30 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     }
 
     @Override
+    public TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) {
+        return null;
+    }
+
+    @Override
+    public TrainingTaskRequest persistDomainClassifyTaskForRootModel(String name) {
+        return null;
+    }
+
+    @Override
+    public TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) {
+        return null;
+    }
+
+    @Override
+    public TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model) {
+        return null;
+    }
+
+    @Override
     public TrainingTaskRequestStatus getTaskStatus(UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
-            Optional<TrainingQueueItem> found = cache.getPayload().stream()
+            Optional<RunningTaskQueueItem> found = cache.getPayload().stream()
                     .filter(i -> i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst();
             return found
@@ -339,32 +361,32 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
             cache.getPayload().stream()
-                    .filter(i -> i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
+                    .filter(i -> RunningTaskType.training.equals(i.getType()) && i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst()
                     .ifPresent(item -> cache.getPayload().remove(item));
         }
     }
 
     @Override
-    public void clearAllFinishedTasks() {
+    public void clearAllFinishedTasks(RunningTaskType type) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
             cache.getPayload().stream()
-                    .filter(i -> i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()) )
+                    .filter(i -> i.getType().equals(type) && i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()) )
                     .collect(Collectors.toList())
                     .forEach(item -> cache.getPayload().remove(item));
         }
     }
 
     @Override
-    public List<TrainingQueueItem> getRunningTasks() {
+    public List<? extends RunningTaskQueueItem> getRunningTasks(RunningTaskType type) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        List<TrainingQueueItem> items = new ArrayList<>();
+        List<? extends RunningTaskQueueItem> items = new ArrayList<>();
         if (cache != null) {
             items = cache.getPayload();
         }
         return items.stream()
-                .filter(item -> item.getUserId().equals(userScope.getUserIdSafe()))
+                .filter(item -> item.getUserId().equals(userScope.getUserIdSafe()) && item.getType().equals(type))
                 .collect(Collectors.toList());
     }
 }

@@ -100,4 +100,24 @@ public class DomainModelController {
         }
     }
 
+    @PostMapping("retrain")
+    public TrainingTaskRequest retrainDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+        return trainingTaskRequestService.persistDomainRetrainingTaskForRootModel(domainClassificationRequestPersist);
+    }
+
+    @GetMapping("{name}/classify")
+    public TrainingTaskRequest classifyDomainModel(@PathVariable(name = "name") String modelName) {
+        return trainingTaskRequestService.persistDomainClassifyTaskForRootModel(modelName);
+    }
+
+    @PostMapping("evaluate")
+    public TrainingTaskRequest evaluateDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+        return trainingTaskRequestService.persistDomainEvaluateTaskForRootModel(domainClassificationRequestPersist);
+    }
+
+    @PostMapping("sample")
+    public TrainingTaskRequest sampleDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+        return trainingTaskRequestService.persistDomainSampleTaskForRootModel(domainClassificationRequestPersist);
+    }
+
 }

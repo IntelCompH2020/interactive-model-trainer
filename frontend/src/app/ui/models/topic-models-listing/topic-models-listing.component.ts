@@ -12,7 +12,7 @@ import { TopicLookup } from '@app/core/query/topic.lookup';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
-import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
+import { RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
@@ -164,7 +164,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     protected dialog: MatDialog,
     protected topicModelService: TopicModelService,
     protected runningTasksService: RunningTasksService,
-    private trainingModelQueueService: TrainingQueueService,
+    private trainingModelQueueService: RunningTasksQueueService,
     private pipeService: PipeService,
     private formBuilder: FormBuilder
 

@@ -1,9 +1,9 @@
 package gr.cite.intelcomp.interactivemodeltrainer.cashe;
 
-import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 
-public class UserTasksCacheEntity extends CachedEntity<TrainingQueueItem>{
-    public static final String CODE = "TRAINING_QUEUE";
+public class UserTasksCacheEntity extends CachedEntity<RunningTaskQueueItem>{
+    public static final String CODE = "RUNNING_TASKS_QUEUE";
     @Override
     public String getCode() {
         return CODE;

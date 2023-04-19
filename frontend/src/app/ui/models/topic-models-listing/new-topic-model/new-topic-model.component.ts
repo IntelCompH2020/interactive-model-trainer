@@ -10,7 +10,7 @@ import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { TranslateService } from '@ngx-translate/core';
 import { nameof } from 'ts-simple-nameof';
 import { TopicModelEditorModel } from './topic-model-editor.model';
-import { CTMParams, malletParams, preprocessingParams, prodLDAParams, sparkLDAParams } from '../topic-model-params.model';
+import { CTMParams, malletParams, preprocessingParams, preprocessingWordlistsParams, prodLDAParams, sparkLDAParams } from '../topic-model-params.model';
 import { LogicalCorpusService } from '@app/core/services/http/logical-corpus.service';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
@@ -44,6 +44,7 @@ export class NewTopicModelComponent implements OnInit {
   formGroup: FormGroup;
   preprocessingEditorModel: TopicModelPreprocessingEditorModel;
   preprocessingFormGroup: FormGroup;
+  preprocessingWordlistsFormGroup: FormGroup;
 
   advanced: boolean = false;
   advancedForPreprocessing: boolean = false;
@@ -53,7 +54,7 @@ export class NewTopicModelComponent implements OnInit {
   }
 
   get valid(): boolean {
-    return this.formGroup?.valid && this.preprocessingFormGroup?.valid;
+    return this.formGroup?.valid && this.preprocessingFormGroup?.valid && this.preprocessingWordlistsFormGroup?.valid;
   }
 
   get params(): ModelParam[] {
@@ -73,7 +74,11 @@ export class NewTopicModelComponent implements OnInit {
   }
 
   get advancedParamsForPreprocessing(): ModelParam[] {
-    return preprocessingParams(this.availableStopwords, this.availableEquivalencies);
+    return preprocessingParams();
+  }
+
+  get advancedParamsForPreprocessingWordlists(): ModelParam[] {
+    return preprocessingWordlistsParams(this.availableStopwords, this.availableEquivalencies);
   }
 
   constructor(
@@ -118,7 +123,8 @@ export class NewTopicModelComponent implements OnInit {
       this.formGroup = this.editorModel.buildForm(null, false, this.selectedType);
       this.formGroup.get('type').setValue(this.selectedType);
       this.preprocessingEditorModel = new TopicModelPreprocessingEditorModel();
-      this.preprocessingFormGroup = this.preprocessingEditorModel.buildForm();
+      this.preprocessingFormGroup = this.preprocessingEditorModel.buildForm(null, false, false);
+      this.preprocessingWordlistsFormGroup = this.preprocessingEditorModel.buildForm(null, false, true);
       this.setDefaultParamValues();
     }, 0);
   }
@@ -219,8 +225,8 @@ export class NewTopicModelComponent implements OnInit {
     parameters['Preproc.noBelow'] = this.preprocessingFormGroup.get('noBelow').value;
     parameters['Preproc.noAbove'] = this.preprocessingFormGroup.get('noAbove').value;
     parameters['Preproc.keepN'] = this.preprocessingFormGroup.get('keepN').value;
-    parameters['Preproc.stopwords'] = (this.preprocessingFormGroup.get('stopwords').value as string[]).join(',');
-    parameters['Preproc.equivalences'] = (this.preprocessingFormGroup.get('equivalences').value as string[]).join(',');
+    parameters['Preproc.stopwords'] = (this.preprocessingWordlistsFormGroup.get('stopwords').value as string[]).join(',');
+    parameters['Preproc.equivalences'] = (this.preprocessingWordlistsFormGroup.get('equivalences').value as string[]).join(',');
 
     const model: any = {
       name: this.formGroup.get('name').value,

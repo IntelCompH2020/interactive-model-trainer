@@ -3,20 +3,20 @@ import { Subject } from 'rxjs';
 import { RunningTasksService } from '../http/running-tasks.service';
 
 @Injectable()
-export class TrainingQueueService {
+export class RunningTasksQueueService {
 
-    private _queue: TrainingQueueItem[] = [];
-    private _finished: TrainingQueueItem[] = [];
+    private _queue: RunningTaskQueueItem[] = [];
+    private _finished: RunningTaskQueueItem[] = [];
 
-    get queue(): Readonly<TrainingQueueItem[]> {
+    get queue(): Readonly<RunningTaskQueueItem[]> {
         return this._queue;
     }
 
-    get finished(): Readonly<TrainingQueueItem[]> {
+    get finished(): Readonly<RunningTaskQueueItem[]> {
         return this._finished;
     }
 
-    public taskCompleted: Subject<TrainingQueueItem> = new Subject<TrainingQueueItem>();
+    public taskCompleted: Subject<RunningTaskQueueItem> = new Subject<RunningTaskQueueItem>();
 
     constructor(
         private service: RunningTasksService,
@@ -25,19 +25,21 @@ export class TrainingQueueService {
     }
 
     private initTasksUpdate(): void {
-        this.service.getRunningTasks().subscribe((response) => {
-            this.updateItems(response.items);
-        });
+        this.getRunningTasks(RunningTaskType.training);
         setInterval(() => {
-            this.service.getRunningTasks().subscribe((response) => {
-                this.updateItems(response.items);
-            });
+            this.getRunningTasks(RunningTaskType.training);
         }, 10000);
     }
 
-    public updateItems(items: TrainingQueueItem[]): void {
-        let toQueue: TrainingQueueItem[] = [];
-        let toFinished: TrainingQueueItem[] = [];
+    private getRunningTasks(type: RunningTaskType): void {
+        this.service.getRunningTasks(type).subscribe((response) => {
+            if (type === RunningTaskType.training) this.updateTrainingItems(response.items);
+        });
+    }
+
+    public updateTrainingItems(items: RunningTaskQueueItem[]): void {
+        let toQueue: RunningTaskQueueItem[] = [];
+        let toFinished: RunningTaskQueueItem[] = [];
         for (let item of items) {
             if (item.finished) {
                 toFinished.push(item);
@@ -65,17 +67,22 @@ export class TrainingQueueService {
         });
     }
 
-    public removeAllItems(callback: () => void): void {
-        this.service.clearAllFinishedTasks().subscribe(callback);
+    public removeAllItems(type: RunningTaskType, callback: () => void): void {
+        this.service.clearAllFinishedTasks(type).subscribe(callback);
     }
 
 }
 
-export interface TrainingQueueItem {
+export interface RunningTaskQueueItem {
     label: string;
     finished?: boolean;
-    model?: any;
+    payload?: any;
     task?: string;
+    type?: RunningTaskType;
     startedAt?: Date;
     finishedAt?: Date;
+}
+
+export enum RunningTaskType {
+    training = 'training'
 }

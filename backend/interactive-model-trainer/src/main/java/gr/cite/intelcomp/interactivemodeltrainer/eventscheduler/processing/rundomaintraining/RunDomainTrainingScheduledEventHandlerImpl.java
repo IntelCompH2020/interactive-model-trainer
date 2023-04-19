@@ -126,6 +126,11 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         params.put("tag", request.getTag());
         params.put("keywords", request.getKeywords());
 
+        RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        eventData.getRequest().getParameters().forEach((key, val) -> {
+            if (key.startsWith("DC.")) params.put(key.replace("DC.", ""), val);
+        });
+
         String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getTask(), params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");

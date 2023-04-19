@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
-import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -31,11 +32,15 @@ public interface TrainingTaskRequestService {
     //DOMAIN MODELS -----------------------------------
 
     TrainingTaskRequest persistDomainTrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model);
+    TrainingTaskRequest persistDomainClassifyTaskForRootModel(String name);
+    TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model);
+    TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model);
 
     //GENERAL -----------------------------------------
 
     TrainingTaskRequestStatus getTaskStatus(UUID task);
     void clearFinishedTask(UUID task);
-    void clearAllFinishedTasks();
-    List<TrainingQueueItem> getRunningTasks() throws JsonProcessingException;
+    void clearAllFinishedTasks(RunningTaskType type);
+    List<? extends RunningTaskQueueItem> getRunningTasks(RunningTaskType type) throws JsonProcessingException;
 }

@@ -5,7 +5,7 @@ import { InterceptorType } from "@common/http/interceptors/interceptor-type";
 import { InstallationConfigurationService } from "@common/installation-configuration/installation-configuration.service";
 import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
-import { TrainingQueueItem } from "../ui/training-queue.service";
+import { RunningTaskQueueItem, RunningTaskType } from "../ui/running-tasks-queue.service";
 import { QueryResult } from "@common/model/query-result";
 
 @Injectable()
@@ -30,8 +30,8 @@ export class RunningTasksService {
 				catchError((error: any) => throwError(error)));
 	}
 
-  getRunningTasks(): Observable<QueryResult<TrainingQueueItem>> {
-    const url = `${this.apiBase}/running`;
+  getRunningTasks(type: RunningTaskType): Observable<QueryResult<RunningTaskQueueItem>> {
+    const url = `${this.apiBase}/${type}/running`;
 
     const params = new BaseHttpParams();
 		params.interceptorContext = {
@@ -39,7 +39,7 @@ export class RunningTasksService {
 		};
 
     return this.http
-			.get<QueryResult<TrainingQueueItem>>(url, { params: params }).pipe(
+			.get<QueryResult<RunningTaskQueueItem>>(url, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
   }
 
@@ -51,8 +51,8 @@ export class RunningTasksService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	clearAllFinishedTasks(): Observable<void> {
-		const url = `${this.apiBase}/clear-all`;
+	clearAllFinishedTasks(type: RunningTaskType): Observable<void> {
+		const url = `${this.apiBase}/${type}/clear-all`;
 
 		return this.http
 			.get<void>(url).pipe(

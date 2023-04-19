@@ -31,7 +31,7 @@ import { ModelPatchComponent } from '../model-patch/model-patch-modal.component'
 import { DomainModelFromCategoryNameComponent } from './domain-model-from-category-name/domain-model-from-category-name.component';
 import { DomainModelFromKeywordsComponent } from './domain-model-from-keywords/domain-model-from-keywords.component';
 import { DomainModelFromSelectionFunctionComponent } from './domain-model-from-selection-function/domain-model-from-selection-function.component';
-import { TrainingQueueService } from '@app/core/services/ui/training-queue.service';
+import { RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 
 @Component({
 	selector: 'app-domain-models-listing',
@@ -140,7 +140,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		public enumUtils: AppEnumUtils,
 		protected dialog: MatDialog,
 		protected domainModelService: DomainModelService,
-		private trainingModelQueueService: TrainingQueueService,
+		private trainingModelQueueService: RunningTasksQueueService,
 		private pipeService: PipeService,
 		private formBuilder: FormBuilder
 	) {

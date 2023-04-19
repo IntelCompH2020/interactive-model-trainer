@@ -44,6 +44,10 @@
         <div *ngIf="params.length" class="col-12">
             <app-model-parameters-table [parameters]="params" [formGroup]="formGroup"></app-model-parameters-table>
         </div>
+        <div *ngIf="advancedParamsForPreprocessingWordlists.length" class="col-12">
+            <app-model-parameters-table [parameters]="advancedParamsForPreprocessingWordlists"
+                [formGroup]="preprocessingWordlistsFormGroup" [maxParamsPerRow]="2"></app-model-parameters-table>
+        </div>
     </div>
 
     <div class="row">
@@ -71,15 +75,16 @@
     <div class="row">
         <div class="col-auto">
             <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="advancedForPreprocessing"
-            [disabled]="!availableStopwords || !availableEquivalencies">
-                {{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.ADVANCED-PREPROCESSING-OPTIONS' |
+                [disabled]="!availableStopwords || !availableEquivalencies">
+                {{'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.ADVANCED-PREPROCESSING-OPTIONS'
+                |
                 translate}}</mat-checkbox>
         </div>
     </div>
     <div class="row" *ngIf="advancedForPreprocessing">
         <div *ngIf="advancedParams.length" class="col-12 mt-4">
             <app-model-parameters-table [parameters]="advancedParamsForPreprocessing"
-                [formGroup]="preprocessingFormGroup" [maxParamsPerRow]="4"></app-model-parameters-table>
+                [formGroup]="preprocessingFormGroup"></app-model-parameters-table>
         </div>
     </div>
 

@@ -1,21 +1,25 @@
-package gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest;
+package gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public class TrainingQueueItem {
+public abstract class RunningTaskQueueItem {
 
     private String label;
     private boolean finished;
-    private Object model;
+    private Object payload;
     private UUID task;
+    private RunningTaskType type;
     private Instant startedAt;
     private Instant finishedAt;
-
     @JsonIgnore
     private UUID userId;
+
+    protected RunningTaskQueueItem(RunningTaskType runningTaskType) {
+        this.type = runningTaskType;
+    }
 
     public String getLabel() {
         return label;
@@ -33,12 +37,12 @@ public class TrainingQueueItem {
         this.finished = finished;
     }
 
-    public Object getModel() {
-        return model;
+    public Object getPayload() {
+        return payload;
     }
 
-    public void setModel(Object model) {
-        this.model = model;
+    public void setPayload(Object payload) {
+        this.payload = payload;
     }
 
     public UUID getTask() {
@@ -47,6 +51,14 @@ public class TrainingQueueItem {
 
     public void setTask(UUID task) {
         this.task = task;
+    }
+
+    public RunningTaskType getType() {
+        return type;
+    }
+
+    public void setType(RunningTaskType type) {
+        this.type = type;
     }
 
     public Instant getStartedAt() {
@@ -78,7 +90,7 @@ public class TrainingQueueItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TrainingQueueItem that = (TrainingQueueItem) o;
+        RunningTaskQueueItem that = (RunningTaskQueueItem) o;
 
         return task.equals(that.task);
     }

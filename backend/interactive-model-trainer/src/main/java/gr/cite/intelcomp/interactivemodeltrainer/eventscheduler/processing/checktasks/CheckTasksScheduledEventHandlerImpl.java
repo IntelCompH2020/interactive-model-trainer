@@ -12,7 +12,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.Scheduled
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.EventProcessingStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
-import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
@@ -188,7 +188,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private void updateCache(UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
-            TrainingQueueItem item = cache.getPayload().stream().filter(i -> i.getTask().equals(task)).collect(Collectors.toList()).get(0);
+            RunningTaskQueueItem item = cache.getPayload().stream().filter(i -> i.getTask().equals(task)).collect(Collectors.toList()).get(0);
             if (item != null) {
                 item.setFinished(true);
                 item.setFinishedAt(Instant.now());

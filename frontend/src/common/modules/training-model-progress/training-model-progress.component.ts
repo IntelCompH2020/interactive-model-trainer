@@ -1,10 +1,9 @@
 import { Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { DomainModel } from '@app/core/model/model/domain-model.model';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
-import { TrainingQueueItem } from '@app/core/services/ui/training-queue.service';
+import { RunningTaskQueueItem } from '@app/core/services/ui/running-tasks-queue.service';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -22,7 +21,7 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
   clockUpdateTimerId: any;
 
   taskFinished: boolean = false;
-  finishedTask: TrainingQueueItem = undefined;
+  finishedTask: RunningTaskQueueItem = undefined;
 
   scroll: Subject<number> = new Subject<number>();
   scrollHeight: number = 0;
@@ -30,12 +29,12 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
   private _details: {}[] = [];
   private _summaries: {}[] = [];
 
-  get trainingItem(): TrainingQueueItem {
-    return this.finishedTask || this.data.item as TrainingQueueItem;
+  get trainingItem(): RunningTaskQueueItem {
+    return this.finishedTask || this.data.item as RunningTaskQueueItem;
   }
 
   get model() {
-    return this.trainingItem.model;
+    return this.trainingItem.payload;
   }
 
   get startedAt() {
@@ -223,7 +222,7 @@ export class TrainingModelProgressComponent implements OnInit, OnDestroy {
     ];
   }
 
-  finishTask(task: TrainingQueueItem): void {
+  finishTask(task: RunningTaskQueueItem): void {
     if (!this.taskFinished) {
       clearInterval(this.logTimerId);
       this.finishedTask = task;

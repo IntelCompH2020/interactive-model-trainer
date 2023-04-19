@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { TrainingQueueItem, TrainingQueueService } from '@app/core/services/ui/training-queue.service';
+import { RunningTaskQueueItem, RunningTaskType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 import { BaseComponent } from '@common/base/base.component';
 import { TrainingModelProgressComponent } from '@common/modules/training-model-progress/training-model-progress.component';
 import { takeUntil } from 'rxjs/operators';
@@ -14,16 +14,16 @@ export class FooterComponent extends BaseComponent implements OnInit {
 
   clearingFinished: boolean = false;
 
-  get trainingModels(): Readonly<TrainingQueueItem[]> {
+  get trainingModels(): Readonly<RunningTaskQueueItem[]> {
     return this.trainingModelQueueService.queue;
   };
 
-  get finishedModels(): Readonly<TrainingQueueItem[]> {
+  get finishedModels(): Readonly<RunningTaskQueueItem[]> {
     return this.trainingModelQueueService.finished;
   };
 
   constructor(
-    private trainingModelQueueService: TrainingQueueService,
+    private trainingModelQueueService: RunningTasksQueueService,
     private dialog: MatDialog
   ) {
     super();
@@ -49,10 +49,10 @@ export class FooterComponent extends BaseComponent implements OnInit {
 
   clearAllFinished(): void {
     this.clearingFinished = true;
-    this.trainingModelQueueService.removeAllItems(() => {});
+    this.trainingModelQueueService.removeAllItems(RunningTaskType.training, () => {});
   }
 
-  openTrainingDialog(item: TrainingQueueItem): void {
+  openTrainingDialog(item: RunningTaskQueueItem): void {
     this.clearingFinished = false;
     let openedDialog = this.dialog.open(TrainingModelProgressComponent, {
       id: item.task,

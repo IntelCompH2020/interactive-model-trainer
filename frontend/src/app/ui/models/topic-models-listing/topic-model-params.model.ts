@@ -875,7 +875,7 @@ export function sparkLDAParams(advanced: boolean): ModelParam[] {
   ];
 }
 
-export function preprocessingParams(stopwords: string[], equivalences: string[]): ModelParam[] {
+export function preprocessingParams(): ModelParam[] {
   return [
     {
       name: 'minLemmas',
@@ -928,7 +928,12 @@ export function preprocessingParams(stopwords: string[], equivalences: string[])
         max: null,
         step: 1
       }
-    },
+    }
+  ];
+}
+
+export function preprocessingWordlistsParams(stopwords: string[], equivalences: string[]): ModelParam[] {
+  return [
     {
       name: 'stopwords',
       realName: 'stopwords',
@@ -1010,7 +1015,7 @@ export function determineValidation(trainer: TopicModelTrainer, key: string): Va
 
 export function determinePreprocessingValidation(key: string): ValidatorFn[] {
   let validators: ValidatorFn[] = [];
-  const params: ModelParam[] = preprocessingParams([], []);
+  const params: ModelParam[] = preprocessingParams();
   const paramIndex = getParamIndex(params, key);
   if (paramIndex != -1) {
     const param = params[paramIndex];

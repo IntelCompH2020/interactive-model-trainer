@@ -15,17 +15,22 @@ export class TopicModelPreprocessingEditorModel extends BaseEditorModel {
     stopwords: string[];
     equivalences: string[];
 
-    buildForm(context: ValidationContext = null, disabled: boolean = false): FormGroup {
+    buildForm(context: ValidationContext = null, disabled: boolean = false, onlyWordlists: boolean = false): FormGroup {
       if (context == null) { context = this.createValidationContext(); }
     
-      return this.formBuilder.group({
-        minLemmas: [{ value: this.minLemmas, disabled: disabled }, context.getValidation('minLemmas').validators],
-        noBelow: [{ value: this.noBelow, disabled: disabled }, context.getValidation('noBelow').validators],
-        noAbove: [{ value: this.noAbove, disabled: disabled }, context.getValidation('noAbove').validators],
-        keepN: [{ value: this.keepN, disabled: disabled }, context.getValidation('keepN').validators],
-        stopwords: [{ value: this.stopwords, disabled: disabled }, context.getValidation('stopwords').validators],
-        equivalences: [{ value: this.equivalences, disabled: disabled }, context.getValidation('equivalences').validators]
-      });
+      if (onlyWordlists) {
+        return this.formBuilder.group({
+          stopwords: [{ value: this.stopwords, disabled: disabled }, context.getValidation('stopwords').validators],
+          equivalences: [{ value: this.equivalences, disabled: disabled }, context.getValidation('equivalences').validators]
+        });
+      } else {
+        return this.formBuilder.group({
+          minLemmas: [{ value: this.minLemmas, disabled: disabled }, context.getValidation('minLemmas').validators],
+          noBelow: [{ value: this.noBelow, disabled: disabled }, context.getValidation('noBelow').validators],
+          noAbove: [{ value: this.noAbove, disabled: disabled }, context.getValidation('noAbove').validators],
+          keepN: [{ value: this.keepN, disabled: disabled }, context.getValidation('keepN').validators],
+        });
+      }
     }
 
     createValidationContext(): ValidationContext {
