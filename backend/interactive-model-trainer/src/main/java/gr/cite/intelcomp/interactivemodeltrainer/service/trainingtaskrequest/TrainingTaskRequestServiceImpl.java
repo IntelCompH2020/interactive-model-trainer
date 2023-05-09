@@ -1,26 +1,31 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.CacheLibrary;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.UserTasksCacheEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.*;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.IsActive;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
+import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
-import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.resetmodel.ResetModelScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.FuseModelScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundomaintraining.RunDomainTrainingScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.RunTrainingScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.TopicModelTaskScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
+import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicFusionPayload;
+import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.CuratingTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
+import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersService;
 import gr.cite.tools.exception.MyApplicationException;
@@ -28,9 +33,9 @@ import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.logging.LoggerService;
+import io.kubernetes.client.openapi.ApiException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
@@ -45,6 +50,7 @@ import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
 import static gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersServiceJson.*;
@@ -61,28 +67,29 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     private final TopicModelingParametersService topicModelingParametersService;
     private final DomainClassificationParametersService domainClassificationParametersService;
     private final JsonHandlingService jsonHandlingService;
-    private final ApplicationContext applicationContext;
     private final CacheLibrary cacheLibrary;
+    private final ContainerManagementService dockerExecutionService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, CacheLibrary cacheLibrary, ObjectMapper objectMapper) {
+    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, CacheLibrary cacheLibrary, ContainerManagementService dockerExecutionService, ObjectMapper objectMapper) {
         this.scheduledEventManageService = scheduledEventManageService;
         this.userScope = userScope;
         this.entityManager = entityManager;
         this.topicModelingParametersService = topicModelingParametersService;
         this.domainClassificationParametersService = domainClassificationParametersService;
         this.jsonHandlingService = jsonHandlingService;
-        this.applicationContext = applicationContext;
         this.cacheLibrary = cacheLibrary;
+        this.dockerExecutionService = dockerExecutionService;
         this.objectMapper = objectMapper;
     }
 
-    private void updateCache(TopicModelingParametersModel model, UUID task) {
+    private void updateTrainingCache(TopicModelingParametersModel model, UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         TrainingTaskQueueItem item = new TrainingTaskQueueItem();
         item.setPayload(model);
         item.setTask(task);
+        item.setSubType(RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
         item.setFinished(false);
@@ -98,7 +105,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         }
     }
 
-    private void updateCache(HierarchicalTopicModelingParametersModel model, String parentName, UUID task) {
+    private void updateTrainingCache(HierarchicalTopicModelingParametersModel model, String parentName, UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
 
         HierarchicalTopicModelingParametersEnhancedModel enhancedModel = objectMapper.convertValue(model, HierarchicalTopicModelingParametersEnhancedModel.class);
@@ -107,6 +114,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskQueueItem item = new TrainingTaskQueueItem();
         item.setPayload(enhancedModel);
         item.setTask(task);
+        item.setSubType(RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
         item.setFinished(false);
@@ -122,15 +130,60 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         }
     }
 
-    private void updateCache(DomainClassificationParametersModel model, UUID task) {
+    private void updateTrainingCache(DomainClassificationParametersModel model, UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
 
         TrainingTaskQueueItem item = new TrainingTaskQueueItem();
         item.setPayload(model);
         item.setTask(task);
+        item.setSubType(RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING);
         item.setUserId(userScope.getUserIdSafe());
         item.setLabel(model.getName());
         item.setFinished(false);
+        item.setStartedAt(Instant.now());
+        if (cache != null) {
+            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            cache.getPayload().add(item);
+        } else {
+            UserTasksCacheEntity newCache = new UserTasksCacheEntity();
+            newCache.setPayload(new ArrayList<>());
+            newCache.getPayload().add(item);
+            cacheLibrary.update(newCache);
+        }
+    }
+
+    private void updateCuratingCache(String modelName, UUID task, RunningTaskSubType taskType) {
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+
+        CuratingTaskQueueItem item = new CuratingTaskQueueItem();
+        item.setPayload(null);
+        item.setTask(task);
+        item.setUserId(userScope.getUserIdSafe());
+        item.setLabel(modelName);
+        item.setFinished(false);
+        item.setSubType(taskType);
+        item.setStartedAt(Instant.now());
+        if (cache != null) {
+            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            cache.getPayload().add(item);
+        } else {
+            UserTasksCacheEntity newCache = new UserTasksCacheEntity();
+            newCache.setPayload(new ArrayList<>());
+            newCache.getPayload().add(item);
+            cacheLibrary.update(newCache);
+        }
+    }
+
+    private void updateCuratingCache(DomainClassificationParametersModel model, UUID task, RunningTaskSubType taskType) {
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+
+        CuratingTaskQueueItem item = new CuratingTaskQueueItem();
+        item.setPayload(model);
+        item.setTask(task);
+        item.setUserId(userScope.getUserIdSafe());
+        item.setLabel(model.getName());
+        item.setFinished(false);
+        item.setSubType(taskType);
         item.setStartedAt(Instant.now());
         if (cache != null) {
             if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
@@ -144,7 +197,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     }
 
     @Override
-    public TrainingTaskRequest persistTrainingTaskForRootModel(TrainingTaskRequestPersist model) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+    public TrainingTaskRequest persistTopicTrainingTaskForRootModel(TrainingTaskRequestPersist model) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
         Path configFile = topicModelingParametersService.generateRootConfigurationFile(model, userScope.getUserId());
         logger.debug("Training config file for model '{}' generated -> {}", model.getName(), configFile.toString());
 
@@ -155,7 +208,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(eventData));
         publishData.setCreatorId(userScope.getUserId());
-        publishData.setType(ScheduledEventType.RUN_ROOT_TRAINING);
+        publishData.setType(ScheduledEventType.RUN_ROOT_TOPIC_TRAINING);
         publishData.setRunAt(Instant.now());
         publishData.setKey(requestId.toString());
         publishData.setKeyType(TrainingTaskRequest._id);
@@ -176,12 +229,12 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
-        updateCache(topicModelingParametersService.getRootConfigurationModel(model.getName()), requestId);
+        updateTrainingCache(topicModelingParametersService.getRootConfigurationModel(model.getName()), requestId);
         return result;
     }
 
     @Override
-    public TrainingTaskRequest persistPreparingTaskForHierarchicalModel(TrainingTaskRequestPersist model) throws InvalidApplicationException {
+    public TrainingTaskRequest persistTopicPreparingTaskForHierarchicalModel(TrainingTaskRequestPersist model) throws InvalidApplicationException {
         Path configFile = topicModelingParametersService.generateHierarchicalConfigurationFile(model, userScope.getUserId());
         logger.debug("Training config file for hierarchical model '{}' generated -> {}", model.getName(), configFile.toString());
 
@@ -192,7 +245,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(eventData));
         publishData.setCreatorId(userScope.getUserId());
-        publishData.setType(ScheduledEventType.PREPARE_HIERARCHICAL_TRAINING);
+        publishData.setType(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING);
         publishData.setRunAt(Instant.now());
         publishData.setKey(requestId.toString());
         publishData.setKeyType(TrainingTaskRequest._id);
@@ -215,12 +268,12 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
-        updateCache(topicModelingParametersService.getHierarchicalConfigurationFile(model.getParentName(), model.getName()), model.getParentName() , requestId);
+        updateTrainingCache(topicModelingParametersService.getHierarchicalConfigurationFile(model.getParentName(), model.getName()), model.getParentName() , requestId);
         return result;
     }
 
     @Override
-    public TrainingTaskRequest persistTrainingTaskForHierarchicalModel(TrainingTaskRequestPersist model, String jobId, UUID userId, EntityManager entityManager) {
+    public TrainingTaskRequest persistTopicTrainingTaskForHierarchicalModel(TrainingTaskRequestPersist model, String jobId, UUID userId, EntityManager entityManager) {
         UUID requestId = UUID.randomUUID();
 
         RunTrainingScheduledEventData eventData = new RunTrainingScheduledEventData(requestId, model);
@@ -228,7 +281,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(eventData));
         publishData.setCreatorId(userId);
-        publishData.setType(ScheduledEventType.RUN_HIERARCHICAL_TRAINING);
+        publishData.setType(ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING);
         publishData.setRunAt(Instant.now());
         publishData.setKey(requestId.toString());
         publishData.setKeyType(TrainingTaskRequest._id);
@@ -253,15 +306,15 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     }
 
     @Override
-    public TrainingTaskRequest persistModelResetTask(TrainingTaskRequestPersist model) throws InvalidApplicationException {
+    public TrainingTaskRequest persistTopicModelResetTask(TrainingTaskRequestPersist model) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
-        ResetModelScheduledEventData eventData = new ResetModelScheduledEventData(requestId, model.getName());
+        TopicModelTaskScheduledEventData eventData = new TopicModelTaskScheduledEventData(requestId, model.getName());
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(eventData));
         publishData.setCreatorId(userScope.getUserId());
-        publishData.setType(ScheduledEventType.RESET_MODEL);
+        publishData.setType(ScheduledEventType.RESET_TOPIC_MODEL);
         publishData.setRunAt(Instant.now());
         publishData.setKey(requestId.toString());
         publishData.setKeyType(TrainingTaskRequest._id);
@@ -281,6 +334,76 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
 
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
+
+        updateCuratingCache(model.getName(), requestId, RunningTaskSubType.RESET_TOPIC_MODEL);
+        return result;
+    }
+
+    @Override
+    public TrainingTaskRequest persistTopicModelFusionTask(String name, TopicFusionPayload payload) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        FuseModelScheduledEventData eventData = new FuseModelScheduledEventData(requestId, name, payload.getTopics());
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.FUSE_TOPIC_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(TopicCachedEntity.CODE + name);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TOPIC_MODEL_TASKS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        updateCuratingCache(name, requestId, RunningTaskSubType.FUSE_TOPIC_MODEL);
+        return result;
+    }
+
+    @Override
+    public TrainingTaskRequest persistTopicModelSortTask(String name) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        TopicModelTaskScheduledEventData eventData = new TopicModelTaskScheduledEventData(requestId, name);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.SORT_TOPIC_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(TopicCachedEntity.CODE + name);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TOPIC_MODEL_TASKS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        updateCuratingCache(name, requestId, RunningTaskSubType.SORT_TOPIC_MODEL);
         return result;
     }
 
@@ -306,7 +429,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + configFile.getFileName().toString());
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -317,23 +440,110 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
-        updateCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId);
+        updateTrainingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId);
         return result;
     }
 
     @Override
-    public TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) {
-        return null;
+    public TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.RETRAIN_DOMAIN_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.RETRAIN_DOMAIN_MODEL);
+        return result;
     }
 
     @Override
-    public TrainingTaskRequest persistDomainClassifyTaskForRootModel(String name) {
-        return null;
+    public TrainingTaskRequest persistDomainClassifyTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.CLASSIFY_DOMAIN_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.CLASSIFY_DOMAIN_MODEL);
+        return result;
     }
 
     @Override
-    public TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) {
-        return null;
+    public TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.EVALUATE_DOMAIN_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.EVALUATE_DOMAIN_MODEL);
+        return result;
     }
 
     @Override
@@ -361,9 +571,34 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
             cache.getPayload().stream()
-                    .filter(i -> RunningTaskType.training.equals(i.getType()) && i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
+                    .filter(i -> i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst()
                     .ifPresent(item -> cache.getPayload().remove(item));
+            cacheLibrary.update(cache);
+        }
+    }
+
+    @Override
+    public void cancelTask(UUID task) {
+        logger.debug("There is a request for task cancellation with id {}", task);
+        try {
+            dockerExecutionService.deleteJob(task.toString());
+            UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+            if (cache != null && cache.getPayload() != null) {
+                cache.getPayload().stream()
+                        .filter(i -> i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
+                        .findFirst()
+                        .ifPresent(item -> {
+                            if (RunningTaskType.training.equals(item.getType())) {
+                                cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
+                                cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
+                            }
+                            cache.getPayload().remove(item);
+                        });
+                cacheLibrary.update(cache);
+            }
+        } catch (ApiException e) {
+            logger.error("Could not cancel task. There is no container present with id {}", task);
         }
     }
 
@@ -375,6 +610,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
                     .filter(i -> i.getType().equals(type) && i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()) )
                     .collect(Collectors.toList())
                     .forEach(item -> cache.getPayload().remove(item));
+            cacheLibrary.update(cache);
         }
     }
 
@@ -385,8 +621,14 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         if (cache != null) {
             items = cache.getPayload();
         }
-        return items.stream()
-                .filter(item -> item.getUserId().equals(userScope.getUserIdSafe()) && item.getType().equals(type))
-                .collect(Collectors.toList());
+        if (type.equals(RunningTaskType.curating)) {
+            return items.stream()
+                    .filter(item -> item.getType().equals(type))
+                    .collect(Collectors.toList());
+        } else {
+            return items.stream()
+                    .filter(item -> userScope.isSet() && userScope.getUserIdSafe().equals(item.getUserId()) && item.getType().equals(type))
+                    .collect(Collectors.toList());
+        }
     }
 }

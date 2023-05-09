@@ -14,7 +14,7 @@ kubernetes:
     trainModels:
       jobName: training
       containerName: imt-train-models
-    resetModel:
+    modelTasks:
       jobName: resetTM
       containerName: imt-reset-model
     trainDomainModels:

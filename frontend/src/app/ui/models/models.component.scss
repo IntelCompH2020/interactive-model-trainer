@@ -1,10 +1,18 @@
-.button-tabs{
+.button-tabs {
     border-bottom: 1px solid #e7e7e7;
 }
 
+.running-task-message {
+    background-color: lightgreen;
+    border-radius: 1rem;
+    box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
+    -webkit-box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
+    -moz-box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
+}
+
 @media screen and (min-width: 992px) {
-    .details-sticky{
-        position: sticky; 
+    .details-sticky {
+        position: sticky;
         top: 1px;
         height: calc(100vh - 128px);
         overflow-y: auto;

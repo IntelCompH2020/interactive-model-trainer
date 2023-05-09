@@ -14,7 +14,7 @@ import { BaseListingComponent } from '@common/base/base-listing-component';
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnMode, ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnMode, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatatableComponent, SelectionType } from '@swimlane/ngx-datatable';
@@ -41,6 +41,8 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
   @Input("model")
   modelSubject: BehaviorSubject<TopicModel> = new BehaviorSubject(undefined);
   model: TopicModel = undefined;
+  @Input("parentModelCurating")
+  parentModelCurating: boolean = false;
   @Output()
   onTopicSelect = new EventEmitter<Topic>();
   @Output()
@@ -52,7 +54,7 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
   }
 
   get canCreateSubmodel(): boolean {
-    return this.topicSelected && this.model.hierarchyLevel == 0;
+    return !this.parentModelCurating && this.topicSelected && this.model.hierarchyLevel == 0;
   }
 
   SelectionType = SelectionType;

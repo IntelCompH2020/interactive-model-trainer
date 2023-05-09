@@ -31,7 +31,7 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity>{
 
     @Override
     public List<Stopword> build(FieldSet fields, List<WordListEntity> data) throws MyApplicationException {
-        this.logger.debug("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
+        this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
@@ -52,7 +52,7 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity>{
                 models.add(m);
             }
         }
-        this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
+        this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
     }
 }

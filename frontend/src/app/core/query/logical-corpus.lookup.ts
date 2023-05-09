@@ -7,9 +7,9 @@ export class LogicalCorpusLookup extends Lookup implements LogicalCorpusFilter {
 	excludedIds: Guid[];
 	like: string;
 	isActive: IsActive[];
+
 	corpusType: string = "LOGICAL";
 	corpusValidFor: string;
-
 	creator: string;
 	mine: boolean;
 

@@ -7,7 +7,7 @@ export function byKeywordsParams(advanced: boolean, type: string): ModelParam[] 
       realName: 'method',
       displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.METHOD',
       type: 'select',
-      default: 'embedding',
+      default: 'count',
       tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.METHOD',
       validation: {
         options: [
@@ -40,7 +40,7 @@ export function byKeywordsParams(advanced: boolean, type: string): ModelParam[] 
       realName: 'n_max',
       displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.NUMBER-OF-ELEMENTS',
       type: 'number',
-      default: 50000,
+      default: 2000,
       tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.NUMBER-OF-ELEMENTS',
       validation: {
         min: 1,
@@ -53,7 +53,7 @@ export function byKeywordsParams(advanced: boolean, type: string): ModelParam[] 
       realName: 's_min',
       displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.MINIMUM-SCORE',
       type: 'number',
-      default: 0.6,
+      default: 1,
       tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.MINIMUM-SCORE',
       validation: {
         min: 0,
@@ -61,17 +61,17 @@ export function byKeywordsParams(advanced: boolean, type: string): ModelParam[] 
         step: 0.01
       }
     },
-    {
-      name: 'modelName',
-      realName: 'model_name',
-      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.MODEL-NAME',
-      type: 'rawselect',
-      default: 'all-MiniLM-L6-v2',
-      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.MODEL-NAME',
-      validation: {
-        rawOptions: ['all-mpnet-base-v2', 'multi-qa-mpnet-base-dot-v1', 'all-distilroberta-v1', 'all-MiniLM-L12-v2', 'multi-qa-distilbert-cos-v1', 'all-MiniLM-L6-v2', 'multi-qa-MiniLM-L6-cos-v1', 'paraphrase-multilingual-mpnet-base-v2', 'paraphrase-albert-small-v2', 'paraphrase-multilingual-MiniLM-L12-v2', 'paraphrase-MiniLM-L3-v2', 'distiluse-base-multilingual-cased-v1', 'distiluse-base-multilingual-cased-v2']
-      }
-    },
+    // {
+    //   name: 'modelName',
+    //   realName: 'model_name',
+    //   displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.MODEL-NAME',
+    //   type: 'rawselect',
+    //   default: 'all-MiniLM-L6-v2',
+    //   tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.MODEL-NAME',
+    //   validation: {
+    //     rawOptions: ['all-mpnet-base-v2', 'multi-qa-mpnet-base-dot-v1', 'all-distilroberta-v1', 'all-MiniLM-L12-v2', 'multi-qa-distilbert-cos-v1', 'all-MiniLM-L6-v2', 'multi-qa-MiniLM-L6-cos-v1', 'paraphrase-multilingual-mpnet-base-v2', 'paraphrase-albert-small-v2', 'paraphrase-multilingual-MiniLM-L12-v2', 'paraphrase-MiniLM-L3-v2', 'distiluse-base-multilingual-cased-v1', 'distiluse-base-multilingual-cased-v2']
+    //   }
+    // },
   ];
   else if (advanced && type === 'classifier') return classifierParams();
   else if (advanced && type === 'active_learning') return activeLearningParams();
@@ -429,6 +429,63 @@ function activeLearningParams(): ModelParam[] {
         min: 0,
         max: 1,
         step: 0.01
+      }
+    },
+  ];
+}
+
+export function retrainParams(): ModelParam[] {
+  return [
+    {
+      name: 'epochs',
+      realName: 'epochs',
+      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.CLASSIFIER-PARAMETERS.EPOCHS',
+      type: 'number',
+      default: 5,
+      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.CLASSIFIER-PARAMETERS-TOOLTIPS.EPOCHS',
+      validation: {
+        min: 1,
+        max: 100000,
+        step: 1
+      }
+    }
+  ];
+}
+
+export function evaluateParams(): ModelParam[] {
+  return [
+    {
+      name: 'trueLabelName',
+      realName: 'true_label_name',
+      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.EVALUATE-PARAMETERS.TRUE-LABEL-NAME',
+      type: 'string',
+      default: "",
+      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.EVALUATE-PARAMETERS-TOOLTIPS.TRUE-LABEL-NAME',
+      validation: {}
+    }
+  ];
+}
+
+export function samplingParams(): ModelParam[] {
+  return [
+    {
+      name: 'sampler',
+      realName: 'sampler',
+      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS.SAMPLER',
+      type: 'string',
+      default: "None",
+      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS-TOOLTIPS.SAMPLER',
+      validation: {}
+    },
+    {
+      name: 'numOfDocuments',
+      realName: 'numOfDocuments',
+      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS.NUM-OF-DOCUMENTS',
+      type: 'number',
+      default: 5,
+      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS-TOOLTIPS.NUM-OF-DOCUMENTS',
+      validation: {
+        min: 1
       }
     },
   ];

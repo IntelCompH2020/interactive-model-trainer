@@ -1,4 +1,4 @@
-package gr.cite.intelcomp.interactivemodeltrainer.cashe;
+package gr.cite.intelcomp.interactivemodeltrainer.cache;
 
 import java.util.List;
 

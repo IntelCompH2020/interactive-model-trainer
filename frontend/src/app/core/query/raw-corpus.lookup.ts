@@ -7,8 +7,8 @@ export class RawCorpusLookup extends Lookup implements RawCorpusFilter {
 	excludedIds: Guid[];
 	like: string;
 	isActive: IsActive[];
-	corpusType: String = "RAW";
 
+	corpusType: String = "RAW";
 	creator: string;
 	mine: boolean;
 

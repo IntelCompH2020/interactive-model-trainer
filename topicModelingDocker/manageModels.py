@@ -45,7 +45,7 @@ class TMManager(object):
         for TMf in modelFolders:
             # For topic models
             if TMf.joinpath('trainconfig.json').is_file():
-                # print(f"{TMf.as_posix()} is a topic model")
+                #print(f"{TMf.as_posix()} is a topic model")
                 modelConfig = TMf.joinpath('trainconfig.json')
                 with modelConfig.open('r', encoding='utf8') as fin:
                     modelInfo = json.load(fin)
@@ -85,7 +85,7 @@ class TMManager(object):
                                 }
             # For DC models
             elif TMf.joinpath('dc_config.json').is_file():
-                # print(f"{TMf.as_posix()} is a domain classifier model")
+                print(f"{TMf.as_posix()} is a domain classifier model")
                 modelConfig = TMf.joinpath('dc_config.json')
                 with modelConfig.open('r', encoding='utf8') as fin:
                     modelInfo = json.load(fin)
@@ -103,7 +103,7 @@ class TMManager(object):
                 print(f"No valid JSON file provided for Topic models or DC models")
                 return 0
         return allTMmodels
-
+        
     def getTMmodel(self, path_TMmodel: Path):
         """
         Returns a dictionary with a topic model and it's sub-models
@@ -852,8 +852,7 @@ class TMmodel(object):
             self._logger.info(
                 '-- -- Topics deletion successful. All variables saved to file')
             return 1
-        except Exception as e:
-            self._logger.info(e)
+        except:
             self._logger.info(
                 '-- -- Topics deletion generated an error. Operation failed')
             return 0
@@ -972,8 +971,7 @@ class TMmodel(object):
             self._logger.info(
                 '-- -- Topics merging successful. All variables saved to file')
             return 1
-        except Exception as e:
-            self._logger.info(e)
+        except:
             self._logger.info(
                 '-- -- Topics merging generated an error. Operation failed')
             return 0
@@ -1016,8 +1014,7 @@ class TMmodel(object):
             self._logger.info(
                 '-- -- Topics reordering successful. All variables saved to file')
             return 1
-        except Exception as e:
-            self._logger.info(e)
+        except:
             self._logger.info(
                 '-- -- Topics reordering generated an error. Operation failed')
             return 0
@@ -1033,8 +1030,7 @@ class TMmodel(object):
             self.create(betas=self._betas_orig, thetas=self._thetas_orig,
                         alphas=self._alphas_orig, vocab=self._vocab)
             return 1
-        except Exception as e:
-            self._logger.info(e)
+        except:
             return 0
 
 
@@ -1083,6 +1079,9 @@ if __name__ == "__main__":
     parser.add_argument("--fuseTopics", type=str, default=None,
                         metavar=("modelName"),
                         help="Merge topics from selected model")
+    parser.add_argument("--topics", type=str, default=None,
+                        metavar=("topics"),
+                        help="Chosen topics from selected model to merge")
     parser.add_argument("--sortTopics", type=str, default=None,
                         metavar=("modelName"),
                         help="Sort topics according to size")
@@ -1099,7 +1098,7 @@ if __name__ == "__main__":
     if args.listTMmodels:
         allTMmodels = tmm.listTMmodels(tm_path)
         sys.stdout.write(json.dumps(allTMmodels))
-
+        
     if args.getTMmodel:
         tm_path = look_for_path(tm_path, f"{args.getTMmodel}")
         allTMmodels = tmm.getTMmodel(tm_path.joinpath(f"{args.getTMmodel}"))
@@ -1167,10 +1166,9 @@ if __name__ == "__main__":
             f"{args.getSimilarTopics}").joinpath('TMmodel'))
         sys.stdout.write(json.dumps(tm.getSimilarTopics(int(npairs))))
 
-    if args.fuseTopics:
+    if args.fuseTopics is not None and args.topics is not None:
         # List of topics to merge should come from standard input
-        tpcs = "".join([line for line in sys.stdin])
-        tpcs = json.loads(tpcs.replace('\\"', '"'))
+        tpcs = json.loads(args.topics)
         tm_path = look_for_path(tm_path, f"{args.fuseTopics}")
         tm = TMmodel(tm_path.joinpath(
             f"{args.fuseTopics}").joinpath('TMmodel'))

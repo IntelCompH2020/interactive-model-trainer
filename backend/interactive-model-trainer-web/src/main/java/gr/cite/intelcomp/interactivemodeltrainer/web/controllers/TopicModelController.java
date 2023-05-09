@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
@@ -105,7 +104,7 @@ public class TopicModelController {
     public TrainingTaskRequest Reset(@PathVariable("name") String name) throws InvalidApplicationException {
         TrainingTaskRequestPersist task = new TrainingTaskRequestPersist();
         task.setName(name);
-        return trainingTaskRequestService.persistModelResetTask(task);
+        return trainingTaskRequestService.persistTopicModelResetTask(task);
     }
 
     @GetMapping(value = "{name}/ldavis.v3.0.0.js", produces = "text/javascript")
@@ -170,14 +169,14 @@ public class TopicModelController {
 
     @PostMapping("/{name}/topics/fuse")
     @Transactional
-    public void fuseTopics(@PathVariable("name") String name, @Valid @RequestBody TopicFusionPayload payload) throws InterruptedException, IOException, ApiException {
-        topicModelService.fuseTopics(name, payload.getTopics());
+    public TrainingTaskRequest fuseTopics(@PathVariable("name") String name, @Valid @RequestBody TopicFusionPayload payload) throws InvalidApplicationException {
+        return trainingTaskRequestService.persistTopicModelFusionTask(name, payload);
     }
 
     @GetMapping("/{name}/topics/sort")
     @Transactional
-    public void sortTopics(@PathVariable("name") String name) throws InterruptedException, IOException, ApiException {
-        topicModelService.sortTopics(name);
+    public TrainingTaskRequest sortTopics(@PathVariable("name") String name) throws InvalidApplicationException {
+        return trainingTaskRequestService.persistTopicModelSortTask(name);
     }
 
     @PostMapping("/{name}/topics/delete")
@@ -189,15 +188,17 @@ public class TopicModelController {
     @PostMapping("train")
     @Transactional
     public TrainingTaskRequest trainTopicModel(@Valid @RequestBody TrainingTaskRequestPersist trainingTaskRequestPersist) throws InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException {
-        if (!trainingTaskRequestPersist.getHierarchical()) return trainingTaskRequestService.persistTrainingTaskForRootModel(trainingTaskRequestPersist);
-        else return trainingTaskRequestService.persistPreparingTaskForHierarchicalModel(trainingTaskRequestPersist);
+        if (!trainingTaskRequestPersist.getHierarchical()) return trainingTaskRequestService.persistTopicTrainingTaskForRootModel(trainingTaskRequestPersist);
+        else return trainingTaskRequestService.persistTopicPreparingTaskForHierarchicalModel(trainingTaskRequestPersist);
     }
 
     @GetMapping("train/logs/{name}")
     @Transactional
     public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
         try {
-            return Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
+            List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
+            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
+            return lines;
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");
@@ -208,7 +209,9 @@ public class TopicModelController {
     @Transactional
     public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName, HttpServletResponse response) {
         try {
-            return Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
+            List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
+            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
+            return lines;
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");

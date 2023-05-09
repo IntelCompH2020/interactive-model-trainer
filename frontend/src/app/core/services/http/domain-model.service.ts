@@ -48,11 +48,11 @@ export class DomainModelService {
     return this.http.delete<void>(url);
   }
 
-	train(trainData: any): Observable<{ id: string }> {
+	train(data: any): Observable<{ id: string }> {
 		const url = `${this.apiBase}/train`;
 
 		return this.http
-			.post<{ id: string }>(url, trainData).pipe(
+			.post<{ id: string }>(url, data).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -66,6 +66,38 @@ export class DomainModelService {
 
 		return this.http
 			.get<String[]>(url, { params: params }).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	retrain(data: any): Observable<{id: string}> {
+		const url = `${this.apiBase}/retrain`;
+
+		return this.http
+			.post<{ id: string }>(url, data).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	classify(name: string): Observable<{id: string}> {
+		const url = `${this.apiBase}/${name}/classify`;
+
+		return this.http
+			.get<{ id: string }>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	evaluate(data: any): Observable<{id: string}> {
+		const url = `${this.apiBase}/evaluate`;
+
+		return this.http
+			.post<{ id: string }>(url, data).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sample(data: any): Observable<{id: string}> {
+		const url = `${this.apiBase}/sample`;
+
+		return this.http
+			.post<{ id: string }>(url, data).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 }

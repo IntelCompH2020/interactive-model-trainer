@@ -31,9 +31,9 @@
             </mat-icon>
         </button>
 
-        <mat-menu #menu="matMenu">
+        <mat-menu #menu="matMenu" class="filters-container">
             <ng-template matMenuContent>
-                <div (click)="$event.stopPropagation();" class="filters-container pl-4 pr-4 pt-2 pt-1">
+                <div (click)="$event.stopPropagation();">
                     <app-filter-editor [filterFormGroup]="filterFormGroup"
                         [config]="filterEditorConfiguration"></app-filter-editor>
                 </div>

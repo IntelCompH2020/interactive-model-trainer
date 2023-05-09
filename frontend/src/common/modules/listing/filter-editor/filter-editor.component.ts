@@ -4,7 +4,7 @@ import { FormGroup } from '@angular/forms';
 @Component({
   selector: 'app-filter-editor',
   templateUrl: './filter-editor.component.html',
-  styleUrls: ['./filter-editor.component.css']
+  styleUrls: ['./filter-editor.component.scss']
 })
 export class FilterEditorComponent implements OnInit {
 
@@ -22,6 +22,10 @@ export class FilterEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  clear(item: string): void {
+    this.filterFormGroup.get(item).reset();
   }
 
 }

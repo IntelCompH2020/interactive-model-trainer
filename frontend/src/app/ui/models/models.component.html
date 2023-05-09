@@ -13,32 +13,38 @@
                                 {{modelTitle}}
                             </h5>
                         </div>
+
+                        <!-- TOPIC MODEL HEADER ACTIONS -->
+
                         <div class="col-auto" *ngIf="isTopicModelListing">
                             <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.RENAME')"
-                                [disabled]="curatingModel" (click)="onEdit()">
+                                [disabled]="curatingTopicModel" (click)="onEdit()">
                                 <mat-icon>
                                     edit
                                 </mat-icon>
                             </button>
                             <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.UPDATE')"
-                                [disabled]="curatingModel" (click)="onEdit(true)">
+                                [disabled]="curatingTopicModel" (click)="onEdit(true)">
                                 <mat-icon>
                                     update
                                 </mat-icon>
                             </button>
                             <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.COPY')"
-                                [disabled]="curatingModel" (click)="onCopy()">
+                                [disabled]="curatingTopicModel" (click)="onCopy()">
                                 <mat-icon>
                                     content_copy
                                 </mat-icon>
                             </button>
                             <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')"
-                                [disabled]="curatingModel" (click)="onDelete()">
+                                [disabled]="curatingTopicModel" (click)="onDelete()">
                                 <mat-icon>
                                     delete
                                 </mat-icon>
                             </button>
                         </div>
+
+                        <!-- DOMAIN MODEL HEADER ACTIONS -->
+
                         <div class="col-auto" *ngIf="isDomainModelListing">
                             <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.RENAME')"
                                 (click)="onEdit()">
@@ -77,7 +83,7 @@
                             {{item.value}}
                         </div>
                         <div *ngIf="item.button" class="col-6">
-                            <button mat-raised-button color="accent" [disabled]="trainingParamsLoading"
+                            <button mat-raised-button color="accent" [disabled]="curatingTopicModel || trainingParamsLoading"
                                 (click)="item.action()">
                                 {{item.value | translate}}
                                 <mat-icon *ngIf="trainingParamsLoading">
@@ -87,17 +93,19 @@
                         </div>
                     </div>
 
+                    <!-- ACTIONS BELOW MODEL DETAILS -->
+
                     <div class="row justify-content-center mt-4 mb-4">
-                        <ng-container *ngIf="selectedModelType == ModelType.Topic">
+
+                        <!-- TOPIC MODEL ACTIONS -->
+
+                        <ng-container *ngIf="isTopicModelListing">
                             <div class="col-auto">
-                                <button mat-raised-button color="accent" [disabled]="curatingModel"
+                                <button mat-raised-button color="accent" [disabled]="curatingTopicModel"
                                     class="rounded-button mb-2" [matMenuTriggerFor]="newModelMenu">
                                     {{'APP.MODELS-COMPONENT.CURATE' | translate}}
                                     <mat-icon>
                                         arrow_drop_down
-                                    </mat-icon>
-                                    <mat-icon *ngIf="curatingModel">
-                                        <mat-spinner color="accent" diameter="20"></mat-spinner>
                                     </mat-icon>
                                 </button>
                                 <mat-menu #newModelMenu="matMenu">
@@ -106,7 +114,7 @@
                                         |
                                         translate}}</button>
                                     <button mat-menu-item
-                                        (click)="showSimilarTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.SHOW-SIMILAR-TOPICS'
+                                        (click)="onShowSimilarTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.SHOW-SIMILAR-TOPICS'
                                         | translate}}</button>
                                     <button mat-menu-item
                                         (click)="onFuseTopics()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.FUSE-TOPICS' |
@@ -120,60 +128,66 @@
                                 </mat-menu>
                             </div>
                             <div class="col-auto">
-                                <button mat-raised-button (click)="showPyLDAvis()" color="accent"
+                                <button mat-raised-button (click)="showPyLDAvis()"
+                                    [disabled]="curatingTopicModel" color="accent"
                                     class="rounded-button mb-2">
                                     {{'APP.MODELS-COMPONENT.LDA-VIS' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
                                 <button mat-raised-button (click)="onReset()"
-                                    [disabled]="topicModelReseting || curatingModel" color="accent"
+                                    [disabled]="curatingTopicModel" color="accent"
                                     class="rounded-button mb-2">
                                     {{'APP.MODELS-COMPONENT.RESET' | translate}}
-                                    <mat-icon *ngIf="topicModelReseting">
-                                        <mat-spinner color="accent" diameter="20"></mat-spinner>
-                                    </mat-icon>
                                 </button>
                             </div>
                         </ng-container>
-                        <ng-container *ngIf="selectedModelType == ModelType.Domain">
+
+                        <!-- DOMAIN MODEL ACTIONS -->
+
+                        <ng-container *ngIf="isDomainModelListing">
                             <div class="col-auto">
-                                <button mat-raised-button color="accent" [disabled]="true" class="rounded-button mb-2"
-                                    [matMenuTriggerFor]="newModelMenu">
-                                    {{'APP.MODELS-COMPONENT.CURATE' | translate}}
-                                    <mat-icon>
-                                        arrow_drop_down
-                                    </mat-icon>
-                                    <mat-icon *ngIf="curatingModel">
-                                        <mat-spinner color="accent" diameter="20"></mat-spinner>
-                                    </mat-icon>
+                                <button mat-raised-button (click)="onDomainSample()" color="accent"
+                                    class="rounded-button mb-2" [disabled]="curatingDomainModel">
+                                    {{'APP.MODELS-COMPONENT.SAMPLE' | translate}}
                                 </button>
-                                <mat-menu #newModelMenu="matMenu">
-                                    <!-- <button mat-menu-item
-                                        (click)="onSetLabels()">{{'APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPICS' |
-                                        translate}}</button> -->
-                                </mat-menu>
                             </div>
                             <div class="col-auto">
-                                <button mat-raised-button (click)="retrain()" color="accent" class="rounded-button mb-2"
-                                    disabled>
+                                <button mat-raised-button (click)="onDomainRetrain()" color="accent"
+                                    class="rounded-button mb-2" [disabled]="curatingDomainModel">
                                     {{'APP.MODELS-COMPONENT.RETRAIN' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
-                                <button mat-raised-button (click)="classify()" color="accent"
-                                    class="rounded-button mb-2" disabled>
+                                <button mat-raised-button (click)="onDomainClassify()" color="accent"
+                                    class="rounded-button mb-2" [disabled]="curatingDomainModel">
                                     {{'APP.MODELS-COMPONENT.CLASSIFY' | translate}}
                                 </button>
                             </div>
                             <div class="col-auto">
-                                <button mat-raised-button (click)="evaluate()" color="accent"
-                                    class="rounded-button mb-2" disabled>
+                                <button mat-raised-button (click)="onDomainEvaluate()" color="accent"
+                                    class="rounded-button mb-2" [disabled]="curatingDomainModel">
                                     {{'APP.MODELS-COMPONENT.EVALUATE' | translate}}
                                 </button>
                             </div>
                         </ng-container>
                     </div>
+
+                    <!-- INFORMING USER ABOUT MODEL STATE -->
+
+                    <div class="row m-3 p-3 running-task-message" *ngIf="curatingTopicModel || curatingDomainModel">
+                        <div class="col-1">
+                            <mat-icon >info</mat-icon>
+                        </div>
+                        <div class="col-10">
+                            <span>This model is currently being processed</span>
+                        </div>
+                        <div class="col-1">
+                            <mat-spinner color="accent" diameter="30"></mat-spinner>
+                        </div>
+                    </div>
+
+                    <!-- TOPIC DETAILS -->
 
                     <ng-container *ngIf="topicSelected">
                         <div class="row justify-content-between pt-2 pb-2 align-items-center background-gray-dark">
@@ -183,13 +197,13 @@
                                 </h5>
                             </div>
                             <div class="col-auto">
-                                <button mat-icon-button (click)="onRenameTopic()"
+                                <button mat-icon-button [disabled]="curatingTopicModel" (click)="onRenameTopic()"
                                     [matTooltip]="language.instant('APP.MODELS-COMPONENT.CURATE-OPTIONS.LABEL-TOPIC')">
                                     <mat-icon>
                                         edit
                                     </mat-icon>
                                 </button>
-                                <button mat-icon-button (click)="onDeleteTopic()"
+                                <button mat-icon-button [disabled]="curatingTopicModel" (click)="onDeleteTopic()"
                                     [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')">
                                     <mat-icon>
                                         delete
@@ -201,6 +215,33 @@
                             {{'APP.MODELS-COMPONENT.DETAILS' | translate}}
                         </h5>
                         <div class="row mt-2 mb-2" *ngFor="let item of topicDetails">
+                            <div class="col-6">
+                                {{item.label | translate}}
+                            </div>
+                            <div *ngIf="!item.button" class="col-6">
+                                {{item.value}}
+                            </div>
+                            <div *ngIf="item.button" class="col-6">
+                                <button mat-raised-button color="accent" (click)="item.action()">{{item.value |
+                                    translate}}</button>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- DOCUMENT DETAILS -->
+
+                    <ng-container *ngIf="documentSelected">
+                        <div class="row justify-content-between pt-2 pb-2 align-items-center background-gray-dark">
+                            <div class="col-auto">
+                                <h5 class="mb-0">
+                                    {{documentTitle}}
+                                </h5>
+                            </div>
+                        </div>
+                        <h5 class="mt-2">
+                            {{'APP.MODELS-COMPONENT.DETAILS' | translate}}
+                        </h5>
+                        <div class="row mt-2 mb-2" *ngFor="let item of documentDetails">
                             <div class="col-6">
                                 {{item.label | translate}}
                             </div>

@@ -93,7 +93,9 @@ public class DomainModelController {
     @Transactional
     public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
         try {
-            return Files.readAllLines(Path.of(containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class), modelName, "execution.log"));
+            List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class), modelName, "execution.log"));
+            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
+            return lines;
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");
@@ -101,21 +103,27 @@ public class DomainModelController {
     }
 
     @PostMapping("retrain")
-    public TrainingTaskRequest retrainDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+    @Transactional
+    public TrainingTaskRequest retrainDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) throws InvalidApplicationException {
         return trainingTaskRequestService.persistDomainRetrainingTaskForRootModel(domainClassificationRequestPersist);
     }
 
     @GetMapping("{name}/classify")
-    public TrainingTaskRequest classifyDomainModel(@PathVariable(name = "name") String modelName) {
-        return trainingTaskRequestService.persistDomainClassifyTaskForRootModel(modelName);
+    @Transactional
+    public TrainingTaskRequest classifyDomainModel(@PathVariable(name = "name") String modelName) throws InvalidApplicationException {
+        DomainClassificationRequestPersist model = new DomainClassificationRequestPersist();
+        model.setName(modelName);
+        return trainingTaskRequestService.persistDomainClassifyTaskForRootModel(model);
     }
 
     @PostMapping("evaluate")
-    public TrainingTaskRequest evaluateDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+    @Transactional
+    public TrainingTaskRequest evaluateDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) throws InvalidApplicationException {
         return trainingTaskRequestService.persistDomainEvaluateTaskForRootModel(domainClassificationRequestPersist);
     }
 
     @PostMapping("sample")
+    @Transactional
     public TrainingTaskRequest sampleDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
         return trainingTaskRequestService.persistDomainSampleTaskForRootModel(domainClassificationRequestPersist);
     }

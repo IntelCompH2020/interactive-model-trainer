@@ -38,6 +38,11 @@ public class RunningTasksController {
         if (task != null) trainingTaskRequestService.clearFinishedTask(task);
     }
 
+    @GetMapping("{task}/cancel")
+    public void cancelTask(@PathVariable(name = "task") UUID task) {
+        if (task != null) trainingTaskRequestService.cancelTask(task);
+    }
+
     @GetMapping("{type}/clear-all")
     public void clearAllFinishedTasks(@PathVariable("type") RunningTaskType type) {
         if (type != null) trainingTaskRequestService.clearAllFinishedTasks(type);

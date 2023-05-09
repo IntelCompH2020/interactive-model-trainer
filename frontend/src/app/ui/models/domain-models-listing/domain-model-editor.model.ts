@@ -20,7 +20,7 @@ export class DomainModelEditorModel extends BaseEditorModel implements DomainMod
 		weightingFactor?: number;
 		numberOfElements?: number;
 		minimumScore?: number;
-		modelName?: string;
+		// modelName?: string;
     
 	public fromModel(item: DomainModel): DomainModelEditorModel {
 		if (item) {
@@ -49,7 +49,7 @@ export class DomainModelEditorModel extends BaseEditorModel implements DomainMod
 			weightingFactor: [{ value: this.weightingFactor, disabled: disabled }, context.getValidation('minimumScore').validators],
 			numberOfElements: [{ value: this.numberOfElements, disabled: disabled }, context.getValidation('numberOfElements').validators],
 			minimumScore: [{ value: this.minimumScore, disabled: disabled }, context.getValidation('minimumScore').validators],
-			modelName: [{ value: this.modelName, disabled: disabled }, context.getValidation('modelName').validators],
+			// modelName: [{ value: this.modelName, disabled: disabled }, context.getValidation('modelName').validators],
 
 			hash: [{ value: this.hash, disabled: disabled }, context.getValidation('hash').validators],
 		});
@@ -69,7 +69,7 @@ export class DomainModelEditorModel extends BaseEditorModel implements DomainMod
 		baseValidationArray.push({ key: 'weightingFactor', validators: [] });
 		baseValidationArray.push({ key: 'numberOfElements', validators: [] });
 		baseValidationArray.push({ key: 'minimumScore', validators: [] });
-		baseValidationArray.push({ key: 'modelName', validators: [] });
+		// baseValidationArray.push({ key: 'modelName', validators: [] });
 
 		baseValidationArray.push({ key: 'hash', validators: [] });
 

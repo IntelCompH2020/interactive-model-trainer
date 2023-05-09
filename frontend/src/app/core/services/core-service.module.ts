@@ -16,7 +16,6 @@ import { CollectionUtils } from '@common/utilities/collection-utils.service';
 import { TypeUtils } from '@common/utilities/type-utils.service'
 import { TopicModelService } from './http/topic-model.service';
 import { SnackBarCommonNotificationsService } from './ui/snackbar-notifications.service';
-import { RunningTasksQueueService } from './ui/running-tasks-queue.service';
 import { RunningTasksService } from './http/running-tasks.service';
 
 //
@@ -44,7 +43,6 @@ export class CoreAppServiceModule {
 				CollectionUtils,
 				UiNotificationService,
 				ProgressIndicationService,
-				RunningTasksQueueService,
 				HttpErrorHandlingService,
 				TenantService,
 				FilterService,

@@ -12,7 +12,7 @@ import { TopicLookup } from '@app/core/query/topic.lookup';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { AuthService } from '@app/core/services/ui/auth.service';
 import { QueryParamsService } from '@app/core/services/ui/query-params.service';
-import { RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
+import { RunningTaskSubType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
@@ -20,7 +20,7 @@ import { DataTableTopicModelTypeFormatPipe } from '@common/formatting/pipes/topi
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -61,6 +61,14 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   get topicSelected(): Topic {
     return this._topicSelected;
+  }
+
+  get isParentModelCurating(): boolean {
+    if (this._topicModelSelected) {
+      return this.trainingModelQueueService.curating.filter(item => {
+        return item.label === this._topicModelSelected.name;
+      }).length === 1;
+    } else return false;
   }
 
   selectedModel: BehaviorSubject<TopicModel> = new BehaviorSubject(undefined);
@@ -193,23 +201,42 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this._setUpLikeFilterFormGroup();
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
-    this.trainingModelQueueService.taskCompleted.subscribe((task) => {
-      if (task.finished) this.refresh();
-    });
+    this.trainingModelQueueService.taskCompleted
+      .pipe(
+        debounceTime(300)
+      )
+      .subscribe((task) => {
+        if (this.trainingModelQueueService.isTopicModelTask(task)) {
+          if (task.subType === RunningTaskSubType.FUSE_TOPIC_MODEL ||
+            task.subType === RunningTaskSubType.SORT_TOPIC_MODEL) {
+            if (this._topicModelSelected && this._topicModelSelected.name === task.label) {
+              this.refreshTopics(
+                () => this.snackbars.successfulUpdate()
+              );
+            } else {
+              this.snackbars.successfulUpdate()
+            }
+          } else this.refresh(
+            () => this.snackbars.successfulOperation(true)
+          );
+        }
+      });
   }
 
-  public refresh(): void {
+  public refresh(callback?: () => void): void {
     this.onTopicModelSelect.emit(null);
     this._topicModelSelected = null;
     this.onTopicSelect.emit(null);
     this.topicLookup = new TopicLookup();
     this.selectedModel.next(undefined);
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    if (callback) callback();
   }
 
-  public refreshTopics(): void {
+  public refreshTopics(callback?: () => void): void {
     this.onTopicSelect.emit(null);
     this.selectedModel.next(this._topicModelSelected);
+    if (callback) callback();
   }
 
   public edit(model: TopicModel, updateAll: boolean = false): void {
@@ -260,7 +287,9 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   public copy(model: TopicModel): void {
     this.topicModelService.copy(model.name).subscribe(
-      _response => this.refresh()
+      _response => this.refresh(
+        () => this.snackbars.successfulOperation(true)
+      )
     );
   }
 
@@ -280,14 +309,15 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       )
       .subscribe((response) => {
         if (response) {
-          this.snackbars.successfulUpdate();
-          this.refreshTopics();
+          this.refreshTopics(
+            () => this.snackbars.successfulUpdate()
+          );
         }
         callback();
       });
   }
 
-  public fuseTopics(model: TopicModel, callback: () => void): void {
+  public fuseTopics(model: TopicModel, callback: (state: boolean) => void): void {
     this.dialog.open(TopicSelectionComponent, {
       width: '25rem',
       maxWidth: "90vw",
@@ -307,15 +337,12 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       .subscribe((topics) => {
         if (topics) {
           this.topicModelService.fuseTopics(model.name, { topics }).subscribe(() => {
-            this.snackbars.successfulOperation(true);
-            this.refreshTopics();
-            callback();
+            callback(true);
           }, error => {
             console.error(error);
-            this.snackbars.notSuccessfulOperation();
-            callback();
+            callback(false);
           });
-        } else callback();
+        }
       });
   }
 
@@ -339,8 +366,9 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       .subscribe((topics) => {
         if (topics) {
           this.topicModelService.deleteTopics(model.name, { topics }).subscribe(() => {
-            this.snackbars.successfulOperation(true);
-            this.refreshTopics();
+            this.refreshTopics(
+              () => this.snackbars.successfulOperation(true)
+            );
             callback();
           }, error => {
             console.error(error);
@@ -369,8 +397,9 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       ).subscribe((response) => {
         if (response) {
           this.topicModelService.deleteTopics(model.name, { topics: [topic.id] }).subscribe(() => {
-            this.snackbars.successfulOperation(true);
-            this.refreshTopics();
+            this.refreshTopics(
+              () => this.snackbars.successfulOperation(true)
+            );
             callback();
           }, error => {
             console.error(error);
@@ -382,37 +411,21 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       })
   }
 
-  public sortTopics(model: TopicModel, callback: () => void): void {
+  public sortTopics(model: TopicModel, callback: (state: boolean) => void): void {
     this.topicModelService.sortTopics(model.name).subscribe(() => {
-      this.snackbars.successfulOperation(true);
-      this.refreshTopics();
-      callback();
+      callback(true);
     }, error => {
       console.error(error);
-      this.snackbars.notSuccessfulOperation();
-      callback();
+      callback(false);
     });
   }
 
-  public resetModel(model: TopicModel, callback: () => void): void {
-    this.snackbars.operationStarted();
-    this.topicModelService.reset(model.name).subscribe((task) => {
-      const timeout = setInterval(() => {
-        this.runningTasksService.getTaskStatus(task.id).subscribe((status) => {
-          if (status === "COMPLETED" || status === "ERROR") {
-            clearInterval(timeout);
-            if (status === "COMPLETED") {
-              this.snackbars.successfulOperation(true);
-              this.refreshTopics();
-            } else if (status === "ERROR") this.snackbars.notSuccessfulOperation();
-            callback();
-          }
-        });
-      }, 10000);
+  public resetModel(model: TopicModel, callback: (state: boolean) => void): void {
+    this.topicModelService.reset(model.name).subscribe((_task) => {
+      callback(true);
     }, error => {
-      this.snackbars.notSuccessfulOperation();
       console.error(error);
-      callback();
+      callback(false);
     });
   }
 
@@ -449,7 +462,6 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       .subscribe((labels) => {
         if (labels) {
           this.topicModelService.setTopicLabels(model.name, { labels }).subscribe(() => {
-            this.snackbars.successfulUpdate();
             this.refreshTopics();
             callback();
           }, error => {

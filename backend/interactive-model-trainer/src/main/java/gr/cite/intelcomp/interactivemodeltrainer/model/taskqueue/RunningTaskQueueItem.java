@@ -12,6 +12,7 @@ public abstract class RunningTaskQueueItem {
     private Object payload;
     private UUID task;
     private RunningTaskType type;
+    private RunningTaskSubType subType;
     private Instant startedAt;
     private Instant finishedAt;
     @JsonIgnore
@@ -19,6 +20,7 @@ public abstract class RunningTaskQueueItem {
 
     protected RunningTaskQueueItem(RunningTaskType runningTaskType) {
         this.type = runningTaskType;
+        this.subType = RunningTaskSubType.EMPTY;
     }
 
     public String getLabel() {
@@ -59,6 +61,14 @@ public abstract class RunningTaskQueueItem {
 
     public void setType(RunningTaskType type) {
         this.type = type;
+    }
+
+    public RunningTaskSubType getSubType() {
+        return subType;
+    }
+
+    public void setSubType(RunningTaskSubType subType) {
+        this.subType = subType;
     }
 
     public Instant getStartedAt() {

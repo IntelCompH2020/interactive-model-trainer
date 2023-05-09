@@ -5,6 +5,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.WordListQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,10 +14,9 @@ public class WordListLookup extends Lookup {
     private String like;
     private List<Visibility> visibilities;
     private List<UUID> ids;
-
     private String creator;
-
     private Boolean mine;
+    private Instant createdAt;
 
     public String getLike() {
         return like;
@@ -51,6 +51,13 @@ public class WordListLookup extends Lookup {
     }
     public void setMine(Boolean mine) {
         this.mine = mine;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public WordListQuery enrich(QueryFactory queryFactory) {

@@ -140,8 +140,8 @@
 				"FILTER": "Filter",
 				"ADD-NEW": "New corpus",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATION-DATE-PLACEHOLDER": "Download Date",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-CORPUS-DIALOG": {
@@ -168,7 +168,7 @@
 				"ADD-NEW-FROM-FILE": "Import corpus",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine",
 					"VALID-FOR":"Valid for"
 				},
@@ -227,6 +227,7 @@
 			},
 			"RESET": "Reset changes",
 			"LDA-VIS": "Show LDA visualization",
+			"SAMPLE": "Sample",
 			"RETRAIN": "Retrain",
 			"EVALUATE": "Evaluate",
 			"CLASSIFY": "Classify",
@@ -234,7 +235,7 @@
 			"DETAILS": "Details",
 			"NAME": "Name",
 			"DESCRIPTION": "Description",
-			"TAG": "Tag",
+			"DOMAIN-NAME": "Domain Name",
 			"CREATION-DATE": "Creation Date",
 			"CREATOR": "Creator",
 			"CORPUS": "Corpus",
@@ -259,7 +260,7 @@
 				"ADD-NEW": "New model",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine",
 					"TYPE": "Type",
 					"SUBTYPE": "Subtype"
@@ -447,7 +448,7 @@
 				"SEARCH-PLACEHOLDER": "Filter by topic label",
 				"FILTER": "Filter",
 				"ADD-NEW": "New sub-model",
-				"ADD-NEW-TOOLTIP": "You have to select a root (not hierarchical) topic model and one of its topics first",
+				"ADD-NEW-TOOLTIP": "You have to select a root (not hierarchical) topic model and one of its topics first. If the root model is being processed, wait for the operation to finish.",
 				"ID": "Id",
 				"SIZE": "Size",
 				"LABEL": "Label",
@@ -465,6 +466,12 @@
 					"NEW-LABEL": "New label"
 				}
 			},
+			"DOCUMENT": {
+				"LABEL": "Predicted class",
+				"ID": "ID",
+				"TITLE": "Title",
+				"TEXT": "Text"
+			},
 			"DOMAIN-MODELS-LISTING-COMPONENT": {
 				"FILTER-TITLE": "Domain Models",
 				"SEARCH-PLACEHOLDER": "Filter by model name",
@@ -476,15 +483,15 @@
 				"ADD-NEW-FROM-CATEGORY-NAME": "From category name",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"TAG-PLACEHOLDER": "Tag",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"DOMAIN-NAME-PLACEHOLDER": "Domain Name",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-DOMAIN-MODEL-FROM-SOURCE-FILE-DIALOG": {
 					"NAME": "Name",
 					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
-					"TAG": "Tag",
+					"DOMAIN-NAME": "Domain Name",
 					"FILE": "File",
 					"FILE-OVERVIEW": "File Overview",
 					"LOAD-FILE": "Load File...",
@@ -502,7 +509,7 @@
 					"NAME": "Name",
 					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
-					"TAG": "Tag",
+					"DOMAIN-NAME": "Domain name",
 					"KEYWORD": "Keyword list",
 					"SUGGESTED-KEYWORDS": "Suggested keywords",
 					"SELECTED-KEYWORDS": "Selected keywords",
@@ -534,10 +541,10 @@
 					"NAME": "Name",
 					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
-					"TAG": "Tag",
-					"MODEL": "Topic model",
+					"DOMAIN-NAME": "Domain Name",
+					"MODEL": "Topic Model",
 					"TOPIC-ID": "Topic ID",
-					"TOPIC-DESCRIPTION": "Topic description",
+					"TOPIC-DESCRIPTION": "Topic Description",
 					"TOPIC-WEIGHT": "Topic Weight",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
@@ -557,7 +564,7 @@
 					"NAME": "Name",
 					"DESCRIPTION": "Description",
 					"CORPUS": "Corpus",
-					"TAG": "Tag",
+					"DOMAIN-NAME": "Domain Name",
 					"TARGET-CATEGORY": "Target Category",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
@@ -572,6 +579,9 @@
 					},
 					"CANCEL": "Cancel",
 					"SUBMIT": "Create"
+				},
+				"DOMAIN-CURATION-DIALOG": {
+					"NAME": "Model name"
 				},
 				"CLASSIFIER-PARAMETERS": {
 					"MODEL-TYPE": "Model type",
@@ -611,9 +621,34 @@
 					"P-RATIO": "Ratio of high-score samples. The rest will be low-score samples. (Used for sampler='extremes' only)",
 					"TOP-PROB": "(Approximate) probability of selecting the doc with the highest score in a single sampling. This parameter is used to control the randomness of the stochastic sampling: if top_prob=1, the samples with the highest score are taken deterministically. top_prob=0 is equivalent to random sampling. (Used for sampler='extremes' only)"
 				},
+				"EVALUATE-PARAMETERS": {
+					"TRUE-LABEL-NAME": "True label name"
+				},
+				"EVALUATE-PARAMETERS-TOOLTIPS": {
+					"TRUE-LABEL-NAME": "True class label of the prediction"
+				},
+				"SAMPLING-PARAMETERS": {
+					"SAMPLER": "Sampler",
+					"NUM-OF-DOCUMENTS": "# of documents"
+				},
+				"SAMPLING-PARAMETERS-TOOLTIPS": {
+					"SAMPLER": "Method of sampling the documents",
+					"NUM-OF-DOCUMENTS": "The number of documents to sample"
+				},
 				"RENAME-DIALOG": {
 					"TITLE": "Rename domain model"
 				}
+			},
+			"DOCUMENTS-LISTING-COMPONENT": {
+				"FILTER-TITLE": "Documents",
+				"FILTER": "Filter",
+				"SEARCH-PLACEHOLDER": "Filter by document title",
+				"GIVE-FEEDBACK": "Give feedback",
+				"GIVE-FEEDBACK-TOOLTIP": "Not available yet",
+				"LABEL": "Label",
+				"ID": "ID",
+				"TITLE": "Title",
+				"TEXT": "Text"
 			},
 			"MODEL-DETAILS-COMPONENT": {
 				"TITLE": "Training Parameters"
@@ -664,7 +699,7 @@
 				"ADD-NEW-MERGE": "Merge existing keyword lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-KEYWORD-FROM-FILE-DIALOG": {
@@ -706,7 +741,7 @@
 				"ADD-NEW-MERGE": "Merge existing stopword lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-STOPWORD-FROM-FILE-DIALOG": {
@@ -745,7 +780,7 @@
 				"ADD-NEW-MERGE": "Merge existing equivalence lists",
 				"FILTER-OPTIONS": {
 					"CREATION-DATE-PLACEHOLDER": "Creation Date",
-					"CREATOR-PLACEHOLDER": "Creator...",
+					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
 				"NEW-EQUIVALENCE-FROM-FILE-DIALOG": {

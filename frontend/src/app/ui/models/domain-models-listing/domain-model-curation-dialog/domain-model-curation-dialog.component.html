@@ -1,0 +1,28 @@
+<div mat-dialog-title *ngIf="title">
+  <h5 class="text-center">{{title}}</h5>
+</div>
+
+<mat-dialog-content *ngIf="formGroup">
+  <div class="row mt-2" [formGroup]="formGroup">
+    <div *ngIf="params.length" class="col-12">
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.DOMAIN-CURATION-DIALOG.NAME' |
+          translate}}</mat-label>
+        <input type="text" matInput formControlName="name" readonly
+          [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.NOT-EDITABLE')">
+      </mat-form-field>
+      <app-model-parameters-table [parameters]="params" [formGroup]="formGroup"></app-model-parameters-table>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" *ngIf="formGroup">
+  <div class="col-auto">
+    <button mat-button (click)="close()">
+      {{'APP.COMMONS.CANCEL' | translate}}</button>
+  </div>
+  <div class="col-auto">
+    <button mat-raised-button [disabled]="!valid" color="accent" (click)="ok()">
+      {{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

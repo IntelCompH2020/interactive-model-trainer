@@ -1,4 +1,4 @@
-package gr.cite.intelcomp.interactivemodeltrainer.cashe;
+package gr.cite.intelcomp.interactivemodeltrainer.cache;
 
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 

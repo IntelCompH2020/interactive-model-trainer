@@ -55,6 +55,10 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
     public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING)) {
             return handleTraining(scheduledEvent, entityManager);
+        } else if (scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.CLASSIFY_DOMAIN_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL)) {
+            return handleCurating(scheduledEvent, entityManager);
         } else return EventProcessingStatus.Error;
     }
 
@@ -114,6 +118,43 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         return status;
     }
 
+    private EventProcessingStatus handleCurating(@NotNull ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
+        UUID trainingTaskRequestId = extractRequestIdFromEventData(scheduledEvent);
+        if (trainingTaskRequestId == null) return EventProcessingStatus.Error;
+        EventProcessingStatus status;
+
+        try {
+            RunDomainTrainingConsistencyHandler runDomainTrainingConsistencyHandler = applicationContext.getBean(RunDomainTrainingConsistencyHandler.class);
+            Boolean isConsistent = runDomainTrainingConsistencyHandler.isConsistent(new RunDomainTrainingConsistencyPredicates());
+            if (isConsistent) {
+                TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+                TrainingTaskRequestEntity trainingTaskRequest = trainingTaskRequestQuery
+                        .status(TrainingTaskRequestStatus.NEW)
+                        .jobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME)
+                        .ids(trainingTaskRequestId).first();
+                try {
+                    if (scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL))
+                        runRootRetraining(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.CLASSIFY_DOMAIN_MODEL))
+                        runRootClassification(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL))
+                        runRootEvaluation(trainingTaskRequest, scheduledEvent, entityManager);
+                    status = EventProcessingStatus.Success;
+                } catch (Exception e) {
+                    status = EventProcessingStatus.Error;
+                    logger.error(e.getLocalizedMessage());
+                }
+            } else {
+                status = EventProcessingStatus.Error;
+            }
+        } catch (Exception ex) {
+            logger.error("Problem getting scheduled event. Skipping: {}", ex.getMessage(), ex);
+            status = EventProcessingStatus.Error;
+        }
+
+        return status;
+    }
+
     private void runRootTraining(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
         DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
         if (request == null) return;
@@ -123,22 +164,112 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
 
         HashMap<String, String> params = new HashMap<>();
         params.put("corpus_name", request.getCorpus());
-        params.put("tag", request.getTag());
+        params.put("tag", request.getName());
         params.put("keywords", request.getKeywords());
 
         RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
         eventData.getRequest().getParameters().forEach((key, val) -> {
             if (key.startsWith("DC.")) params.put(key.replace("DC.", ""), val);
+            if (key.startsWith("classifier.")) params.put(key.replace("classifier.", ""), val);
+            if (key.startsWith("AL.")) params.put(key.replace("AL.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getTask(), params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_retrain", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
-        logger.info("Container '{}' started running domain classification task for request -> {}", containerId, trainingTaskRequest.getId());
+        logger.info("Container '{}' started running domain model training task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runRootRetraining(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
+        DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
+        if (request == null) return;
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+
+        HashMap<String, String> params = new HashMap<>();
+
+        RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        eventData.getRequest().getParameters().forEach((key, val) -> {
+            if (key.startsWith("classifier.")) params.put(key.replace("classifier.", ""), val);
+        });
+
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_retrain", params));
+        paramMap.put("COMMANDS", commands);
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "retrain-execution.log");
+        paramMap.put("LOG_FILE", logFile);
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running domain model retraining task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runRootClassification(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
+        DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
+        if (request == null) return;
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+
+        HashMap<String, String> params = new HashMap<>();
+
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_classify", params));
+        paramMap.put("COMMANDS", commands);
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "classification-execution.log");
+        paramMap.put("LOG_FILE", logFile);
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running domain model classification task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runRootEvaluation(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
+        DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
+        if (request == null) return;
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+
+        HashMap<String, String> params = new HashMap<>();
+
+        RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        eventData.getRequest().getParameters().forEach((key, val) -> {
+            if (key.startsWith("evaluator.")) params.put(key.replace("evaluator.", ""), val);
+        });
+
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_evaluate", params));
+        paramMap.put("COMMANDS", commands);
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "evaluation-execution.log");
+        paramMap.put("LOG_FILE", logFile);
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running domain model evaluation task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();

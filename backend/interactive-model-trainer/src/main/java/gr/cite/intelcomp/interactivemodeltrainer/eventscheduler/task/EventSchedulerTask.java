@@ -208,16 +208,21 @@ public class EventSchedulerTask {
         try {
             ScheduledEventHandler handler;
             switch (scheduledEventMessage.getEventType()) {
-                case RUN_ROOT_TRAINING:
-                case PREPARE_HIERARCHICAL_TRAINING:
-                case RUN_HIERARCHICAL_TRAINING:
-                case RESET_MODEL:
+                case RUN_ROOT_TOPIC_TRAINING:
+                case PREPARE_HIERARCHICAL_TOPIC_TRAINING:
+                case RUN_HIERARCHICAL_TOPIC_TRAINING:
+                case RESET_TOPIC_MODEL:
+                case FUSE_TOPIC_MODEL:
+                case SORT_TOPIC_MODEL:
                     handler = applicationContext.getBean(RunTrainingScheduledEventHandler.class);
                     break;
                 case RUN_ROOT_DOMAIN_TRAINING:
+                case RETRAIN_DOMAIN_MODEL:
+                case CLASSIFY_DOMAIN_MODEL:
+                case EVALUATE_DOMAIN_MODEL:
                     handler = applicationContext.getBean(RunDomainTrainingScheduledEventHandler.class);
                     break;
-                case CHECK_RUNNING_TRAINING_TASKS:
+                case CHECK_RUNNING_TASKS:
                     handler = applicationContext.getBean(CheckTasksScheduledEventHandler.class);
                     break;
                 default:

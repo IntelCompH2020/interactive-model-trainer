@@ -1,8 +1,13 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
+import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
@@ -17,19 +22,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity> {
 
+    private final CacheLibrary cacheLibrary;
+
     @Autowired
-    public TopicModelBuilder(ConventionService conventionService) {
+    public TopicModelBuilder(ConventionService conventionService, CacheLibrary cacheLibrary) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(TopicModelBuilder.class)));
+        this.cacheLibrary = cacheLibrary;
     }
 
     @Override
     public List<TopicModel> build(FieldSet fields, List<TopicModelEntity> data) throws MyApplicationException {
-        this.logger.debug("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
+        this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
@@ -37,6 +46,8 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
 
         if (data == null) return models;
         for (TopicModelEntity d : data) {
+
+            if (modelIsTraining(d)) continue;
 
             TopicModel m = new TopicModel();
             if (fields.hasField(this.asIndexer(TopicModelEntity._id))) m.setId(d.getId());
@@ -57,7 +68,21 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
             m.setHierarchyLevel(d.getHierarchyLevel());
             models.add(m);
         }
-        this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
+        this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
+    }
+
+    private boolean modelIsTraining(TopicModelEntity model) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+        if (cache != null && !cache.getPayload().isEmpty()) {
+            cache.getPayload().forEach((item) -> {
+                if (item.getType().equals(RunningTaskType.training) &&
+                        (item.getSubType().equals(RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING) || item.getSubType().equals(RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING)) &&
+                        item.getLabel().equals(model.getName()))
+                    result.set(true);
+            });
+        }
+        return result.get();
     }
 }

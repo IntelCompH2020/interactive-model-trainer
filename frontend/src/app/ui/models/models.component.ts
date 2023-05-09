@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
-import { DomainModel } from '@app/core/model/model/domain-model.model';
+import { Document, DomainModel } from '@app/core/model/model/domain-model.model';
 import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
@@ -19,6 +19,8 @@ import { DomainModelsListingComponent } from './domain-models-listing/domain-mod
 import { ModelDetailsComponent } from './model-details/model-details.component';
 import { PyLDAComponent } from './topic-models-listing/py-lda-vis-modal/py-lda-vis-modal.component';
 import { TopicModelsListingComponent } from './topic-models-listing/topic-models-listing.component';
+import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
+import { RunningTaskType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 
 @Component({
   selector: 'app-models',
@@ -29,6 +31,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
   modelSelected: TopicModel | DomainModel;
   topicSelected: Topic;
+  documentSelected: Document;
 
   get modelTitle() {
     return this.modelSelected?.name;
@@ -38,6 +41,11 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     const title = this.topicSelected?.label;
     if (title && title.length > 30) return title.substring(0, 30) + "...";
     if (title && title.length <= 30) return title;
+  }
+
+  get documentTitle() {
+    const title = this.documentSelected?.id;
+    return title;
   }
 
   get isTopicModelListing() {
@@ -52,14 +60,28 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   ModelType = ModelType;
   modelSelectionSubscription: Subscription;
   topicSelectionSubscription: Subscription;
+  documentSelectionSubscription: Subscription;
 
   modelDetails: DetailsItem[];
   topicDetails: DetailsItem[];
+  documentDetails: DetailsItem[];
 
   //Spinners control
   trainingParamsLoading: boolean = false;
-  topicModelReseting: boolean = false;
-  curatingModel: boolean = false;
+  _curatingTopicModel: boolean = false;
+  get curatingTopicModel(): boolean {
+    if (this.isDomainModelListing) return false;
+    else if (this._curatingTopicModel) return true;
+    else return this.runningTasksService.curating.filter(item => {
+      return item.label === this.modelSelected.name;
+    }).length === 1;
+  }
+  get curatingDomainModel(): boolean {
+    if (this.isTopicModelListing) return false;
+    else return this.runningTasksService.curating.filter(item => {
+      return item.label === this.modelSelected.name;
+    }).length === 1;
+  }
 
   private onRefresh: () => void;
   private onRenameItem: () => void;
@@ -71,8 +93,12 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   private onDeleteTopic: () => void;
   private onSortTopics: () => void;
   private onResetItem: () => void;
-  private showSimilarTopics: () => void;
+  private onShowSimilarTopics: () => void;
   private onSetTopicLabels: () => void;
+  private onDomainRetrain: () => void;
+  private onDomainClassify: () => void;
+  private onDomainEvaluate: () => void;
+  private onDomainSample: () => void;
 
   constructor(
     private dialog: MatDialog,
@@ -80,6 +106,8 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     protected snackbars: SnackBarCommonNotificationsService,
     private topicModelService: TopicModelService,
     private domainModelService: DomainModelService,
+    private runningTasksService: RunningTasksQueueService,
+    private runningTasksQueueService: RunningTasksQueueService,
     public enumUtils: AppEnumUtils,
     private pipeService: PipeService
   ) {
@@ -106,12 +134,17 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       this.topicSelectionSubscription.unsubscribe();
       this.topicSelectionSubscription = null;
     }
+    if (this.documentSelectionSubscription) {
+      this.documentSelectionSubscription.unsubscribe();
+      this.documentSelectionSubscription = null;
+    }
 
     this.modelSelected = null;
     this.topicSelected = null;
     this.selectedModelType = null;
     this.modelDetails = [];
     this.topicDetails = [];
+    this.documentDetails = [];
     this.onRefresh = null;
     this.onRenameItem = null;
     this.onUpdateItem = null;
@@ -122,8 +155,12 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     this.onDeleteTopic = null;
     this.onSortTopics = null;
     this.onResetItem = null;
-    this.showSimilarTopics = null;
+    this.onShowSimilarTopics = null;
     this.onSetTopicLabels = null;
+    this.onDomainRetrain = null;
+    this.onDomainClassify = null;
+    this.onDomainEvaluate = null;
+    this.onDomainSample = null;
 
     switch (true) {
       case activeComponent instanceof TopicModelsListingComponent: {
@@ -165,55 +202,55 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         }
 
         this.onRenameTopic = () => {
-          this.curatingModel = true;
+          this._curatingTopicModel = true;
           castedActiveComponent.editTopic(this.modelSelected as TopicModel, this.topicSelected as Topic, () => {
-            this.curatingModel = false;
+            this._curatingTopicModel = false;
           });
         }
 
         this.onFuseTopics = () => {
-          this.curatingModel = true;
-          castedActiveComponent.fuseTopics(this.modelSelected as TopicModel, () => {
-            this.curatingModel = false;
+          castedActiveComponent.fuseTopics(this.modelSelected as TopicModel, (state) => {
+            if (state) this.snackbars.operationStarted();
+            else this.snackbars.notSuccessfulOperation();
           });
         }
 
         this.onDeleteTopics = () => {
-          this.curatingModel = true;
+          this._curatingTopicModel = true;
           castedActiveComponent.deleteTopics(this.modelSelected as TopicModel, () => {
-            this.curatingModel = false;
+            this._curatingTopicModel = false;
           });
         }
 
         this.onDeleteTopic = () => {
-          this.curatingModel = true;
+          this._curatingTopicModel = true;
           castedActiveComponent.deleteTopic(this.modelSelected as TopicModel, this.topicSelected as Topic, () => {
-            this.curatingModel = false;
+            this._curatingTopicModel = false;
           });
         }
 
         this.onSortTopics = () => {
-          this.curatingModel = true;
-          castedActiveComponent.sortTopics(this.modelSelected as TopicModel, () => {
-            this.curatingModel = false;
+          castedActiveComponent.sortTopics(this.modelSelected as TopicModel, (state) => {
+            if (state) this.snackbars.operationStarted();
+            else this.snackbars.notSuccessfulOperation();
           });
         }
 
         this.onResetItem = () => {
-          this.topicModelReseting = true;
-          castedActiveComponent.resetModel(this.modelSelected as TopicModel, () => {
-            this.topicModelReseting = false;
+          castedActiveComponent.resetModel(this.modelSelected as TopicModel, (state) => {
+            if (state) this.snackbars.operationStarted();
+            else this.snackbars.notSuccessfulOperation();
           });
         }
 
-        this.showSimilarTopics = () => {
+        this.onShowSimilarTopics = () => {
           castedActiveComponent.showSimilar(this.modelSelected as TopicModel);
         }
 
         this.onSetTopicLabels = () => {
-          this.curatingModel = true;
+          this._curatingTopicModel = true;
           castedActiveComponent.setLabels(this.modelSelected as TopicModel, () => {
-            this.curatingModel = false;
+            this._curatingTopicModel = false;
           });
         }
 
@@ -232,6 +269,15 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           }
         );
 
+        this.documentSelectionSubscription = castedActiveComponent.onDocumentSelect.pipe(
+          takeUntil(this._destroyed)
+        ).subscribe(
+          document => {
+            if (document) this.documentDetails = this._buildDocumentDetails(document);
+            this.documentSelected = document;
+          }
+        )
+
         this.onRefresh = () => {
           castedActiveComponent.refresh();
         }
@@ -246,6 +292,30 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
         this.onCopyItem = () => {
           castedActiveComponent.copy(this.modelSelected as DomainModel);
+        }
+
+        this.onDomainRetrain = () => {
+          castedActiveComponent.retrain(this.modelSelected as DomainModel, () => {
+            this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
+          });
+        }
+
+        this.onDomainClassify = () => {
+          castedActiveComponent.classify(this.modelSelected as DomainModel, () => {
+            this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
+          });
+        }
+
+        this.onDomainEvaluate = () => {
+          castedActiveComponent.evaluate(this.modelSelected as DomainModel, () => {
+            this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
+          });
+        }
+
+        this.onDomainSample = () => {
+          castedActiveComponent.sample(this.modelSelected as DomainModel, () => {
+            
+          })
         }
 
         break;
@@ -444,7 +514,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         value: model.description || "-"
       },
       {
-        label: 'APP.MODELS-COMPONENT.TAG',
+        label: 'APP.MODELS-COMPONENT.DOMAIN-NAME',
         value: model.tag || "-"
       },
       {
@@ -463,13 +533,35 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         label: 'APP.MODELS-COMPONENT.TRAINED-CORPUS',
         value: model.TrDtSet || "-"
       },
-      {
-        label: 'APP.MODELS-COMPONENT.MORE-DETAILS',
-        value: '...'
-      },
+      // {
+      //   label: 'APP.MODELS-COMPONENT.MORE-DETAILS',
+      //   value: '...'
+      // },
     ];
 
   }
+
+  private _buildDocumentDetails(document: Document): DetailsItem[] {
+    return [
+      {
+        label: 'APP.MODELS-COMPONENT.DOCUMENT.ID',
+        value: document.id || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.DOCUMENT.TITLE',
+        value: document.title || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.DOCUMENT.TEXT',
+        value: document.text || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.DOCUMENT.LABEL',
+        value: document.label.toString() || "-"
+      }
+    ];
+  }
+  
 }
 
 enum ModelType {

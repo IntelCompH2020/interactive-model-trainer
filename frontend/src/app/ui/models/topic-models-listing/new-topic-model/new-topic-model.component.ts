@@ -264,6 +264,9 @@ export class NewTopicModelComponent implements OnInit {
     for (let param of this.advancedParamsForPreprocessing) {
       this.preprocessingFormGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
     }
+    for (let param of this.advancedParamsForPreprocessingWordlists) {
+      this.preprocessingWordlistsFormGroup.get(param.name).setValue(param.default == undefined ? null : param.default);
+    }
   }
 
 }

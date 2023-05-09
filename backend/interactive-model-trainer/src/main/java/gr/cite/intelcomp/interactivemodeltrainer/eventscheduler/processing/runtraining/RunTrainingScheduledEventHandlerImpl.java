@@ -2,7 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runt
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gr.cite.intelcomp.interactivemodeltrainer.audit.AuditableAction;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.CacheLibrary;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
@@ -13,11 +13,13 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.EventProcessingStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
-import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.resetmodel.ResetModelScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.FuseModelScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.config.RunTrainingSchedulerEventConfig;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.TopicModelTaskScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
+import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
@@ -38,8 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
 
 @Component
@@ -50,25 +51,29 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
     private final JsonHandlingService jsonHandlingService;
     private final ApplicationContext applicationContext;
     private final RunTrainingSchedulerEventConfig config;
+    private final DockerService dockerService;
     private final CacheLibrary cacheLibrary;
 
     @Autowired
-    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, ContainerManagementService containerManagementService, RunTrainingSchedulerEventConfig config, ScheduledEventManageService scheduledEventManageService, QueryFactory queryFactory, CacheLibrary cacheLibrary) {
+    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, ContainerManagementService containerManagementService, RunTrainingSchedulerEventConfig config, ScheduledEventManageService scheduledEventManageService, QueryFactory queryFactory, DockerService dockerService, CacheLibrary cacheLibrary) {
         this.jsonHandlingService = jsonHandlingService;
         this.applicationContext = applicationContext;
         this.config = config;
+        this.dockerService = dockerService;
         this.cacheLibrary = cacheLibrary;
     }
 
     @Override
     public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws JsonProcessingException {
         EventSchedulerUtils.initializeRunningTasksCheckEvent(applicationContext);
-        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TRAINING) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TRAINING) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TRAINING))
+        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TOPIC_TRAINING) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING))
             return handleTraining(scheduledEvent, entityManager);
-        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RESET_MODEL))
-            return handleReset(scheduledEvent, entityManager);
+        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RESET_TOPIC_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.FUSE_TOPIC_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.SORT_TOPIC_MODEL))
+            return handleCuration(scheduledEvent, entityManager);
         else return EventProcessingStatus.Error;
     }
 
@@ -98,11 +103,11 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         .ids(trainingTaskRequestId).first();
                 try {
                     if (!EventProcessingStatus.Postponed.equals(status)) {
-                        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TRAINING))
+                        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TOPIC_TRAINING))
                             runRootTraining(trainingTaskRequest, entityManager);
-                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TRAINING))
+                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING))
                             prepareHierarchicalTraining(trainingTaskRequest, entityManager);
-                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TRAINING))
+                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING))
                             runHierarchicalTraining(trainingTaskRequest, entityManager);
                         status = EventProcessingStatus.Success;
 
@@ -132,48 +137,28 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         return status;
     }
 
-    private EventProcessingStatus handleReset(ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws JsonProcessingException {
-        ResetModelScheduledEventData eventData = jsonHandlingService.fromJson(ResetModelScheduledEventData.class, scheduledEvent.getData());
-        if (eventData == null) return EventProcessingStatus.Postponed;
-        EventProcessingStatus status = null;
+    private EventProcessingStatus handleCuration(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
+        UUID trainingTaskRequestId = extractRequestIdFromEventData(scheduledEvent);
+        if (trainingTaskRequestId == null) return EventProcessingStatus.Error;
+        EventProcessingStatus status;
 
         try {
             RunTrainingConsistencyHandler runTrainingConsistencyHandler = applicationContext.getBean(RunTrainingConsistencyHandler.class);
-            Boolean isConsistent = (runTrainingConsistencyHandler.isConsistent(new RunTrainingConsistencyPredicates(eventData.getRequestId())));
+            Boolean isConsistent = (runTrainingConsistencyHandler.isConsistent(new RunTrainingConsistencyPredicates(trainingTaskRequestId)));
             if (isConsistent) {
                 TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
-                Long runningTasks = trainingTaskRequestQuery
-                        .status(TrainingTaskRequestStatus.PENDING)
-                        .jobName("resetModel")
-                        .count();
-                if (runningTasks >= config.get().getParallelTrainingsThreshold()) {
-                    logger.debug("Currently running tasks have reached the limit ({}), postponing reset task to run again in {} seconds...", config.get().getParallelTrainingsThreshold(), config.get().getPostponePeriodInSeconds());
-                    scheduledEvent.setRunAt(Instant.now().plusSeconds(config.get().getPostponePeriodInSeconds()));
-                    status = EventProcessingStatus.Postponed;
-                }
-
                 TrainingTaskRequestEntity trainingTaskRequest = trainingTaskRequestQuery
                         .status(TrainingTaskRequestStatus.NEW)
-                        .jobName("resetModel")
-                        .ids(eventData.getRequestId()).first();
+                        .jobName(TOPIC_MODEL_TASKS_SERVICE_NAME)
+                        .ids(trainingTaskRequestId).first();
                 try {
-                    if (!EventProcessingStatus.Postponed.equals(status)) {
-                        runModelReset(trainingTaskRequest, entityManager, eventData.getModelName());
-                        status = EventProcessingStatus.Success;
-
-                        AuditService auditService = applicationContext.getBean(AuditService.class);
-
-                        auditService.track(AuditableAction.Scheduled_Event_Run, Map.ofEntries(
-                                new AbstractMap.SimpleEntry<String, Object>("id", scheduledEvent.getId()),
-                                new AbstractMap.SimpleEntry<String, Object>("eventType", scheduledEvent.getEventType()),
-                                new AbstractMap.SimpleEntry<String, Object>("key", scheduledEvent.getKey()),
-                                new AbstractMap.SimpleEntry<String, Object>("keyType", scheduledEvent.getKeyType()),
-                                new AbstractMap.SimpleEntry<String, Object>("runAt", scheduledEvent.getRunAt())
-
-                        ));
-                    }
-                    //auditService.trackIdentity(AuditableAction.IdentityTracking_Action);
-
+                    if (scheduledEvent.getEventType().equals(ScheduledEventType.RESET_TOPIC_MODEL))
+                        runModelReset(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.FUSE_TOPIC_MODEL))
+                        runModelFusion(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.SORT_TOPIC_MODEL))
+                        runModelSort(trainingTaskRequest, scheduledEvent, entityManager);
+                    status = EventProcessingStatus.Success;
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
                     logger.error(e.getLocalizedMessage());
@@ -248,17 +233,19 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         entityManager.flush();
     }
 
-    private void runModelReset(TrainingTaskRequestEntity trainingTaskRequest, EntityManager entityManager, String modelName) throws IOException, ApiException {
+    private void runModelReset(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+        TopicModelTaskScheduledEventData eventData = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
+
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put(
                 "COMMANDS",
                 String.join(
                         " ",
-                        "manageModels.py",
+                        "python", "manageModels.py",
                         ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
                         ContainerServicesProperties.ManageTopicModels.RESET_CMD,
-                        modelName
+                        eventData.getModelName()
                 )
         );
         executionParams.setEnvMapping(paramMap);
@@ -274,20 +261,78 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         entityManager.flush();
     }
 
+    private void runModelFusion(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+        FuseModelScheduledEventData eventData = jsonHandlingService.fromJsonSafe(FuseModelScheduledEventData.class, scheduledEvent.getData());
+
+        String topics = jsonHandlingService.toJsonSafe(eventData.getTopics());
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put(
+                "COMMANDS",
+                String.join(
+                        " ",
+                        "python", "manageModels.py",
+                        ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
+                        ContainerServicesProperties.ManageTopicModels.FUSE_TOPICS_CMD,
+                        eventData.getModelName(),
+                        ContainerServicesProperties.ManageTopicModels.TOPICS,
+                        topics
+                )
+        );
+        logger.debug(paramMap.get("COMMANDS"));
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running topic model fusion task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runModelSort(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+        TopicModelTaskScheduledEventData eventData = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put(
+                "COMMANDS",
+                String.join(
+                        " ",
+                        "python", "manageModels.py",
+                        ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
+                        ContainerServicesProperties.ManageTopicModels.SORT_TOPICS_CMD,
+                        eventData.getModelName()
+                )
+        );
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running topic model sorting task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
     private UUID extractRequestIdFromEventData(ScheduledEventEntity scheduledEvent) {
-        try {
-            RunTrainingScheduledEventData eventData = jsonHandlingService.fromJson(RunTrainingScheduledEventData.class, scheduledEvent.getData());
-            return eventData.getTrainingTaskRequestId();
-        } catch (JsonProcessingException e) {
-            try {
-                PrepareHierarchicalTrainingEventData eventData = jsonHandlingService.fromJson(PrepareHierarchicalTrainingEventData.class, scheduledEvent.getData());
-                return eventData.getTrainingTaskRequestId();
-            } catch (JsonProcessingException ex) {
-                logger.error("Unable to extract training task request id from the event data...");
-                logger.error(ex.getLocalizedMessage(), ex);
-                return null;
-            }
-        }
+        RunTrainingScheduledEventData eventData1 = jsonHandlingService.fromJsonSafe(RunTrainingScheduledEventData.class, scheduledEvent.getData());
+        if (eventData1 != null) return eventData1.getTrainingTaskRequestId();
+        PrepareHierarchicalTrainingEventData eventData2 = jsonHandlingService.fromJsonSafe(PrepareHierarchicalTrainingEventData.class, scheduledEvent.getData());
+        if (eventData2 != null) return eventData2.getTrainingTaskRequestId();
+        FuseModelScheduledEventData eventData3 = jsonHandlingService.fromJsonSafe(FuseModelScheduledEventData.class, scheduledEvent.getData());
+        if (eventData3 != null) return eventData3.getRequestId();
+        TopicModelTaskScheduledEventData eventData4 = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
+        if (eventData4 != null) return eventData4.getRequestId();
+        logger.error("Unable to extract training task request id from the event data...");
+        return null;
     }
 
 }

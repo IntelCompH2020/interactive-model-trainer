@@ -6,6 +6,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassificat
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
+import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicFusionPayload;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -24,23 +25,26 @@ public interface TrainingTaskRequestService {
 
     //TOPIC MODELS ------------------------------------
 
-    TrainingTaskRequest persistTrainingTaskForRootModel(TrainingTaskRequestPersist model) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException;
-    TrainingTaskRequest persistPreparingTaskForHierarchicalModel(TrainingTaskRequestPersist model) throws InvalidApplicationException;
-    TrainingTaskRequest persistTrainingTaskForHierarchicalModel(TrainingTaskRequestPersist model, String jobId, UUID userId, EntityManager entityManager);
-    TrainingTaskRequest persistModelResetTask(TrainingTaskRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistTopicTrainingTaskForRootModel(TrainingTaskRequestPersist model) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, NoSuchAlgorithmException, IOException, ApiException;
+    TrainingTaskRequest persistTopicPreparingTaskForHierarchicalModel(TrainingTaskRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistTopicTrainingTaskForHierarchicalModel(TrainingTaskRequestPersist model, String jobId, UUID userId, EntityManager entityManager);
+    TrainingTaskRequest persistTopicModelResetTask(TrainingTaskRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistTopicModelFusionTask(String name, TopicFusionPayload payload) throws InvalidApplicationException;
+    TrainingTaskRequest persistTopicModelSortTask(String name) throws InvalidApplicationException;
 
     //DOMAIN MODELS -----------------------------------
 
     TrainingTaskRequest persistDomainTrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
-    TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model);
-    TrainingTaskRequest persistDomainClassifyTaskForRootModel(String name);
-    TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model);
+    TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistDomainClassifyTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
     TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model);
 
     //GENERAL -----------------------------------------
 
     TrainingTaskRequestStatus getTaskStatus(UUID task);
     void clearFinishedTask(UUID task);
+    void cancelTask(UUID task);
     void clearAllFinishedTasks(RunningTaskType type);
     List<? extends RunningTaskQueueItem> getRunningTasks(RunningTaskType type) throws JsonProcessingException;
 }

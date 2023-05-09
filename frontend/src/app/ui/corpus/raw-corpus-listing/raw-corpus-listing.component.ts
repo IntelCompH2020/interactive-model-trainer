@@ -16,7 +16,7 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -146,7 +146,8 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
         nameof<RawCorpus>(x => x.name),
         nameof<RawCorpus>(x => x.description),
         nameof<RawCorpus>(x => x.records),
-        nameof<RawCorpus>(x => x.source)
+        nameof<RawCorpus>(x => x.source),
+        nameof<RawCorpus>(x => x.download_date)
       ]);
     }, 0);
   }

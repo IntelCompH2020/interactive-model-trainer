@@ -1,8 +1,10 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.CacheLibrary;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.UserTasksCacheEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.DomainModelCachedEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.TopicModelCachedEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.*;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
@@ -13,6 +15,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.Event
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
@@ -27,12 +30,13 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -59,37 +63,28 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     @Override
     public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         CheckTasksScheduledEventData eventData = this.jsonHandlingService.fromJsonSafe(CheckTasksScheduledEventData.class, scheduledEvent.getData());
-        if (eventData == null) return EventProcessingStatus.Success;
+        if (eventData == null) {
+            createNewEvent(scheduledEvent, entityManager);
+            return EventProcessingStatus.Success;
+        }
 
         EventProcessingStatus status;
 
         try {
             removeEvent(eventData.getPreviousCheckingEvent(), entityManager);
 
-            logger.debug("Checking and updating running training tasks");
+            logger.debug("Checking and updating running tasks");
             TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
             List<TrainingTaskRequestEntity> runningTrainRequests = trainingTaskRequestQuery
                     .status(TrainingTaskRequestStatus.PENDING)
-                    .jobName(TRAIN_TOPIC_MODELS_SERVICE_NAME, TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                     .collect();
-            logger.debug("Currently running training tasks count -> {}", runningTrainRequests.size());
-
-            logger.debug("Checking and updating running reset model tasks");
-            TrainingTaskRequestQuery modelResetTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
-            List<TrainingTaskRequestEntity> runningResetRequests = modelResetTaskRequestQuery
-                    .status(TrainingTaskRequestStatus.PENDING)
-                    .jobName("resetModel")
-                    .collect();
-            logger.debug("Currently running reset model tasks count -> {}", runningResetRequests.size());
+            logger.debug("Currently running tasks count -> {}", runningTrainRequests.size());
 
             CheckTasksConsistencyHandler checkTasksConsistencyHandler = applicationContext.getBean(CheckTasksConsistencyHandler.class);
             Boolean isConsistent = (checkTasksConsistencyHandler.isConsistent(new CheckTasksConsistencyPredicates()));
             if (isConsistent) {
                 try {
                     for (TrainingTaskRequestEntity request : runningTrainRequests) {
-                        this.run(request, entityManager);
-                    }
-                    for (TrainingTaskRequestEntity request : runningResetRequests) {
                         this.run(request, entityManager);
                     }
                     status = EventProcessingStatus.Success;
@@ -114,15 +109,18 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     }
 
     private void removeEvent(UUID event, EntityManager entityManager) {
-        logger.debug("Removing previously run check event from the database");
+        logger.trace("Removing previously run check event from the database");
         ScheduledEventManageService scheduledEventManageService = applicationContext.getBean(ScheduledEventManageService.class);
         if (event != null) scheduledEventManageService.deleteAsync(event, entityManager);
     }
 
     private void createNewEvent(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
-        logger.debug("Generating new check event for running tasks");
+        logger.trace("Generating new check event for running tasks");
         ScheduledEventQuery scheduledEventQuery = applicationContext.getBean(ScheduledEventQuery.class);
-        if (scheduledEventQuery.status(ScheduledEventStatus.PENDING).count() > 0) return;
+        if (scheduledEventQuery
+                .eventTypes(ScheduledEventType.CHECK_RUNNING_TASKS)
+                .status(ScheduledEventStatus.PENDING)
+                .count() > 0) return;
         CheckTasksScheduledEventData data = new CheckTasksScheduledEventData(scheduledEvent.getId());
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(data));
@@ -143,7 +141,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             trainingTaskRequest.setStatus(TrainingTaskRequestStatus.COMPLETED);
             if (trainingTaskRequest.getConfig().split(",").length >= 2) {
                 ScheduledEventEntity relatedEvent = applicationContext.getBean(ScheduledEventQuery.class)
-                        .eventTypes(ScheduledEventType.PREPARE_HIERARCHICAL_TRAINING)
+                        .eventTypes(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING)
                         .keys(trainingTaskRequest.getId().toString()).first();
                 if (relatedEvent == null) {
                     logger.error("No scheduled event found related with the hierarchical training preparation request '{}'", trainingTaskRequest.getId());
@@ -151,7 +149,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
                 } else {
                     try {
                         PrepareHierarchicalTrainingEventData eventData = jsonHandlingService.fromJson(PrepareHierarchicalTrainingEventData.class, relatedEvent.getData());
-                        TrainingTaskRequest newTask = trainingTaskRequestService.persistTrainingTaskForHierarchicalModel(eventData.getRequest(), trainingTaskRequest.getJobId(), eventData.getUserId(), entityManager);
+                        TrainingTaskRequest newTask = trainingTaskRequestService.persistTopicTrainingTaskForHierarchicalModel(eventData.getRequest(), trainingTaskRequest.getJobId(), eventData.getUserId(), entityManager);
                         trainingTaskRequest.setConfig(newTask.getId().toString());
                     } catch (JsonProcessingException e) {
                         logger.error("Could not deserialize event data to '{}' object", PrepareHierarchicalTrainingEventData.class.getSimpleName());
@@ -161,10 +159,13 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
                 }
             } else {
                 updateCache(UUID.fromString(trainingTaskRequest.getJobId()));
-                if ("TRAIN_TOPIC_MODELS_SERVICE_NAME".equals(trainingTaskRequest.getJobName())) {
-                    cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+                if (TRAIN_TOPIC_MODELS_SERVICE_NAME.equals(trainingTaskRequest.getJobName())) {
+                    cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
+                } else if (TRAIN_DOMAIN_MODELS_SERVICE_NAME.equals(trainingTaskRequest.getJobName())) {
+                    cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
                 } else {
-                    cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+                    //Invalidating cache for topic listings
+                    cacheLibrary.setDirtyByKey(trainingTaskRequest.getConfig());
                 }
             }
             containerManagementService.deleteJob(trainingTaskRequest.getJobId());
@@ -177,12 +178,13 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             entityManager.flush();
 
             updateCache(UUID.fromString(trainingTaskRequest.getJobId()));
-            if ("TRAIN_TOPIC_MODELS_SERVICE_NAME".equals(trainingTaskRequest.getJobName())) {
-                cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
-            } else {
-                cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+            if (TRAIN_TOPIC_MODELS_SERVICE_NAME.equals(trainingTaskRequest.getJobName())) {
+                cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
+            } else if (TRAIN_DOMAIN_MODELS_SERVICE_NAME.equals(trainingTaskRequest.getJobName())) {
+                cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
             }
         }
+        removeOldCache();
     }
 
     private void updateCache(UUID task) {
@@ -192,6 +194,16 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             if (item != null) {
                 item.setFinished(true);
                 item.setFinishedAt(Instant.now());
+            }
+        }
+    }
+
+    private void removeOldCache() {
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+        if (cache != null && cache.getPayload() != null) {
+            List<RunningTaskQueueItem> finishedItems = cache.getPayload().stream().filter(i -> i.isFinished() && i.getType().equals(RunningTaskType.curating)).collect(Collectors.toList());
+            for (RunningTaskQueueItem item : finishedItems) {
+                if (item.getFinishedAt().isBefore(Instant.now().minus(1, ChronoUnit.DAYS))) cache.getPayload().remove(item);
             }
         }
     }

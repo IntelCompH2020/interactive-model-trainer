@@ -1,8 +1,8 @@
 package gr.cite.intelcomp.interactivemodeltrainer.common.utils;
 
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.fake.FakeRequestScope;
+import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
@@ -25,19 +25,23 @@ public final class EventSchedulerUtils {
             transaction.begin();
 
             ScheduledEventQuery pendingQuery = applicationContext.getBean(ScheduledEventQuery.class)
-                    .status(ScheduledEventStatus.PENDING);
-            if (pendingQuery.count() == 0) {
-                ScheduledEventPublishData publishData = new ScheduledEventPublishData();
-                publishData.setData("{}");
-                publishData.setCreatorId(new UUID(0, 0));
-                publishData.setType(ScheduledEventType.CHECK_RUNNING_TRAINING_TASKS);
-                publishData.setRunAt(Instant.now());
-                publishData.setKey(" ");
-                publishData.setKeyType(" ");
-                ScheduledEventManageService scheduledEventManageService = applicationContext.getBean(ScheduledEventManageService.class);
-
-                scheduledEventManageService.publishAsync(publishData, entityManager);
+                    .eventTypes(ScheduledEventType.CHECK_RUNNING_TASKS);
+            if (pendingQuery.count() != 0) {
+                pendingQuery.collect().forEach((scheduledEvent -> {
+                    entityManager.remove(entityManager.find(ScheduledEventEntity.class, scheduledEvent.getId()));
+                }));
             }
+
+            ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+            publishData.setData("{}");
+            publishData.setCreatorId(new UUID(0, 0));
+            publishData.setType(ScheduledEventType.CHECK_RUNNING_TASKS);
+            publishData.setRunAt(Instant.now());
+            publishData.setKey(" ");
+            publishData.setKeyType(" ");
+            ScheduledEventManageService scheduledEventManageService = applicationContext.getBean(ScheduledEventManageService.class);
+
+            scheduledEventManageService.publishAsync(publishData, entityManager);
 
             transaction.commit();
 

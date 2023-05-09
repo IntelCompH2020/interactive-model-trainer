@@ -25,7 +25,7 @@ docker:
         volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels,
           ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,
           ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets
-    resetModel:
+    modelTasks:
       image: mng-mdls-tasks
       volumeConfiguration:
         volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels

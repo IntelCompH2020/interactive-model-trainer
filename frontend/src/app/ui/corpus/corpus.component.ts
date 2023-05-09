@@ -148,10 +148,10 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         label: 'APP.CORPUS-COMPONENT.TYPE',
         value: CorpusType.Raw,
       },
-      {
-        label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
-        value: '...',
-      },
+      // {
+      //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
+      //   value: '...',
+      // },
     ];
   }
 
@@ -186,10 +186,10 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         label: 'APP.CORPUS-COMPONENT.LOGICAL.VALID-FOR',
         value: corpus.valid_for ? this.language.instant('APP.CORPUS-COMPONENT.LOGICAL.VALID-FOR-OPTIONS.'+corpus.valid_for) : 'N/A'
       },
-      {
-        label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
-        value: '...',
-      },
+      // {
+      //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
+      //   value: '...',
+      // },
     ];
   }
 

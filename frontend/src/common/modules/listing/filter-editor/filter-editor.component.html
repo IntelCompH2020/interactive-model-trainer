@@ -1,36 +1,39 @@
 
 <div *ngIf="(filterFormGroup && config?.items?.length) else noConfiguration" class="filter-container">
 
-    <ng-container *ngFor="let item of config.items">
+    <div class="row" *ngFor="let item of config.items">
         <ng-container [ngSwitch]="item.type">
 
             <!--  * DATEPICKER -->
             <ng-container *ngSwitchCase="FilterEditorFilterType.DatePicker">
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" class="col-11">
                     <mat-label *ngIf="item.label">{{item.label | translate}}</mat-label>
                     <input matInput [matDatepicker]="picker" [formControl]="filterFormGroup.get(item.key)">
                     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
                 </mat-form-field>
+                <button mat-icon-button class="col-1 clear-button">
+                    <mat-icon (click)="clear(item.key)">delete</mat-icon>
+                </button>
             </ng-container>
 
             <!-- * TEXTINPUT -->
             <ng-container *ngSwitchCase="FilterEditorFilterType.TextInput">
-                <mat-form-field appearance="outline" >
+                <mat-form-field appearance="outline" class="col-12" >
                     <input type="text" matInput [placeholder]="item.placeholder | translate" [formControl]="filterFormGroup.get(item.key)">
                 </mat-form-field>
             </ng-container>
 
             <!-- * CHECKBOX -->
             <ng-container *ngSwitchCase="FilterEditorFilterType.Checkbox">
-                <div>
+                <div class="col-12">
                     <mat-checkbox [formControl]="filterFormGroup.get(item.key)" color="accent">{{item.label | translate}}</mat-checkbox>
                 </div>
             </ng-container>
 
             <!-- * SELECT -->
             <ng-container *ngSwitchCase="FilterEditorFilterType.Select">
-                <mat-form-field>
+                <mat-form-field class="col-12">
                     <mat-label>{{item.label | translate}}</mat-label>
                     <mat-select [formControl]="filterFormGroup.get(item.key)">
                         <mat-option [value]="option.value" *ngFor="let option of item.availableValues">{{option.label()}}</mat-option>
@@ -39,7 +42,7 @@
             </ng-container>
 
         </ng-container>
-    </ng-container>
+    </div>
 
 
 </div>

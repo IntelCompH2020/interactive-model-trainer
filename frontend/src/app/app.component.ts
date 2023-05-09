@@ -14,6 +14,8 @@ import { TimezoneService } from '@user-service/services/timezone.service';
 import { CookieService } from 'ngx-cookie-service';
 import { takeUntil } from 'rxjs/operators';
 import { PrincipalService } from './core/services/http/principal.service';
+import { from } from 'rxjs';
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
 	selector: 'app-root',
@@ -34,12 +36,13 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 		private cultureService: CultureService,
 		private timezoneService: TimezoneService,
 		private logger: LoggingService,
-		private dialog: MatDialog,
-		private principalService: PrincipalService
+		private keycloakService: KeycloakService
 	) {
 		super();
 
 		this.initializeServices();
+
+		this.loadUser();
 
 		this.authService.getAuthenticationStateObservable().pipe(takeUntil(this._destroyed)).subscribe(authenticationState => {
 			if (authenticationState.loginStatus === LoginStatus.LoggedIn) {
@@ -53,6 +56,10 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 
 	ngAfterViewInit() {
 
+	}
+
+	loadUser(): void {
+		this.authService.prepareAuthRequest(from(this.keycloakService.getToken()), {}).pipe(takeUntil(this._destroyed)).subscribe(() => {}, (error) => this.authService.onAuthenticateError(error));
 	}
 
 	isMac(): boolean {

@@ -29,7 +29,7 @@ public class TopicBuilder extends BaseBuilder<Topic, TopicEntity> {
 
     @Override
     public List<Topic> build(FieldSet fields, List<TopicEntity> data) throws MyApplicationException {
-        this.logger.debug("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
+        this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
@@ -48,7 +48,7 @@ public class TopicBuilder extends BaseBuilder<Topic, TopicEntity> {
             if (fields.hasField(this.asIndexer(TopicEntity._topicCoherence))) m.setTopicCoherence(d.getTopicCoherence());
             models.add(m);
         }
-        this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
+        this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
     }
 }

@@ -1,0 +1,57 @@
+<div class="row align-items-center pt-4 pb-4">
+  <div class="col-auto">
+    <h4>
+      {{'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.FILTER-TITLE' | translate}}
+    </h4>
+  </div>
+
+  <form [formGroup]="likeFilterFormGroup" class="col padding-margin-none">
+    <mat-form-field appearance="outline" class="padding-margin-none w-100">
+      <mat-icon matPrefix class="search-icon-search-bar">search</mat-icon>
+      <input type="search"
+        [placeholder]="'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.SEARCH-PLACEHOLDER' | translate" matInput
+        formControlName="like">
+    </mat-form-field>
+  </form>
+
+  <div class="col-auto" *ngIf="items_loading">
+    <mat-spinner color="accent" diameter="20"></mat-spinner>
+  </div>
+
+  <div class="col-auto">
+    <mat-icon color="error" [matTooltip]="'This is temporary test data. Service not yet integrated'">warning</mat-icon>
+  </div>
+
+  <div class="col-auto">
+    <button mat-button [matMenuTriggerFor]="menu" class="background-gray">
+      <mat-icon>
+        filter_alt
+      </mat-icon>
+      <span>
+        {{'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.FILTER' | translate}}
+      </span>
+      <mat-icon>
+        arrow_drop_down
+      </mat-icon>
+    </button>
+
+    <mat-menu #menu="matMenu" class="filters-container">
+      <ng-template matMenuContent>
+        <div (click)="$event.stopPropagation();">
+          <app-filter-editor [filterFormGroup]="filterFormGroup"
+            [config]="filterEditorConfiguration"></app-filter-editor>
+        </div>
+      </ng-template>
+    </mat-menu>
+  </div>
+  <div class="col-auto">
+    <button mat-raised-button [disabled]="!canGiveFeedback" color="accent" (click)="giveFeedback()"
+      [matTooltip]="canGiveFeedback ? '' : language.instant('APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.GIVE-FEEDBACK-TOOLTIP')">
+      {{'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.GIVE-FEEDBACK' | translate}}
+    </button>
+  </div>
+</div>
+
+<app-listing #documents_list [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)"
+  [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
+  (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" [externalPaging]="true"></app-listing>

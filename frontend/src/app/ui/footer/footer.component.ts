@@ -33,16 +33,6 @@ export class FooterComponent extends BaseComponent implements OnInit {
     this.trainingModelQueueService.taskCompleted.subscribe((task) => {
       let openedDialog = this.dialog.getDialogById(task.task);
       if (openedDialog) (openedDialog.componentInstance as TrainingModelProgressComponent).finishTask(task);
-      else {
-        // for (let item of this.trainingModelQueueService.queue) {
-        //   if (item.task === task) {
-        //     this.openTrainingDialog(item.model, item.task);
-        //     let openedDialog = this.dialog.getDialogById(task);
-        //     if (openedDialog) (openedDialog.componentInstance as TrainingModelProgressComponent).finishTask();
-        //     return;
-        //   }
-        // }
-      }
     });
   }
 

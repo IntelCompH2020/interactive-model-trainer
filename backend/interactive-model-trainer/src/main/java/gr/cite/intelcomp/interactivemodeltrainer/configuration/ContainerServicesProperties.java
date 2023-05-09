@@ -54,6 +54,7 @@ public class ContainerServicesProperties {
         public static final String GET_SIMILAR_TOPICS_CMD = "--getSimilarTopics";
         public static final String SET_TPC_LABELS_CMD = "--setTpcLabels";
         public static final String FUSE_TOPICS_CMD = "--fuseTopics";
+        public static final String TOPICS = "--topics";
         public static final String SORT_TOPICS_CMD = "--sortTopics";
         public static final String DELETE_TOPICS_CMD = "--deleteTopics";
 
@@ -68,10 +69,11 @@ public class ContainerServicesProperties {
 
         public static List<String> TASK_CMD(String modelName, String task, HashMap<String, String> params) {
             List<String> command = new ArrayList<>(
-                    Arrays.asList("main_dc_single_task.py", "--source", "/data/datasets")
+                    Arrays.asList("run_dc_task.py", "--source", "/data/datasets")
             );
             command.addAll(Arrays.asList("--p", InnerPaths.DC_MODELS_ROOT + modelName));
             command.addAll(Arrays.asList("--task", task));
+            command.addAll(Arrays.asList("--class_name", modelName));
             params.forEach((key, val) -> {
                 command.addAll(Arrays.asList("--" + key, Objects.requireNonNullElse(val, "")));
             });
@@ -115,7 +117,7 @@ public class ContainerServicesProperties {
     public static class DockerServiceConfiguration {
 
         public static final String TRAIN_TOPIC_MODELS_SERVICE_NAME = "trainModels";
-        public static final String TOPIC_MODEL_TASKS_SERVICE_NAME = "resetModel";
+        public static final String TOPIC_MODEL_TASKS_SERVICE_NAME = "modelTasks";
         public static final String TRAIN_DOMAIN_MODELS_SERVICE_NAME = "trainDomainModels";
 
         private HashMap<String, String> volumeConfiguration;

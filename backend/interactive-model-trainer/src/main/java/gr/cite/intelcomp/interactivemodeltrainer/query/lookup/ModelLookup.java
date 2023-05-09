@@ -4,6 +4,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.tools.data.query.Lookup;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ public class ModelLookup extends Lookup {
     private String creator;
 
     private Boolean mine;
+
+    private Instant createdAt;
 
     private ModelType modelType;
 
@@ -57,6 +60,14 @@ public class ModelLookup extends Lookup {
 
     public void setMine(Boolean mine) {
         this.mine = mine;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public ModelType getModelType() {

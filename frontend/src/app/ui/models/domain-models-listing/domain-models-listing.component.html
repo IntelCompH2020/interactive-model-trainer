@@ -31,9 +31,9 @@
             </mat-icon>
         </button>
 
-        <mat-menu #menu="matMenu">
+        <mat-menu #menu="matMenu" class="filters-container">
             <ng-template matMenuContent>
-                <div (click)="$event.stopPropagation();" class="filters-container pl-4 pr-4 pt-2 pt-1">
+                <div (click)="$event.stopPropagation();">
                     <app-filter-editor [filterFormGroup]="filterFormGroup"
                         [config]="filterEditorConfiguration"></app-filter-editor>
                 </div>
@@ -64,4 +64,7 @@
 
 <app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
     [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)"
-    (columnSort)="onColumnSort($event)"></app-listing>
+    (columnSort)="onColumnSort($event)">
+</app-listing>
+<app-documents-listing *ngIf="settingsAreSelected" [settings]="selectedSettings" (onDocumentSelect)="onDocumentSelected($event)">
+</app-documents-listing>

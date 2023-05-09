@@ -1,4 +1,4 @@
-package gr.cite.intelcomp.interactivemodeltrainer.cashe;
+package gr.cite.intelcomp.interactivemodeltrainer.cache;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,6 +19,7 @@ public class CacheLibrary extends ConcurrentHashMap<String, CachedEntity<?>> {
     }
 
     public void setDirtyByKey(String key) {
+        if (key == null) return;
         CachedEntity<?> entity = get(key);
         if (entity != null) entity.setDirty(true);
     }

@@ -20,6 +20,10 @@ import java.util.List;
 
 public interface DockerService {
 
+    void createInputFileInTempFolder(String fileName, String content, String service) throws IOException;
+
+    void deleteInputTempFileInTempFolder(String fileName, String service) throws IOException;
+
     List<WordListEntity> listWordLists(WordListLookup lookup) throws InterruptedException, IOException, ApiException;
 
     List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException;

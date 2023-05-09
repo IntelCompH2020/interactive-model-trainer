@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
 import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
-import gr.cite.intelcomp.interactivemodeltrainer.cashe.*;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.*;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,8 @@ public class DockerServiceImpl implements DockerService {
     }
 
 
-    private void createInputFileInTempFolder(String fileName, String content, String service) throws IOException {
+    @Override
+    public void createInputFileInTempFolder(String fileName, String content, String service) throws IOException {
         Path temp_folder = Paths.get(this.containerServicesProperties.getServices().get(service).getTempFolder());
         if (!Files.exists(temp_folder)) {
             Files.createDirectory(temp_folder);
@@ -82,7 +84,8 @@ public class DockerServiceImpl implements DockerService {
         Files.write(temp_file, content.getBytes(StandardCharsets.UTF_8));
     }
 
-    private void deleteInputTempFileInTempFolder(String fileName, String service) throws IOException {
+    @Override
+    public void deleteInputTempFileInTempFolder(String fileName, String service) throws IOException {
         Path temp_file = Paths.get(this.containerServicesProperties.getServices().get(service).getTempFolder(), fileName);
         Files.delete(temp_file);
     }
@@ -109,6 +112,10 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }
+        if (lookup.getCreatedAt() != null) {
+            result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+        }
         return result;
     }
 
@@ -128,6 +135,15 @@ public class DockerServiceImpl implements DockerService {
         }
         if (lookup.getCorpusValidFor() != null && !CorpusValidFor.ALL.equals(lookup.getCorpusValidFor())) {
             result = result.stream().filter(e -> e.getValid_for().equals(lookup.getCorpusValidFor())).collect(Collectors.toList());
+        }
+        if (lookup.getCreatedAt() != null) {
+            if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
+                result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                        e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            } else {
+                result = result.stream().filter(e -> ((RawCorpusEntity) e).getDownload_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                        ((RawCorpusEntity) e).getDownload_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            }
         }
 
 //        if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
@@ -163,6 +179,10 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }
+        if (lookup.getCreatedAt() != null) {
+            result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+        }
         return result;
     }
 
@@ -183,7 +203,7 @@ public class DockerServiceImpl implements DockerService {
     @Override
     public List<WordListEntity> listWordLists(WordListLookup lookup) throws InterruptedException, IOException, ApiException {
         List<WordListEntity> data = new ArrayList<>();
-        WordlistCachedEntity cached = (WordlistCachedEntity) cacheLibrary.get(CommandType.WORDLIST_GET.name());
+        WordlistCachedEntity cached = (WordlistCachedEntity) cacheLibrary.get(WordlistCachedEntity.CODE);
         if (cached == null || cached.isDirty()) {
             List<String> command = new ArrayList<>(ContainerServicesProperties.ManageLists.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageLists.LIST_ALL_CMD);
@@ -226,7 +246,7 @@ public class DockerServiceImpl implements DockerService {
         List<CorpusEntity> result = Lists.newArrayList();
         if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
             List<LogicalCorpusEntity> data = new ArrayList<>();
-            LogicalCorpusCachedEntity cached = (LogicalCorpusCachedEntity) cacheLibrary.get(CommandType.CORPUS_GET_LOGICAL.name());
+            LogicalCorpusCachedEntity cached = (LogicalCorpusCachedEntity) cacheLibrary.get(LogicalCorpusCachedEntity.CODE);
             if (cached == null || cached.isDirty()) {
                 List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
                 command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_LOGICAL_CMD);
@@ -249,23 +269,16 @@ public class DockerServiceImpl implements DockerService {
             result.addAll(applyLookup(data, lookup));
         } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
             List<RawCorpusEntity> data = new ArrayList<>();
-            RawCorpusCachedEntity cached = (RawCorpusCachedEntity) cacheLibrary.get(CommandType.CORPUS_GET_RAW.name());
-            if (cached == null || cached.isDirty()) {
-                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
-                command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_DOWNLOADED_CMD);
+            RawCorpusCachedEntity cached = (RawCorpusCachedEntity) cacheLibrary.get(RawCorpusCachedEntity.CODE);
+            List<String> command = new ArrayList<>(ContainerServicesProperties.ManageCorpus.MANAGER_ENTRY_CMD);
+            command.add(ContainerServicesProperties.ManageCorpus.LIST_ALL_DOWNLOADED_CMD);
 
-                String response = this.dockerExecutionService.execCommand(CommandType.CORPUS_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
+            String response = this.dockerExecutionService.execCommand(CommandType.CORPUS_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
 
-                Map<String, RawCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
-                });
-                if (corpus == null) return data;
-                data.addAll(corpus.values());
-                RawCorpusCachedEntity toCache = new RawCorpusCachedEntity();
-                toCache.setPayload(data);
-                cacheLibrary.update(toCache);
-            } else {
-                data.addAll(cached.getPayload());
-            }
+            Map<String, RawCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
+            });
+            if (corpus == null) return data;
+            data.addAll(corpus.values());
             result.addAll(applyLookup(data, lookup));
         }
 
@@ -278,7 +291,7 @@ public class DockerServiceImpl implements DockerService {
 
         if (ModelType.DOMAIN.equals(lookup.getModelType())) {
             List<DomainModelEntity> data = new ArrayList<>();
-            DomainModelCachedEntity cached = (DomainModelCachedEntity) cacheLibrary.get(CommandType.MODEL_GET_DOMAIN.name());
+            DomainModelCachedEntity cached = (DomainModelCachedEntity) cacheLibrary.get(DomainModelCachedEntity.CODE);
             if (cached == null || cached.isDirty()) {
                 List<String> command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
                 command.add(ContainerServicesProperties.ManageDomainModels.LIST_ALL_DOMAIN_CMD);
@@ -301,7 +314,7 @@ public class DockerServiceImpl implements DockerService {
             result.addAll(applyLookup(data, lookup));
         } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
             List<TopicModelEntity> data = new ArrayList<>();
-            TopicModelCachedEntity cached = (TopicModelCachedEntity) cacheLibrary.get(CommandType.MODEL_GET_TOPIC.name());
+            TopicModelCachedEntity cached = (TopicModelCachedEntity) cacheLibrary.get(TopicModelCachedEntity.CODE);
             if (cached == null || cached.isDirty()) {
                 List<String> command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
                 command.add(ContainerServicesProperties.ManageTopicModels.LIST_ALL_TM_MODELS_CMD);
@@ -387,7 +400,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(result);
 
         this.deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_LISTS);
-        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
+        cacheLibrary.setDirtyByKey(WordlistCachedEntity.CODE);
     }
 
     @Override
@@ -410,7 +423,7 @@ public class DockerServiceImpl implements DockerService {
         checkResult(result);
 
         this.deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_CORPUS);
-        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
+        cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
     }
 
     @Override
@@ -420,7 +433,7 @@ public class DockerServiceImpl implements DockerService {
         command.add(name);
 
         this.dockerExecutionService.execCommand(CommandType.WORDLIST_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
-        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
+        cacheLibrary.setDirtyByKey(WordlistCachedEntity.CODE);
     }
 
     @Override
@@ -430,7 +443,7 @@ public class DockerServiceImpl implements DockerService {
         command.add(name);
 
         this.dockerExecutionService.execCommand(CommandType.CORPUS_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
-        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
+        cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
     }
 
     @Override
@@ -448,9 +461,9 @@ public class DockerServiceImpl implements DockerService {
 
         this.dockerExecutionService.execCommand(CommandType.MODEL_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
         if (ModelType.TOPIC.equals(modelType)) {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+            cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
         } else {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+            cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
         }
     }
 
@@ -464,7 +477,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
 
         checkResult(result);
-        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
+        cacheLibrary.setDirtyByKey(WordlistCachedEntity.CODE);
     }
 
     @Override
@@ -477,7 +490,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.CORPUS_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
 
         checkResult(result);
-        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
+        cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
     }
 
     @Override
@@ -497,9 +510,9 @@ public class DockerServiceImpl implements DockerService {
 
         checkResult(result);
         if (ModelType.TOPIC.equals(modelType)) {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+            cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
         } else {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+            cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
         }
     }
 
@@ -512,7 +525,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.WORDLIST_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_LISTS));
 
         checkResult(result);
-        cacheLibrary.setDirtyByKey(CommandType.WORDLIST_GET.name());
+        cacheLibrary.setDirtyByKey(WordlistCachedEntity.CODE);
     }
 
     @Override
@@ -524,7 +537,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.CORPUS_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_CORPUS));
 
         checkResult(result);
-        cacheLibrary.setDirtyByKey(CommandType.CORPUS_GET_LOGICAL.name());
+        cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
     }
 
     @Override
@@ -543,10 +556,10 @@ public class DockerServiceImpl implements DockerService {
 
         checkResult(result);
         if (ModelType.TOPIC.equals(modelType)) {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_TOPIC.name());
+            cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
             cacheLibrary.remove(TopicCachedEntity.CODE + name);
         } else {
-            cacheLibrary.setDirtyByKey(CommandType.MODEL_GET_DOMAIN.name());
+            cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
         }
     }
 

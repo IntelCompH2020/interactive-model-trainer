@@ -5,6 +5,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.tools.data.query.Lookup;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public class CorpusLookup extends Lookup {
     private List<UUID> ids;
     private String creator;
     private Boolean mine;
+    private Instant createdAt;
     private CorpusType corpusType;
     private CorpusValidFor corpusValidFor;
 
@@ -53,6 +55,13 @@ public class CorpusLookup extends Lookup {
         this.mine = mine;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public CorpusType getCorpusType() {
         return corpusType;
     }
@@ -63,7 +72,6 @@ public class CorpusLookup extends Lookup {
     public CorpusValidFor getCorpusValidFor() {
         return corpusValidFor;
     }
-
     public void setCorpusValidFor(CorpusValidFor corpusValidFor) {
         this.corpusValidFor = corpusValidFor;
     }

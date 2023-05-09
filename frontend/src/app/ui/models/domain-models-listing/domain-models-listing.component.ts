@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IsActive } from '@app/core/enum/is-active.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
-import { DomainModel } from '@app/core/model/model/domain-model.model';
+import { Document, DomainModel } from '@app/core/model/model/domain-model.model';
 import { DomainModelLookup } from '@app/core/query/domain-model.lookup';
 import { RawCorpusLookup } from '@app/core/query/raw-corpus.lookup';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
@@ -19,12 +19,12 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ModelPatchComponent } from '../model-patch/model-patch-modal.component';
@@ -32,6 +32,13 @@ import { DomainModelFromCategoryNameComponent } from './domain-model-from-catego
 import { DomainModelFromKeywordsComponent } from './domain-model-from-keywords/domain-model-from-keywords.component';
 import { DomainModelFromSelectionFunctionComponent } from './domain-model-from-selection-function/domain-model-from-selection-function.component';
 import { RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
+import { retrainParams, evaluateParams, samplingParams } from './domain-model-params.model';
+import { DomainModelEvaluateEditorModel } from './domain-model-evaluate-editor.model';
+import { DomainModelRetrainEditorModel } from './domain-model-retrain-editor.model';
+import { ModelParam } from '../model-parameters-table/model-parameters-table.component';
+import { DomainModelCurationDialogComponent } from './domain-model-curation-dialog/domain-model-curation-dialog.component';
+import { DomainModelSamplingEditorModel } from './domain-model-sampling-editor.model';
+import { DocumentLookup } from '@app/core/query/document.lookup';
 
 @Component({
 	selector: 'app-domain-models-listing',
@@ -45,12 +52,40 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 	filterFormGroup: FormGroup;
 	likeFilterFormGroup: FormGroup;
 
+	retrainEditorModel: DomainModelRetrainEditorModel;
+	retrainFormGroup: FormGroup;
+	evaluateEditorModel: DomainModelEvaluateEditorModel;
+	evaluateFormGroup: FormGroup;
+	samplingEditorModel: DomainModelSamplingEditorModel;
+	samplingFormGroup: FormGroup;
+
 	@Output()
 	onDomainModelSelect = new EventEmitter<DomainModel>();
-
+	@Output()
+	onDocumentSelect = new EventEmitter<Document>();
 	private _domainModelSelected: DomainModel = null;
+	private _documentSelected: Document = null;
+
+	selectedSettings: BehaviorSubject<DomainModelSamplingEditorModel> = new BehaviorSubject(undefined);
+	private _selectedSettings: DomainModelSamplingEditorModel = null;
+	get settingsAreSelected(): boolean {
+		return this._selectedSettings ? true : false;
+	}
+	documentLookup: DocumentLookup = new DocumentLookup();
 
 	SelectionType = SelectionType;
+
+	get retrainParams(): ModelParam[] {
+		return retrainParams();
+	}
+
+	get evaluateParams(): ModelParam[] {
+		return evaluateParams();
+	}
+
+	get samplingParams(): ModelParam[] {
+		return samplingParams();
+	}
 
 	protected loadListing(): Observable<QueryResult<DomainModel>> {
 		return this.domainModelService.query(this.lookup);
@@ -99,7 +134,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			prop: nameof<DomainModel>(x => x.tag),
 			sortable: true,
 			resizeable: true,
-			languageName: 'APP.MODELS-COMPONENT.TAG'
+			languageName: 'APP.MODELS-COMPONENT.DOMAIN-NAME'
 		},
 		{
 			prop: nameof<DomainModel>(x => x.creation_date),
@@ -150,13 +185,13 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._buildFilterEditorConfiguration();
 
 		setTimeout(() => {
-      this.setupVisibleColumns([
+			this.setupVisibleColumns([
 				nameof<DomainModel>(x => x.name),
 				nameof<DomainModel>(x => x.description),
 				nameof<DomainModel>(x => x.tag),
 				nameof<DomainModel>(x => x.creation_date)
 			]);
-    }, 0);
+		}, 0);
 	}
 
 	ngOnInit(): void {
@@ -165,15 +200,25 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._setUpLikeFilterFormGroup();
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
-		this.trainingModelQueueService.taskCompleted.subscribe((task) => {
-			if (task.finished) this.refresh();
-		});
+		this.trainingModelQueueService.taskCompleted
+			.pipe(
+				debounceTime(300)
+			).subscribe((task) => {
+				if (this.trainingModelQueueService.isDomainModelTask(task)) this.refresh(
+					() => this.snackbars.successfulOperation(true)
+				);
+			});
 	}
 
-	public refresh(): void {
+	public refresh(callback?: () => void): void {
 		this.onDomainModelSelect.emit(null);
 		this._domainModelSelected = null;
+		this.onDocumentSelect.emit(null);
+		this._documentSelected = null;
+		this.selectedSettings.next(null);
+		this._selectedSettings = null;
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+		if (callback) callback();
 	}
 
 	public edit(model: DomainModel, updateAll: boolean = false): void {
@@ -195,8 +240,9 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 					takeUntil(this._destroyed)
 				)
 				.subscribe(() => {
-					this.snackbars.successfulUpdate();
-					this.refresh();
+					this.refresh(
+						() => this.snackbars.successfulUpdate()
+					);
 				});
 		} else {
 			this.dialog.open(RenameDialogComponent, {
@@ -215,8 +261,9 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				)
 				.subscribe((rename: RenamePersist) => {
 					this.domainModelService.rename(rename).subscribe((_response) => {
-						this.snackbars.successfulUpdate();
-						this.refresh();
+						this.refresh(
+							() => this.snackbars.successfulUpdate()
+						);
 					});
 				});
 		}
@@ -224,8 +271,108 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 
 	public copy(model: DomainModel): void {
 		this.domainModelService.copy(model.name).subscribe(
-			_response => this.refresh()
+			_response => this.refresh(
+				() => this.snackbars.successfulUpdate()
+			)
 		);
+	}
+
+	public retrain(model: DomainModel, callback: () => void): void {
+		this.retrainEditorModel = new DomainModelRetrainEditorModel().withName(model.name);
+		this.retrainFormGroup = this.retrainEditorModel.buildForm();
+		this.dialog.open(DomainModelCurationDialogComponent, {
+			width: '25rem',
+			maxWidth: "90vw",
+			disableClose: true,
+			data: {
+				title: this.language.instant('APP.MODELS-COMPONENT.RETRAIN'),
+				formGroup: this.retrainFormGroup,
+				parameters: this.retrainParams
+			}
+		})
+			.afterClosed()
+			.pipe(
+				filter(x => x),
+				takeUntil(this._destroyed)
+			)
+			.subscribe((parameters: any) => {
+				let payload = {
+					name: model.name,
+					parameters
+				}
+				this.domainModelService.retrain(payload).subscribe(
+					_response => {
+						this.snackbars.operationStarted();
+						callback();
+					}
+				)
+			});
+	}
+
+	public classify(model: DomainModel, callback: () => void): void {
+		this.domainModelService.classify(model.name).subscribe(
+			_response => {
+				this.snackbars.operationStarted();
+				callback();
+			}
+		)
+	}
+
+	public evaluate(model: DomainModel, callback: () => void): void {
+		this.evaluateEditorModel = new DomainModelEvaluateEditorModel().withName(model.name);
+		this.evaluateFormGroup = this.evaluateEditorModel.buildForm();
+		this.dialog.open(DomainModelCurationDialogComponent, {
+			width: '25rem',
+			maxWidth: "90vw",
+			disableClose: true,
+			data: {
+				title: this.language.instant('APP.MODELS-COMPONENT.EVALUATE'),
+				formGroup: this.evaluateFormGroup,
+				parameters: this.evaluateParams
+			}
+		})
+			.afterClosed()
+			.pipe(
+				filter(x => x),
+				takeUntil(this._destroyed)
+			)
+			.subscribe((parameters: any) => {
+				let payload = {
+					name: model.name,
+					parameters
+				}
+				this.domainModelService.evaluate(payload).subscribe(
+					_response => {
+						this.snackbars.operationStarted();
+						callback();
+					}
+				)
+			});
+	}
+
+	public sample(model: DomainModel, callback: () => void) {
+		this.samplingEditorModel = new DomainModelSamplingEditorModel().withName(model.name);
+		this.samplingFormGroup = this.samplingEditorModel.buildForm();
+		this.dialog.open(DomainModelCurationDialogComponent, {
+			width: '50rem',
+			maxWidth: "90vw",
+			disableClose: true,
+			data: {
+				title: this.language.instant('APP.MODELS-COMPONENT.SAMPLE'),
+				modelName: model.name,
+				formGroup: this.samplingFormGroup,
+				parameters: this.samplingParams
+			}
+		})
+			.afterClosed()
+			.pipe(
+				filter(x => x),
+				takeUntil(this._destroyed)
+			)
+			.subscribe((settings: DomainModelSamplingEditorModel) => {
+				this._selectedSettings = settings;
+				this.selectedSettings.next(settings);
+			});
 	}
 
 	private _buildFilterEditorConfiguration(): void {
@@ -239,7 +386,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				{
 					key: 'tag',
 					type: FilterEditorFilterType.TextInput,
-					placeholder: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.TAG-PLACEHOLDER'
+					placeholder: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.FILTER-OPTIONS.DOMAIN-NAME-PLACEHOLDER'
 				},
 				{
 					key: 'creator',
@@ -287,7 +434,18 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			if (this._domainModelSelected && selectedModel.name === this._domainModelSelected.name) return;
 			this.onDomainModelSelect.emit(selectedModel);
 			this._domainModelSelected = selectedModel;
+			this._selectedSettings = null;
+			this.selectedSettings.next(null);
 		}
+	}
+
+	onDocumentSelected(document: Document) {
+		this._documentSelected = document;
+		this.onDocumentSelect.emit(document);
+	}
+
+	onDocumentLookup(lookup: DocumentLookup) {
+		this.documentLookup = lookup;
 	}
 
 	newDomainModelFromKeywords(): void {
@@ -346,3 +504,4 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 	}
 
 }
+

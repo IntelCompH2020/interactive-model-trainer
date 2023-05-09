@@ -32,6 +32,8 @@ import { EquivalenceService } from '@app/core/services/http/equivalence.service'
 import { ModelPatchComponent } from './model-patch/model-patch-modal.component';
 import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
 import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
+import { DomainModelCurationDialogComponent } from './domain-models-listing/domain-model-curation-dialog/domain-model-curation-dialog.component';
+import { DocumentsListingComponent } from './domain-models-listing/documents-listing/documents-listing.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +54,9 @@ import { RunningTasksService } from '@app/core/services/http/running-tasks.servi
     PyLDAComponent,
     TopicSelectionComponent,
     TopicSimilaritiesComponent,
-    TopicLabelsComponent
+    TopicLabelsComponent,
+    DomainModelCurationDialogComponent,
+    DocumentsListingComponent
   ],
   imports: [
     CommonModule,

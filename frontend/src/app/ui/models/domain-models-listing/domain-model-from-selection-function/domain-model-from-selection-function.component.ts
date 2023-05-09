@@ -171,6 +171,19 @@ export class DomainModelFromSelectionFunctionComponent implements OnInit {
     parameters['DC.n_max'] = this.formGroup.get('numberOfElements').value;
     parameters['DC.s_min'] = this.formGroup.get('minimumScore').value;
 
+    parameters['classifier.modelType'] = this.classifierFormGroup.get('modelType').value;
+    parameters['classifier.modelName'] = this.classifierFormGroup.get('modelName').value;
+    parameters['classifier.maximumImbalance'] = this.classifierFormGroup.get('maximumImbalance').value;
+    parameters['classifier.nmax'] = this.classifierFormGroup.get('nmax').value;
+    parameters['classifier.freezeEncoder'] = this.classifierFormGroup.get('freezeEncoder').value;
+    parameters['classifier.epochs'] = this.classifierFormGroup.get('epochs').value;
+    parameters['classifier.batchSize'] = this.classifierFormGroup.get('batchSize').value;
+
+    parameters['AL.nDocs'] = this.activeLearningFormGroup.get('nDocs').value;
+    parameters['AL.sampler'] = this.activeLearningFormGroup.get('sampler').value;
+    parameters['AL.pRatio'] = this.activeLearningFormGroup.get('pRatio').value;
+    parameters['AL.topProb'] = this.activeLearningFormGroup.get('topProb').value;
+
     const model: any = {
       name: this.formGroup.get('name').value,
       description: this.formGroup.get('description').value,
