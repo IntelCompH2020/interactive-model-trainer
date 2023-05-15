@@ -1,0 +1,43 @@
+<div mat-dialog-title>
+  <span class="h5">{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.TITLE' | translate}}</span>
+</div>
+
+<mat-dialog-content *ngIf="items">
+  <div class="row sticky-top">
+    <div class="col-12 tasks-table">
+      <table class="table text-center col-12">
+        <thead class="table-head-gray sticky-top">
+          <tr>
+            <th>{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.TYPE' | translate}}</th>
+            <th>{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.TIME' | translate}}</th>
+            <th>{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.DURATION' | translate}}</th>
+            <th>{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.ACTIONS' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr *ngFor="let item of items" [ngClass]="{'selected-item': isSelected(item)}">
+            <td class="align-middle">{{enumUtils.toRunningTaskSubtypeString(item.subType)}}</td>
+            <td class="align-middle">{{item.finishedAt | date:'short'}}</td>
+            <td class="align-middle">{{getDuration(item) | secondsToTime}}</td>
+            <td class="align-middle">
+              <button mat-raised-button (click)="selectItem(item)">
+                {{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.VIEW-LOGS' | translate}}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col-12">
+      <div [innerHTML]="logsHtml" class="col-12 text-white logs-console" style="background-color: black;"></div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

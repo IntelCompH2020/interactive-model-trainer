@@ -204,9 +204,11 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			.pipe(
 				debounceTime(300)
 			).subscribe((task) => {
-				if (this.trainingModelQueueService.isDomainModelTask(task)) this.refresh(
-					() => this.snackbars.successfulOperation(true)
-				);
+				if (this.trainingModelQueueService.isDomainModelTask(task)) {
+					this.refresh(
+						() => this.snackbars.successfulOperation(true)
+					);
+				}
 			});
 	}
 
@@ -296,9 +298,12 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				takeUntil(this._destroyed)
 			)
 			.subscribe((parameters: any) => {
+				let params = {
+					'classifier.epochs': parameters['epochs']
+				}
 				let payload = {
 					name: model.name,
-					parameters
+					parameters: params
 				}
 				this.domainModelService.retrain(payload).subscribe(
 					_response => {
@@ -337,9 +342,12 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				takeUntil(this._destroyed)
 			)
 			.subscribe((parameters: any) => {
+				let params = {
+					'evaluator.true_label_name': parameters['trueLabelName']
+				}
 				let payload = {
 					name: model.name,
-					parameters
+					parameters: params
 				}
 				this.domainModelService.evaluate(payload).subscribe(
 					_response => {

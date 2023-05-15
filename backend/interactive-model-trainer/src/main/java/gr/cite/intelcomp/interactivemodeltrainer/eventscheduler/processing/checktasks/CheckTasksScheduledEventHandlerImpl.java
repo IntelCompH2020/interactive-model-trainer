@@ -15,28 +15,33 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.Event
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
+import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
 import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -46,17 +51,19 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private final CheckTasksSchedulerEventConfig config;
     private final JsonHandlingService jsonHandlingService;
     private final TrainingTaskRequestService trainingTaskRequestService;
+    private final DomainClassificationParametersService domainClassificationParametersService;
     private final CacheLibrary cacheLibrary;
 
     public CheckTasksScheduledEventHandlerImpl(
             ApplicationContext applicationContext,
             CheckTasksSchedulerEventConfig config,
             JsonHandlingService jsonHandlingService,
-            TrainingTaskRequestService trainingTaskRequestService, CacheLibrary cacheLibrary) {
+            TrainingTaskRequestService trainingTaskRequestService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary) {
         this.applicationContext = applicationContext;
         this.config = config;
         this.jsonHandlingService = jsonHandlingService;
         this.trainingTaskRequestService = trainingTaskRequestService;
+        this.domainClassificationParametersService = domainClassificationParametersService;
         this.cacheLibrary = cacheLibrary;
     }
 
@@ -189,12 +196,26 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
 
     private void updateCache(UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        if (cache != null && cache.getPayload() != null) {
-            RunningTaskQueueItem item = cache.getPayload().stream().filter(i -> i.getTask().equals(task)).collect(Collectors.toList()).get(0);
-            if (item != null) {
-                item.setFinished(true);
-                item.setFinishedAt(Instant.now());
+        if (cache == null || cache.getPayload() == null) return;
+        RunningTaskQueueItem item = cache.getPayload().stream().filter(i -> i.getTask().equals(task)).collect(Collectors.toList()).get(0);
+        if (item == null) return;
+
+        item.setFinished(true);
+        item.setFinishedAt(Instant.now());
+
+        try {
+            Field field = item.getClass().getSuperclass().getDeclaredField("label");
+            field.setAccessible(true);
+            String modelName = field.get(item).toString();
+            if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL.equals(item.getSubType())) {
+                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME));
+            } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL.equals(item.getSubType())) {
+                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME));
+            } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL.equals(item.getSubType())) {
+                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
             }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 

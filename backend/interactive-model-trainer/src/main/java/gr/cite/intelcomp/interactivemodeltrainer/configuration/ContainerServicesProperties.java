@@ -69,9 +69,9 @@ public class ContainerServicesProperties {
 
         public static List<String> TASK_CMD(String modelName, String task, HashMap<String, String> params) {
             List<String> command = new ArrayList<>(
-                    Arrays.asList("run_dc_task.py", "--source", "/data/datasets")
+                    Arrays.asList("run_dc_task.py", "--source", "/data/DCmodels/datasets")
             );
-            command.addAll(Arrays.asList("--p", InnerPaths.DC_MODELS_ROOT + modelName));
+            command.addAll(Arrays.asList("--p", InnerPaths.DC_PROJECT_ROOT + modelName));
             command.addAll(Arrays.asList("--task", task));
             command.addAll(Arrays.asList("--class_name", modelName));
             params.forEach((key, val) -> {
@@ -81,7 +81,7 @@ public class ContainerServicesProperties {
         }
 
         public static final List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
-                Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/DCmodels")
+                Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/DCmodels/models/")
         );
 
         public static final String LIST_ALL_DOMAIN_CMD = "--listTMmodels";
@@ -90,8 +90,12 @@ public class ContainerServicesProperties {
         public static final String DELETE_CMD = "--deleteTMmodel";
 
         public static final class InnerPaths {
-            public static final String DC_MODELS_ROOT = "/data/DCmodels/";
+            public static final String DC_MODELS_ROOT = "/data/DCmodels/models/";
+            public static final String DC_PROJECT_ROOT = "/data/DCmodels/";
             public static final String DC_MODEL_CONFIG_FILE_NAME = "dc_config.json";
+            public static final String DC_MODEL_RETRAIN_LOG_FILE_NAME = "retrain-execution.log";
+            public static final String DC_MODEL_CLASSIFY_LOG_FILE_NAME = "classification-execution.log";
+            public static final String DC_MODEL_EVALUATE_LOG_FILE_NAME = "evaluation-execution.log";
         }
 
     }

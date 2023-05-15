@@ -6,8 +6,13 @@
     background-color: lightgreen;
     border-radius: 1rem;
     box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
+    align-items: center;
     -webkit-box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
     -moz-box-shadow: 2px 1px 9px 4px rgba(0, 0, 0, 0.23);
+}
+
+.recent-tasks-removing {
+    transform: translateX(.2rem);
 }
 
 @media screen and (min-width: 992px) {

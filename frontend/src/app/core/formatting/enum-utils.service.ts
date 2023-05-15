@@ -10,6 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CorpusValidFor } from '../enum/corpus-valid-for.enum';
 import { TopicModelSubtype } from '../enum/topic-model-subtype.enum';
 import { TopicModelType } from '../enum/topic-model.-type.enum';
+import { RunningTaskSubType } from '../services/ui/running-tasks-queue.service';
 
 @Injectable()
 export class AppEnumUtils extends BaseEnumUtilsService {
@@ -76,6 +77,15 @@ export class AppEnumUtils extends BaseEnumUtilsService {
 			case TopicModelSubtype.Mallet: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.MALLET');
 			case TopicModelSubtype.Hierarchical: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.HIERARCHICAL');
 			case TopicModelSubtype.All: return this.language.instant('APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.TOPIC-MODEL-SUBTYPES.ALL');
+			default: return '-';
+		}
+	}
+
+	public toRunningTaskSubtypeString(value: RunningTaskSubType): string {
+		switch (value) {
+			case RunningTaskSubType.RETRAIN_DOMAIN_MODEL: return "Retrain";
+			case RunningTaskSubType.CLASSIFY_DOMAIN_MODEL: return "Classification";
+			case RunningTaskSubType.EVALUATE_DOMAIN_MODEL: return "Evaluation";
 			default: return '-';
 		}
 	}

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { Document, DomainModel } from '@app/core/model/model/domain-model.model';
 import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
@@ -20,7 +19,8 @@ import { ModelDetailsComponent } from './model-details/model-details.component';
 import { PyLDAComponent } from './topic-models-listing/py-lda-vis-modal/py-lda-vis-modal.component';
 import { TopicModelsListingComponent } from './topic-models-listing/topic-models-listing.component';
 import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
-import { RunningTaskType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
+import { RunningTaskQueueItem, RunningTaskType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
+import { ModelTaskDetailsComponent } from './model-task-details/model-task-details.component';
 
 @Component({
   selector: 'app-models',
@@ -72,16 +72,26 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   get curatingTopicModel(): boolean {
     if (this.isDomainModelListing) return false;
     else if (this._curatingTopicModel) return true;
-    else return this.runningTasksService.curating.filter(item => {
+    else return this.runningTasksQueueService.curating.filter(item => {
       return item.label === this.modelSelected.name;
     }).length === 1;
   }
   get curatingDomainModel(): boolean {
     if (this.isTopicModelListing) return false;
-    else return this.runningTasksService.curating.filter(item => {
+    else return this.runningTasksQueueService.curating.filter(item => {
       return item.label === this.modelSelected.name;
     }).length === 1;
   }
+  get curatingDomainModelFinished(): RunningTaskQueueItem[] {
+    let result: RunningTaskQueueItem[] = [];
+    if (this.isTopicModelListing) return undefined;
+    else result = this.runningTasksQueueService.curatingFinished.filter(item => {
+      return this.runningTasksQueueService.isDomainModelTask(item) && item.label === this.modelSelected.name;
+    });
+    if (!result.length) this.recentTasksRemoving = false;
+    return result;
+  }
+  recentTasksRemoving: boolean = false;
 
   private onRefresh: () => void;
   private onRenameItem: () => void;
@@ -102,11 +112,11 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
   constructor(
     private dialog: MatDialog,
-    private language: TranslateService,
+    protected language: TranslateService,
     protected snackbars: SnackBarCommonNotificationsService,
     private topicModelService: TopicModelService,
     private domainModelService: DomainModelService,
-    private runningTasksService: RunningTasksQueueService,
+    private runningTasksService: RunningTasksService,
     private runningTasksQueueService: RunningTasksQueueService,
     public enumUtils: AppEnumUtils,
     private pipeService: PipeService
@@ -141,6 +151,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
     this.modelSelected = null;
     this.topicSelected = null;
+    this.documentSelected = null;
     this.selectedModelType = null;
     this.modelDetails = [];
     this.topicDetails = [];
@@ -327,6 +338,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
     this.dialog.open(ConfirmationDialogComponent,
       {
+        disableClose: true,
         data: {
           message: this.language.instant('APP.COMMONS.DELETE-CONFIRMATION.MESSAGE'),
           confirmButton: this.language.instant('APP.COMMONS.DELETE-CONFIRMATION.CONFIRM-BUTTON'),
@@ -407,6 +419,24 @@ export class ModelsComponent extends BaseComponent implements OnInit {
           }
         )
       });
+    }
+  }
+
+  showCuratingResults(): void {
+    this.dialog.open(ModelTaskDetailsComponent,
+      {
+        maxWidth: "90vw",
+        minWidth: "60rem",
+        disableClose: true,
+        data: this.curatingDomainModelFinished
+      }
+    )
+  }
+
+  clearCuratingResults(): void {
+    this.recentTasksRemoving = true;
+    for (let item of this.curatingDomainModelFinished) {
+      this.runningTasksService.clearFinishedTask(item.task).subscribe(() => {});
     }
   }
 

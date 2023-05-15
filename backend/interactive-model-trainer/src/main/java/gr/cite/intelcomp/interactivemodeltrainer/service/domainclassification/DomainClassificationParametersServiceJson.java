@@ -17,12 +17,12 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageCorpus.InnerPaths.DATASETS_ROOT;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
 
 @Service
 @Primary
@@ -95,6 +95,37 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
         } catch (IOException e) {
             logger.error(e.getStackTrace());
         }
+    }
+
+    @Override
+    public void prepareLogFile(String modelName, String logFile) {
+        try {
+            String modelFolder = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + modelName;
+            Path modelFolderPath = Path.of(modelFolder);
+            if (!Files.isDirectory(modelFolderPath)) {
+                return;
+            }
+            Path filePath = Path.of(modelFolder, logFile);
+            Files.write(filePath, new byte[]{});
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
+    }
+
+    @Override
+    public List<String> getLogs(String modelName, String logFile) {
+        try {
+            String modelFolder = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + modelName;
+            Path modelFolderPath = Path.of(modelFolder);
+            if (!Files.isDirectory(modelFolderPath)) {
+                return List.of();
+            }
+            Path filePath = Path.of(modelFolder, logFile);
+            return Files.readAllLines(filePath);
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
+        return List.of();
     }
 
     @Override

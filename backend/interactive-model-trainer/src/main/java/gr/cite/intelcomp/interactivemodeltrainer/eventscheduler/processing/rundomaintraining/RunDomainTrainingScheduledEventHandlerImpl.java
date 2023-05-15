@@ -27,10 +27,7 @@ import org.springframework.stereotype.Component;
 import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
@@ -105,7 +102,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                     }
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
-                    logger.error(e.getLocalizedMessage());
+                    logger.error(e);
                 }
             } else {
                 status = EventProcessingStatus.Error;
@@ -142,7 +139,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                     status = EventProcessingStatus.Success;
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
-                    logger.error(e.getLocalizedMessage());
+                    logger.error(e);
                 }
             } else {
                 status = EventProcessingStatus.Error;
@@ -201,6 +198,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         HashMap<String, String> params = new HashMap<>();
 
         RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        Objects.requireNonNull(eventData.getRequest().getParameters());
         eventData.getRequest().getParameters().forEach((key, val) -> {
             if (key.startsWith("classifier.")) params.put(key.replace("classifier.", ""), val);
         });
@@ -258,6 +256,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         HashMap<String, String> params = new HashMap<>();
 
         RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        Objects.requireNonNull(eventData.getRequest().getParameters());
         eventData.getRequest().getParameters().forEach((key, val) -> {
             if (key.startsWith("evaluator.")) params.put(key.replace("evaluator.", ""), val);
         });

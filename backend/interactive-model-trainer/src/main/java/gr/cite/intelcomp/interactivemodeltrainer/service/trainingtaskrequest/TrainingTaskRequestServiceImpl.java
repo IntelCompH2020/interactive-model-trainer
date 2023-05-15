@@ -7,7 +7,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.IsActive;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
-import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
@@ -49,10 +48,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersServiceJson.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersServiceJson.*;
 
@@ -474,6 +471,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
+        domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_RETRAIN_LOG_FILE_NAME);
         updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.RETRAIN_DOMAIN_MODEL);
         return result;
     }
@@ -508,6 +506,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
+        domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_CLASSIFY_LOG_FILE_NAME);
         updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.CLASSIFY_DOMAIN_MODEL);
         return result;
     }
@@ -542,6 +541,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
+        domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_EVALUATE_LOG_FILE_NAME);
         updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.EVALUATE_DOMAIN_MODEL);
         return result;
     }
@@ -574,7 +574,6 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
                     .filter(i -> i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst()
                     .ifPresent(item -> cache.getPayload().remove(item));
-            cacheLibrary.update(cache);
         }
     }
 

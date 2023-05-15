@@ -28,6 +28,8 @@
 				"UPDATE": "Edit / Update",
 				"COPY": "Clone / Copy",
 				"DELETE": "Delete",
+				"VIEW": "View",
+				"CLEAR": "Clear",
 				"NOT-EDITABLE": "You cannot modify this field"
 			}
 		},
@@ -661,6 +663,14 @@
 				"SUBMIT": "Save",
 				"CANCEL": "Cancel"
 			},
+			"MODEL-TASK-DETAILS-COMPONENT": {
+				"TITLE": "Recent tasks performed on the selected model",
+				"TYPE": "Task Type",
+				"TIME": "Finished At",
+				"DURATION": "Duration",
+				"ACTIONS": "Actions",
+				"VIEW-LOGS": "View logs"
+			},
 			"PY-LDA-VIS-MODAL": {
 				"TITLE": "Topic LDA visualization"
 			},
@@ -676,6 +686,10 @@
 				"TOPIC-1": "Topic #1",
 				"TOPIC-2": "Topic #2",
 				"SIMILARITY": "Similarity"
+			},
+			"USER-MESSAGES": {
+				"MODEL-PROCESSING": "This model is currently being processed",
+				"RECENT-TASKS": "Tasks performed recently"
 			}
 		},
 		"WORD-LIST-COMPONENT": {

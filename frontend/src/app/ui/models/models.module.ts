@@ -34,6 +34,7 @@ import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
 import { RunningTasksService } from '@app/core/services/http/running-tasks.service';
 import { DomainModelCurationDialogComponent } from './domain-models-listing/domain-model-curation-dialog/domain-model-curation-dialog.component';
 import { DocumentsListingComponent } from './domain-models-listing/documents-listing/documents-listing.component';
+import { ModelTaskDetailsComponent } from './model-task-details/model-task-details.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { DocumentsListingComponent } from './domain-models-listing/documents-lis
     DomainModelFromCategoryNameComponent,
     ModelParametersComponent,
     ModelDetailsComponent,
+    ModelTaskDetailsComponent,
     ModelPatchComponent,
     TopicsListingComponent,
     PyLDAComponent,

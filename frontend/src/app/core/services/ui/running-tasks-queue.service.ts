@@ -10,6 +10,7 @@ export class RunningTasksQueueService {
     private _queue: RunningTaskQueueItem[] = [];
     private _finished: RunningTaskQueueItem[] = [];
     private _curating: RunningTaskQueueItem[] = [];
+    private _curatingFinished: RunningTaskQueueItem[] = [];
 
     private topicTasks: RunningTaskSubType[] = [
         RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING,
@@ -35,6 +36,10 @@ export class RunningTasksQueueService {
 
     get curating(): Readonly<RunningTaskQueueItem[]> {
         return this._curating;
+    }
+
+    get curatingFinished(): Readonly<RunningTaskQueueItem[]> {
+        return this._curatingFinished;
     }
 
     private _taskCompleted: Subject<RunningTaskQueueItem> = new Subject<RunningTaskQueueItem>();
@@ -76,7 +81,9 @@ export class RunningTasksQueueService {
                 // If it is finished now, push the event
                 if (this._finished.findIndex(t => { 
                     return t.task === item.task;
-                }) === -1) this.taskCompleted.next(item);
+                }) === -1) {
+                    this.taskCompleted.next(item);
+                }
             } else {
                 toQueue.push(item);
             }
@@ -91,15 +98,19 @@ export class RunningTasksQueueService {
     private _updateCuratingItems(items: RunningTaskQueueItem[]): void {
         const previouslyCurating: RunningTaskQueueItem[] = this._curating;
         let toCurating: RunningTaskQueueItem[] = [];
+        let toFinished: RunningTaskQueueItem[] = [];
         for (let item of items) {
             if (!item.finished) {
                 toCurating.push(item);
             } else {
+                toFinished.push(item);
                 if (previouslyCurating.filter((i) => i.task === item.task).length) this.taskCompleted.next(item);
             }
         }
         this._curating.splice(0, this._curating.length);
         this._curating.push(...toCurating);
+        this._curatingFinished.splice(0, this._curatingFinished.length);
+        this._curatingFinished.push(...toFinished);
     }
 
     public removeItem(task: string): void {
@@ -138,6 +149,7 @@ export interface RunningTaskQueueItem {
     subType?: RunningTaskSubType;
     startedAt?: Date;
     finishedAt?: Date;
+    response?: any;
 }
 
 export enum RunningTaskType {
