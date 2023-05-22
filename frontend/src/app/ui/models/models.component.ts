@@ -12,7 +12,7 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { DataTableTopicModelTypeFormatPipe } from '@common/formatting/pipes/topic-model-type.pipe';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, forkJoin } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { DomainModelsListingComponent } from './domain-models-listing/domain-models-listing.component';
 import { ModelDetailsComponent } from './model-details/model-details.component';
@@ -61,6 +61,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   modelSelectionSubscription: Subscription;
   topicSelectionSubscription: Subscription;
   documentSelectionSubscription: Subscription;
+  documentsLoadedSubject: BehaviorSubject<Document[]>;
 
   modelDetails: DetailsItem[];
   topicDetails: DetailsItem[];
@@ -88,7 +89,6 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     else result = this.runningTasksQueueService.curatingFinished.filter(item => {
       return this.runningTasksQueueService.isDomainModelTask(item) && item.label === this.modelSelected.name;
     });
-    if (!result.length) this.recentTasksRemoving = false;
     return result;
   }
   recentTasksRemoving: boolean = false;
@@ -136,6 +136,8 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   }
 
   onAttach(activeComponent: Component): void {
+    this.documentsLoadedSubject = new BehaviorSubject<Document[]>([]);
+
     if (this.modelSelectionSubscription) {
       this.modelSelectionSubscription.unsubscribe();
       this.modelSelectionSubscription = null;
@@ -270,6 +272,15 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       case activeComponent instanceof DomainModelsListingComponent: {
         const castedActiveComponent = activeComponent as DomainModelsListingComponent;
 
+        this.documentsLoadedSubject.pipe(
+          takeUntil(this._destroyed)
+        ).subscribe(
+          documents => {
+            castedActiveComponent.documents.next([]);
+            castedActiveComponent.documents.next(documents);
+          }
+        );
+
         this.modelSelectionSubscription = castedActiveComponent.onDomainModelSelect.pipe(
           takeUntil(this._destroyed)
         ).subscribe(
@@ -290,6 +301,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         )
 
         this.onRefresh = () => {
+          this.documentsLoadedSubject.next([]);
           castedActiveComponent.refresh();
         }
 
@@ -325,8 +337,8 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
         this.onDomainSample = () => {
           castedActiveComponent.sample(this.modelSelected as DomainModel, () => {
-            
-          })
+            this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
+          });
         }
 
         break;
@@ -426,18 +438,45 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     this.dialog.open(ModelTaskDetailsComponent,
       {
         maxWidth: "90vw",
-        minWidth: "60rem",
+        width: "80rem",
         disableClose: true,
         data: this.curatingDomainModelFinished
       }
-    )
+    ).afterClosed().subscribe((response: any) => {
+      if (response && response['action'] === 'LOAD_DOCUMENTS') {
+        this.runningTasksService.getSampledDocuments(response['item']['task']).subscribe(res => {
+          this.documentsLoadedSubject.next(res.items);
+        });
+      } else if (response && response['action'] === 'CLEAR_ITEMS') {
+        this.recentTasksRemoving = true;
+        let tasks = [];
+        for (let item of response['items']) {
+          tasks.push(this.runningTasksService.clearFinishedTask(item.task));
+        }
+        forkJoin(tasks).subscribe(() => {
+          this._refreshDocumentsAndDomainTasks();
+        });
+      }
+    });
   }
 
   clearCuratingResults(): void {
     this.recentTasksRemoving = true;
+    let tasks = [];
     for (let item of this.curatingDomainModelFinished) {
-      this.runningTasksService.clearFinishedTask(item.task).subscribe(() => {});
+      tasks.push(this.runningTasksService.clearFinishedTask(item.task));
     }
+    if (tasks.length) {
+      forkJoin(tasks).subscribe(() => {
+        this._refreshDocumentsAndDomainTasks();
+      });
+    }
+  }
+
+  private _refreshDocumentsAndDomainTasks(): void {
+    this.recentTasksRemoving = false;
+    this.documentsLoadedSubject.next([]);
+    this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
   }
 
   private _buildTopicModelDetails(model: TopicModel): DetailsItem[] {
@@ -578,6 +617,10 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         value: document.id || "-"
       },
       {
+        label: 'APP.MODELS-COMPONENT.DOCUMENT.INDEX',
+        value: document.index || "-"
+      },
+      {
         label: 'APP.MODELS-COMPONENT.DOCUMENT.TITLE',
         value: document.title || "-"
       },
@@ -591,7 +634,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       }
     ];
   }
-  
+
 }
 
 enum ModelType {

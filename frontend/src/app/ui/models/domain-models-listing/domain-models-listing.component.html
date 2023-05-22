@@ -52,9 +52,9 @@
             <button mat-menu-item
                 (click)="newDomainModelFromKeywords()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-LIST-KEYWORDS'
                 | translate}}</button>
-            <button mat-menu-item
+            <!-- <button mat-menu-item
                 (click)="newDomainModelFromSelectionFunction()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-SELECTION-FUNCTION'
-                | translate}}</button>
+                | translate}}</button> -->
             <button mat-menu-item
                 (click)="newDomainModelFromCategoryName()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ADD-NEW-FROM-CATEGORY-NAME'
                 | translate}}</button>
@@ -66,5 +66,6 @@
     [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)"
     (columnSort)="onColumnSort($event)">
 </app-listing>
-<app-documents-listing *ngIf="settingsAreSelected" [settings]="selectedSettings" (onDocumentSelect)="onDocumentSelected($event)">
+<app-documents-listing *ngIf="documents.value.length" [model]="selectedModel" [documents]="documents"
+    (onDocumentSelect)="onDocumentSelected($event)" (onFeedbackSubmitted)="onFeedbackSubmitted($event)">
 </app-documents-listing>

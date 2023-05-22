@@ -7,6 +7,7 @@ import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { RunningTaskQueueItem, RunningTaskType } from "../ui/running-tasks-queue.service";
 import { QueryResult } from "@common/model/query-result";
+import { Document } from "@app/core/model/model/domain-model.model";
 
 @Injectable()
 export class RunningTasksService {
@@ -48,6 +49,14 @@ export class RunningTasksService {
 
 		return this.http
 			.get<void>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	getSampledDocuments(task: string): Observable<QueryResult<Document>> {
+		const url = `${this.apiBase}/${task}/documents`;
+
+		return this.http
+			.get<QueryResult<Document>>(url).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 

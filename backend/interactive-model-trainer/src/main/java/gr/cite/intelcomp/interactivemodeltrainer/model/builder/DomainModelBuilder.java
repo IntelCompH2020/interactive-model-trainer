@@ -2,7 +2,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;

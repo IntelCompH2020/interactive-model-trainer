@@ -22,7 +22,8 @@ export interface DomainModelPersist extends BaseEntityPersist {
 
 export interface Document {
   id: string;
+  index: string;
   title: string;
   text: string;
-  label: string | number;
+  label: number;
 }

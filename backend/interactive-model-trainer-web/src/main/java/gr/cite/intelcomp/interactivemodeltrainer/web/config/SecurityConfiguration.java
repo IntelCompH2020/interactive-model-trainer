@@ -60,6 +60,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.antMatchers("/api/topic-model/*/*/pyLDAvis.html").anonymous()
 				.antMatchers("/api/topic-model/*/*/d3.js").anonymous()
 				.antMatchers("/api/topic-model/*/*/ldavis.v3.0.0.js").anonymous()
+				.antMatchers("/api/tasks/*/pu-scores/**").anonymous()
 				.antMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated()
 				.and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)

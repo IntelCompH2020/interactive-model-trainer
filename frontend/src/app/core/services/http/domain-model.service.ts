@@ -100,6 +100,14 @@ export class DomainModelService {
 			.post<{ id: string }>(url, data).pipe(
 				catchError((error: any) => throwError(error)));
 	}
+
+	giveFeedback(data: any, name: string): Observable<{id: string}> {
+		const url = `${this.apiBase}/${name}/give-feedback`;
+
+		return this.http
+			.post<{ id: string }>(url, data).pipe(
+				catchError((error: any) => throwError(error)));
+	}
 }
 
 interface DomainModelPatch {

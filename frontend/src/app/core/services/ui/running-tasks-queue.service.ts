@@ -23,7 +23,9 @@ export class RunningTasksQueueService {
         RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING,
         RunningTaskSubType.RETRAIN_DOMAIN_MODEL,
         RunningTaskSubType.CLASSIFY_DOMAIN_MODEL,
-        RunningTaskSubType.EVALUATE_DOMAIN_MODEL
+        RunningTaskSubType.EVALUATE_DOMAIN_MODEL,
+        RunningTaskSubType.SAMPLE_DOMAIN_MODEL,
+        RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL
     ];
 
     get queue(): Readonly<RunningTaskQueueItem[]> {
@@ -168,5 +170,7 @@ export enum RunningTaskSubType {
 
     RETRAIN_DOMAIN_MODEL = 'RETRAIN_DOMAIN_MODEL',
     CLASSIFY_DOMAIN_MODEL = 'CLASSIFY_DOMAIN_MODEL',
-    EVALUATE_DOMAIN_MODEL = 'EVALUATE_DOMAIN_MODEL'
+    EVALUATE_DOMAIN_MODEL = 'EVALUATE_DOMAIN_MODEL',
+    SAMPLE_DOMAIN_MODEL = 'SAMPLE_DOMAIN_MODEL',
+    GIVE_FEEDBACK_DOMAIN_MODEL = 'GIVE_FEEDBACK_DOMAIN_MODEL'
 }

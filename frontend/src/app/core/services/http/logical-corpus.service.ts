@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
+import { CorpusVisibility } from '@app/core/enum/corpus-visibility.enum';
 import { LogicalCorpus, LogicalCorpusPersist } from '@app/core/model/corpus/logical-corpus.model';
 import { LogicalCorpusLookup } from '@app/core/query/logical-corpus.lookup';
 import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 import { BaseHttpService } from '@common/base/base-http.service';
 import { InstallationConfigurationService } from '@common/installation-configuration/installation-configuration.service';
 import { QueryResult } from '@common/model/query-result';
-import { Observable, throwError } from 'rxjs';
+import { Guid } from '@common/types/guid';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable()

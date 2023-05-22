@@ -2,6 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
+import gr.cite.intelcomp.interactivemodeltrainer.model.DomainLabelsSelectionJsonModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
@@ -124,8 +125,16 @@ public class DomainModelController {
 
     @PostMapping("sample")
     @Transactional
-    public TrainingTaskRequest sampleDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) {
+    public TrainingTaskRequest sampleDomainModel(@Valid @RequestBody DomainClassificationRequestPersist domainClassificationRequestPersist) throws InvalidApplicationException {
         return trainingTaskRequestService.persistDomainSampleTaskForRootModel(domainClassificationRequestPersist);
+    }
+
+    @PostMapping("{name}/give-feedback")
+    @Transactional
+    public TrainingTaskRequest giveFeedbackDomainModel(@PathVariable(name = "name") String modelName, @Valid @RequestBody DomainLabelsSelectionJsonModel labels) throws InvalidApplicationException {
+        DomainClassificationRequestPersist model = new DomainClassificationRequestPersist();
+        model.setName(modelName);
+        return trainingTaskRequestService.persistDomainFeedbackTaskForRootModel(model, labels);
     }
 
 }

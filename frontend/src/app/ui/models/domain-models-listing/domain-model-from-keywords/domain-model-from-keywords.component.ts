@@ -25,7 +25,7 @@ import { DomainModelService } from '@app/core/services/http/domain-model.service
 })
 export class DomainModelFromKeywordsComponent implements OnInit {
 
-  availableCorpora: string[];
+  availableCorpora: LogicalCorpus[];
 
   keywords: string[];
   selectedKeywords: Set<string> = new Set();
@@ -43,11 +43,16 @@ export class DomainModelFromKeywordsComponent implements OnInit {
   advanced: boolean = false;
   advandedForAL: boolean = false;
 
+  // get valid() {
+  //   return this.formGroup?.valid
+  //     && this.selectedKeywords && this.selectedKeywords.size
+  //     && this.classifierFormGroup?.valid
+  //     && this.activeLearningFormGroup?.valid;
+  // }
+
   get valid() {
     return this.formGroup?.valid
-      && this.selectedKeywords && this.selectedKeywords.size
-      && this.classifierFormGroup?.valid
-      && this.activeLearningFormGroup?.valid;
+    && this.selectedKeywords && this.selectedKeywords.size
   }
 
   get corpusInput(): FormControl {
@@ -77,14 +82,6 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     private corpusService: LogicalCorpusService,
     private domainModelService: DomainModelService
   ) {
-    const logicalLookup = new LogicalCorpusLookup();
-    logicalLookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
-    logicalLookup.corpusValidFor = "DC";
-    this.corpusService.query(logicalLookup).subscribe((response) => {
-      const corpora = response.items;
-      this.availableCorpora = corpora.map(corpus => corpus.name);
-      this.corpusInput.enable();
-    });
 
     const keywordLookup = new KeywordLookup();
     keywordLookup.project = {
@@ -99,6 +96,20 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     });
   }
 
+  private _loadCorpora(): void {
+    const logicalLookup = new LogicalCorpusLookup();
+    logicalLookup.project = { fields: [
+      nameof<LogicalCorpus>(x => x.name),
+      nameof<LogicalCorpus>(x => x.Dtsets)
+    ] };
+    logicalLookup.corpusValidFor = "DC";
+    this.corpusService.query(logicalLookup).subscribe((response) => {
+      const corpora = response.items;
+      this.availableCorpora = corpora;
+      this.corpusInput.enable();
+    });
+  }
+
   ngOnInit(): void {
     setTimeout(() => {
       this.editorModel = new DomainModelEditorModel();
@@ -109,6 +120,7 @@ export class DomainModelFromKeywordsComponent implements OnInit {
       this.activeLearningFormGroup = this.activeLearningEditorModel.buildForm();
       this.corpusInput.disable();
       this.setDefaultParamValues();
+      this._loadCorpora();
     }, 0);
   }
 
@@ -143,6 +155,16 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     this.selectedKeywords.delete(keyword);
   }
 
+  addAll(): void {
+    for (let keyword of this.keywords) {
+      this.addKeyword(keyword);
+    }
+  }
+
+  clearAll(): void {
+    this.selectedKeywords.clear();
+  }
+
   create(): void {
     let parameters: any = {}
 
@@ -151,13 +173,13 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     parameters['DC.n_max'] = this.formGroup.get('numberOfElements').value;
     parameters['DC.s_min'] = this.formGroup.get('minimumScore').value;
 
-    parameters['classifier.model_type'] = this.classifierFormGroup.get('modelType').value;
-    parameters['classifier.model_name'] = this.classifierFormGroup.get('modelName').value;
-    parameters['classifier.max_imbalance'] = this.classifierFormGroup.get('maximumImbalance').value;
-    parameters['classifier.nmax'] = this.classifierFormGroup.get('nmax').value;
-    parameters['classifier.freeze_encoder'] = this.classifierFormGroup.get('freezeEncoder').value;
-    parameters['classifier.epochs'] = this.classifierFormGroup.get('epochs').value;
-    parameters['classifier.batch_size'] = this.classifierFormGroup.get('batchSize').value;
+    // parameters['classifier.model_type'] = this.classifierFormGroup.get('modelType').value;
+    // parameters['classifier.model_name'] = this.classifierFormGroup.get('modelName').value;
+    // parameters['classifier.max_imbalance'] = this.classifierFormGroup.get('maximumImbalance').value;
+    // parameters['classifier.nmax'] = this.classifierFormGroup.get('nmax').value;
+    // parameters['classifier.freeze_encoder'] = this.classifierFormGroup.get('freezeEncoder').value;
+    // parameters['classifier.epochs'] = this.classifierFormGroup.get('epochs').value;
+    // parameters['classifier.batch_size'] = this.classifierFormGroup.get('batchSize').value;
 
     // parameters['AL.nDocs'] = this.activeLearningFormGroup.get('nDocs').value;
     // parameters['AL.sampler'] = this.activeLearningFormGroup.get('sampler').value;

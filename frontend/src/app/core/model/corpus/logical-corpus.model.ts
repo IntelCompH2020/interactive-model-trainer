@@ -11,7 +11,7 @@ export interface LogicalCorpus extends Corpus {
   visibility: CorpusVisibility;
   creator: string;
   creation_date: Date;
-  dtsets: LocalDataset[];
+  Dtsets: LocalDataset[];
   valid_for?: CorpusValidFor;
 }
 

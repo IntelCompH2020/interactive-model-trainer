@@ -11,10 +11,11 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
-import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.FuseModelScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.rundomaintraining.RunDomainTrainingScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.RunTrainingScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.FuseModelScheduledEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topicmodeltasks.TopicModelTaskScheduledEventData;
+import gr.cite.intelcomp.interactivemodeltrainer.model.DomainLabelsSelectionJsonModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
@@ -49,9 +50,10 @@ import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.*;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersServiceJson.DomainClassificationParametersModel;
 import static gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersServiceJson.*;
-import static gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersServiceJson.*;
 
 @Service
 public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestService {
@@ -547,8 +549,74 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     }
 
     @Override
-    public TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model) {
-        return null;
+    public TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.SAMPLE_DOMAIN_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_SAMPLE_LOG_FILE_NAME);
+        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.SAMPLE_DOMAIN_MODEL);
+        return result;
+    }
+
+    @Override
+    public TrainingTaskRequest persistDomainFeedbackTaskForRootModel(DomainClassificationRequestPersist model, DomainLabelsSelectionJsonModel labels) throws InvalidApplicationException {
+        UUID requestId = UUID.randomUUID();
+
+        RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
+
+        ScheduledEventPublishData publishData = new ScheduledEventPublishData();
+        publishData.setData(jsonHandlingService.toJsonSafe(eventData));
+        publishData.setCreatorId(userScope.getUserId());
+        publishData.setType(ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL);
+        publishData.setRunAt(Instant.now());
+        publishData.setKey(requestId.toString());
+        publishData.setKeyType(TrainingTaskRequest._id);
+        scheduledEventManageService.publishAsync(publishData);
+
+        TrainingTaskRequestEntity entity = new TrainingTaskRequestEntity();
+        entity.setId(requestId);
+        entity.setStatus(TrainingTaskRequestStatus.NEW);
+        entity.setIsActive(IsActive.ACTIVE);
+        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setCreatorId(userScope.getUserId());
+        entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
+        entity.setJobId(requestId.toString());
+        entity.setCreatedAt(Instant.now());
+        entityManager.persist(entity);
+        entityManager.flush();
+
+        TrainingTaskRequest result = new TrainingTaskRequest();
+        result.setId(requestId);
+
+        domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_FEEDBACK_LOG_FILE_NAME);
+        domainClassificationParametersService.generateLabelsFile(model.getName(), labels);
+        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL);
+        return result;
     }
 
     @Override

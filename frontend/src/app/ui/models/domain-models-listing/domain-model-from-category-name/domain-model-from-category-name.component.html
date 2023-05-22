@@ -16,8 +16,8 @@
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.CORPUS' |
                     translate}}</mat-label>
                 <mat-select formControlName="corpus" (selectionChange)="onCorpusSelected($event)">
-                    <mat-option [value]="item" *ngFor="let item of availableCorpora">
-                        {{item}}
+                    <mat-option [value]="item.Dtsets[0].source" *ngFor="let item of availableCorpora">
+                        {{item.name}}
                     </mat-option>
                 </mat-select>
                 <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
@@ -34,12 +34,12 @@
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.DESCRIPTION'
                     |
                     translate}}</mat-label>
-                <textarea matInput formControlName="description" rows="2"></textarea>
+                <textarea matInput formControlName="description" rows="4"></textarea>
             </mat-form-field>
         </div>
     </div>
 
-    <div class="row mb-3">
+    <!-- <div class="row mb-3">
         <div class="col-12">
             <h6 class="text-bold">
                 {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.TARGET-CATEGORY'
@@ -50,7 +50,7 @@
                 alias! Nulla, adipisci.
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="row" [formGroup]="formGroup">
         <div class="col-auto">
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-auto">
             <mat-checkbox [ngModelOptions]="{standalone: true}"
                 [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.ADVANCED-OPTIONS'
@@ -90,7 +90,8 @@
         </div>
     </ng-container>
 
-    <div class="mb-2" *ngIf="!advancedParamsForAL"></div>
+    <div class="mb-2" *ngIf="!advancedParamsForAL"></div> -->
+    <div class="mb-2"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup && classifierFormGroup">
@@ -100,7 +101,7 @@
             | translate}}</button>
     </div>
     <div class="col-auto">
-        <button mat-raised-button [disabled]="true" color="accent"
+        <button mat-raised-button [disabled]="!valid" color="accent"
             (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-CATEGORY-NAME-DIALOG.SUBMIT'
             | translate}}</button>
     </div>

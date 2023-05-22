@@ -47,7 +47,8 @@ class TaskManager(baseTaskManager):
 
     def __init__(self, path2project, path2source=None, path2zeroshot=None,
                  config_fname='parameters.yaml',
-                 metadata_fname='metadata.yaml', set_logs=True):
+                 metadata_fname='metadata.yaml', set_logs=True,
+                 logical_dm=False):
         """
         Opens a task manager object.
 
@@ -67,6 +68,9 @@ class TaskManager(baseTaskManager):
         set_logs : bool, optional (default=True)
             If True logger objects are created according to the parameters
             specified in the configuration file
+        logical_dm : bool, optional (default=True)
+            It True, a logical data manager is used
+            If False, a local data manager is used
         """
 
         # Attributes that will be initialized in the base class
@@ -93,11 +97,11 @@ class TaskManager(baseTaskManager):
         # This list can be modified within an active project by adding new
         # folders. Every time a new entry is found in this list, a new folder
         # is created automatically.
-        self.f_struct = {'corpus': 'corpus',
-                         'datasets': 'datasets',
+        self.f_struct = {'datasets': 'datasets',
                          'models': 'models',
                          'output': 'output',
-                         'embeddings': 'embeddings'
+                         'embeddings': 'embeddings',
+                         'corpus': 'corpus'        # Used by the IMT only
                          # 'labels': 'labels',     # No longer used
                          }
 
@@ -137,7 +141,7 @@ class TaskManager(baseTaskManager):
         self.metadata['corpus_name'] = None
 
         # Datamanager
-        if 1 == 1:
+        if logical_dm:
             self.DM = LogicalDataManager(
                 self.path2source, self.path2datasets, self.path2models,
                 self.path2project, self, self.path2embeddings)
@@ -148,66 +152,19 @@ class TaskManager(baseTaskManager):
 
         return
 
-    # def on_create_list_of_keywords(
-    #         self, corpus_name: str, wt: float = 2.0, n_max: int = 2000,
-    #         s_min: float = 1.0, tag: str = "kwds",
-    #         method: str = 'count', keywords: str = ""):
-    #    """
-    #        on button click create with option: from list of keywords
-    #
-    #    """
-    #    self.setup()
-    #    self.load_corpus(corpus_name)
-    #    self.get_labels_by_keywords(wt,n_max,s_min,tag,method,keywords)
-    #
-    # def on_create_topic_selection(
-    #         self, corpus_name: str,n_max: int = 2000,s_min: float = 0.1,
-    #         tag: str = "zeroshot", keywords: str = ""):
-    #    """
-    #        on button click create with option: from topic selection function
-    #
-    #    """
-    #    self.setup()
-    #    self.load_corpus(corpus_name)
-    #    self.get_labels_by_zeroshot(n_max,s_min,tag,keywords)
-    # def on_create_category_name(self, corpus_name: str):
-    #    """
-    #        on button click create with option: from category name
-    #
-    #    """
-    #    self.setup()
-    #    self.load_corpus(corpus_name)
-    #    self.get_labels_by_topics()
-    # def on_retrain(self, epochs: int = 3):
-    #    """
-    #        on button click retrain
-    #
-    #    """
-    #    self.retrain_model(epochs)
-    # def on_classify(self):
-    #    """
-    #       on button click classify
-    #
-    #    """
-    #    self.inference()
-    # def on_evaluate(self, true_label_name: str):
-    #    """
-    #        on button click evaluate
-    #
-    #    """
-    #    self.evaluate_PUlabels(true_label_name)
-    # def on_sample(self, sampler=None):
-    #    """
-    #        on button click sample
-    #
-    #    """
-    #    self.get_feedback(sampler)
-    # def on_save_feedback(self):
-    #    """
-    #        on button click save feedback
-    #
-    #    """
-    #    self.annotate()
+    def _is_corpus(self, verbose=True):
+        """
+        Check if a corpus has been loaded.
+        """
+
+        # Just to abbreviate
+        is_corpus = self.metadata['corpus_name'] is not None
+        if not is_corpus:
+            logging.warning("\n")
+            logging.warning(
+                "-- No corpus loaded. You must load a corpus first")
+
+        return is_corpus
 
     def _is_model(self, verbose=True):
         """
@@ -240,19 +197,13 @@ class TaskManager(baseTaskManager):
 
     def _get_dataset_list(self):
         """
-        Returns the list of available corpus
+        Returns the list of available datasets
         """
 
-        # Just to abbreviate
-        corpus_name = self.metadata['corpus_name']
-
-        if corpus_name is None:
-            logging.warning("\n")
-            logging.warning(
-                "-- No corpus loaded. You must load a corpus first")
-            dataset_list = []
-        else:
+        if self._is_corpus():
             dataset_list = self.DM.get_dataset_list()
+        else:
+            dataset_list = []
 
         return dataset_list
 
@@ -261,8 +212,8 @@ class TaskManager(baseTaskManager):
     #     Returns inference manager options
     #     """
     #     corpus_has_embeddings = self.corpus_has_embeddings
-    #     #corpus_has_embeddings = self.DM.get_metadata()[
-    #          'corpus_has_embeddings']
+    #     # corpus_has_embeddings = (
+    #           self.DM.get_metadata()['corpus_has_embeddings']
     #     return ['Inference MLP'] if corpus_has_embeddings else []
 
     def inference(self, option=[]):
@@ -274,14 +225,20 @@ class TaskManager(baseTaskManager):
         option:
             Unused
         """
+
         if self.dc is None or self.dc.df_dataset is None:
             logging.warning("-- No model is loaded. "
                             "You must load or create a set of labels first")
             return
+
         metadata = self.DM.get_metadata()
-        dPaths = {'d_documentEmbeddings': metadata['corpus'],
-                  'p_prediction': self.path2output / self.class_name}
-        self.dc.inferData(dPaths)
+
+        if 'corpus' in metadata:
+            dPaths = {'d_documentEmbeddings': metadata['corpus'],
+                      'p_prediction': self.path2output / self.class_name}
+            self.dc.inferData(dPaths)
+        else:
+            logging.warning("-- Option not available for this corpus")
 
         return
 
@@ -316,10 +273,13 @@ class TaskManager(baseTaskManager):
         learning.
         """
 
+        if not self._is_corpus():
+            return []
+
         gs_labels = [x for x in self.df_corpus.columns
                      if x.startswith('target_')]
 
-        if ANNOTATIONS in self.dc.df_dataset:
+        if self.dc is not None and ANNOTATIONS in self.dc.df_dataset:
             gs_labels.append(ANNOTATIONS)
 
         if gs_labels == []:
@@ -405,6 +365,7 @@ class TaskManager(baseTaskManager):
         Sets up the application projetc. To do so, it loads the configuration
         file and activates the logger objects.
         """
+
         super().setup()
 
         # Fill global parameters.
@@ -431,8 +392,8 @@ class TaskManager(baseTaskManager):
             Name of the corpus. It should be the name of a folder in
             self.path2source
         """
-        # Dictionary of sampling factor for the corpus loader.
 
+        # Dictionary of sampling factor for the corpus loader.
         sampling_factors = self.global_parameters['corpus']['sampling_factor']
         # Default sampling factor: 1 (loads the whole corpus)
         sf = 1
@@ -553,6 +514,10 @@ class TaskManager(baseTaskManager):
             If the string is empty, the keywords are read from self.keywords
         """
 
+        # Check if corpus has been loaded
+        if not self._is_corpus():
+            return "No corpus has been loaded"
+
         # Read keywords:
         self.keywords = self._convert_keywords(keywords, out='list')
         logging.info(f'-- Selected keywords: {self.keywords}')
@@ -613,55 +578,38 @@ class TaskManager(baseTaskManager):
             If the string is empty, the keywords are read from self.keywords
         """
 
-        msg = None
-        try:
-            df_dataset = self.DM.load_dataset(tag)[0]
-            processed_ids = df_dataset['id'].to_numpy()
-        except Exception:
-            df_dataset = pd.DataFrame([])
-            processed_ids = []
-        while True:
+        # Check if corpus has been loaded
+        if not self._is_corpus():
+            return "No corpus has been loaded"
 
-            # Read keywords:
-            self.keywords = self._convert_keywords(keywords, out='list')
-            logging.info(f'-- Selected keyword: {self.keywords}')
+        # Read keywords:
+        self.keywords = self._convert_keywords(keywords, out='list')
+        logging.info(f'-- Selected keyword: {self.keywords}')
 
-            # Filter documents by zero-shot classification
-            ids, scores = self.CorpusProc.filter_by_zeroshot(
-                self.keywords, n_max=n_max, s_min=s_min,
-                processed_ids=processed_ids)
+        # Filter documents by zero-shot classification
+        ids, scores = self.CorpusProc.filter_by_zeroshot(
+            self.keywords, n_max=n_max, s_min=s_min)
 
-            if len(scores) == 0:
-                msg = '-- finished'
-                break
+        # Set the working class
+        self.class_name = tag
 
-            # Set the working class
-            self.class_name = tag
+        # Generate dataset dataframe
+        self.df_dataset = self.CorpusProc.make_PU_dataset(ids, scores)
 
-            # Generate dataset dataframe
-            self.df_dataset = self.CorpusProc.make_PU_dataset(ids, scores)
+        # ############
+        # Save dataset
+        msg = self.DM.save_dataset(
+            self.df_dataset, tag=self.class_name, save_csv=True)
 
-            # merge datasets
-            self.df_dataset = pd.concat([df_dataset, self.df_dataset])
-            self.df_dataset = self.df_dataset.reset_index(drop=True)
-
-            # ############
-            # Save dataset
-            msg = self.DM.save_dataset(
-                self.df_dataset, tag=self.class_name, save_csv=True)
-
-            processed_ids = self.df_dataset['id'].to_numpy()
-            df_dataset = self.df_dataset
-
-            # ################################
-            # Save parameters in metadata file
-            self.metadata[tag] = {
-                'doc_selection': {
-                    'method': 'zeroshot',
-                    'keyword': self.keywords,
-                    'n_max': n_max,
-                    's_min': s_min}}
-            self._save_metadata()
+        # ################################
+        # Save parameters in metadata file
+        self.metadata[tag] = {
+            'doc_selection': {
+                'method': 'zeroshot',
+                'keyword': self.keywords,
+                'n_max': n_max,
+                's_min': s_min}}
+        self._save_metadata()
 
         return msg
 
@@ -684,6 +632,10 @@ class TaskManager(baseTaskManager):
         tag: str, optional (default=1)
             Name of the output label set.
         """
+
+        # Check if corpus has been loaded
+        if not self._is_corpus():
+            return "No corpus has been loaded"
 
         # It topic_weights is a string, convert to dictionary
         if isinstance(topic_weights, str):
@@ -734,6 +686,7 @@ class TaskManager(baseTaskManager):
         """
         Evaluate the current set of PU labels
         """
+
         if self.dc is None or self.dc.df_dataset is None:
             logging.warning("-- No model is loaded. "
                             "You must load or create a set of labels first")
@@ -794,6 +747,10 @@ class TaskManager(baseTaskManager):
         ----------
         class_name : str
             Name of the target category
+        model_type : str
+            Type of classifier model
+        model_name : str
+            Name of the specific classifier model
         """
 
         self.class_name = class_name
@@ -806,7 +763,6 @@ class TaskManager(baseTaskManager):
 
             logging.info("-- Loading classification model")
             path2model = self.path2models / self.class_name
-
             if model_type is None:
                 model_type = self.global_parameters['classifier']['model_type']
             if model_name is None:
@@ -862,7 +818,7 @@ class TaskManager(baseTaskManager):
                       batch_size: int = None, model_type: str = None,
                       model_name: str = None):
         """
-        Train a domain classifiers
+        Train a domain classifier
 
         Parameters
         ----------
@@ -882,15 +838,15 @@ class TaskManager(baseTaskManager):
             return
 
         # Configuration parameters
+        params = self.global_parameters['classifier']  # Just to abbreviate
         if freeze_encoder is None:
-            freeze_encoder = (
-                self.global_parameters['classifier']['freeze_encoder'])
+            freeze_encoder = params['freeze_encoder']
         if batch_size is None:
-            batch_size = self.global_parameters['classifier']['batch_size']
+            batch_size = params['batch_size']
         if model_type is None:
-            model_type = self.global_parameters['classifier']['model_type']
+            model_type = params['model_type']
         if model_name is None:
-            model_name = self.global_parameters['classifier']['model_name']
+            model_name = params['model_name']
 
         if self.dc is not None:
             # If there exists a classifier object, update the local dataset,
@@ -952,6 +908,7 @@ class TaskManager(baseTaskManager):
         """
         Evaluate a domain classifiers
         """
+
         # Check if a classifier object exists
         if not self._is_model():
             return
@@ -1109,7 +1066,7 @@ class TaskManager(baseTaskManager):
         """
 
         # This is for compatibility with the GUI
-        if sampler == "":
+        if sampler == "" or sampler is None:
             sampler = self.global_parameters['active_learning']['sampler']
 
         # Check if a classifier object exists
@@ -1150,7 +1107,8 @@ class TaskManager(baseTaskManager):
 
         return
 
-    def sample_documents(self, sampler: str = None):
+    def sample_documents(self, sampler: str = "", fmt: str = "csv",
+                         n_samples: int = -1):
         """
         Gets some labels from a user for a selected subset of documents
 
@@ -1159,10 +1117,19 @@ class TaskManager(baseTaskManager):
         sampler : str, optional (default = "")
             Type of sampler. If "", the sampler is read from the global
             parameters
+        fmt : str in {'csv', 'json'}, optional, default = "csv"
+            Output file format
+        n_samples : int, optional (default=-1)
+            Number of samples to return.
+            If -1, the number of samples is taken from the configuration file
         """
 
+        # Set the number of documents to sample
+        if n_samples == -1:
+            n_samples = self.global_parameters['active_learning']['n_docs']
+
         # This is for compatibility with the GUI
-        if sampler == "":
+        if sampler == "" or sampler is None:
             sampler = self.global_parameters['active_learning']['sampler']
 
         # Check if a classifier object exists
@@ -1171,13 +1138,12 @@ class TaskManager(baseTaskManager):
 
         # STEP 1: Select bunch of documents at random
         selected_docs = self.dc.AL_sample(
-            n_samples=self.global_parameters['active_learning']['n_docs'],
-            sampler=sampler,
+            n_samples=n_samples, sampler=sampler,
             p_ratio=self.global_parameters['active_learning']['p_ratio'],
             top_prob=self.global_parameters['active_learning']['top_prob'])
 
         # TODO: Save selected_docs
-        self.DM.save_selected_docs(selected_docs, tag=self.class_name)
+        self.DM.save_selected_docs(selected_docs, tag=self.class_name, fmt=fmt)
 
         # Update dataset file (AL_sample changes data in some colums)
         self._save_dataset()
@@ -1217,7 +1183,8 @@ class TaskManager(baseTaskManager):
             print(f"Document {k} out of {len(selected_docs)}")
             k += 1
             print(f"ID: {doc.id}")
-            if self.metadata['corpus_name'] == 'EU_projects':
+            # if self.metadata['corpus_name'] == 'EU_projects':
+            if 'title' in self.df_corpus and 'description' in self.df_corpus:
                 # Locate document in corpus
                 doc_corpus = self.df_corpus[self.df_corpus['id'] == doc.id]
                 # Get and print title
@@ -1250,14 +1217,20 @@ class TaskManager(baseTaskManager):
 
         return labels
 
-    def annotate(self):
+    def annotate(self, fmt: str = "csv"):
         """
         Save user-provided labels in the dataset
+
+        Parameters
+        ----------
+        fmt : str in {'csv', 'json'}, optional, default = "csv"
+            Input file format
         """
 
         # Load sampled documents
-        selected_docs = self.DM.load_selected_docs(tag=self.class_name)
-        df_labels = self.DM.load_new_labels(tag=self.class_name)
+        selected_docs = self.DM.load_selected_docs(
+            tag=self.class_name, fmt=fmt)
+        df_labels = self.DM.load_new_labels(tag=self.class_name, fmt=fmt)
 
         # Indices of the selected docs
         idx = selected_docs.index
@@ -1265,7 +1238,7 @@ class TaskManager(baseTaskManager):
         # Check consistency: the indices in selected_doc and df_labels must
         # be the same and in the same order. Otherwise, both dataframes could
         # correspond to different annotation rounds, and must be elliminated
-        if np.any(df_labels.index != idx):
+        if set(df_labels.index) != set(idx):
             logging.error("-- The files of last sampled documents and last"
                           "labels do not match. Annotation aborted.")
             logging.error("-- You should re-sample and re-annotate")
@@ -1294,6 +1267,7 @@ class TaskManager(baseTaskManager):
         """
         Improves classifier performance using the labels provided by users
         """
+
         # Check if a classifier object exists
         if not self._is_model():
             return
@@ -1824,11 +1798,92 @@ class TaskManagerGUI(TaskManager):
 
 
 class TaskManagerIMT(TaskManager):
+    """
+    Provides extra functionality to the task manager, to be used by the
+    Interactive Model Trainer of the IntelComp project.
+    """
 
     def __init__(self, path2project, path2source=None, path2zeroshot=None):
 
-        super().__init__(path2project, path2source, path2zeroshot)
+        super().__init__(path2project, path2source, path2zeroshot,
+                         logical_dm=True)
+
         self.project_folder = str(path2project).split('/')[-1]
+
+    def get_labels_by_zeroshot(self, n_max: int = 2000, s_min: float = 0.1,
+                               tag: str = "zeroshot", keywords: str = ""):
+        """
+        Get a set of positive labels using a zero-shot classification model
+
+        Parameters
+        ----------
+        n_max: int or None, optional (defaul=2000)
+            Maximum number of elements in the output list. The default is
+            a huge number that, in practice, means there is no loimit
+        s_min: float, optional (default=0.1)
+            Minimum score. Only elements strictly above s_min are selected
+        tag: str, optional (default=1)
+            Name of the output label set.
+        keywords : str, optional (default="")
+            A comma-separated string of keywords.
+            If the string is empty, the keywords are read from self.keywords
+        """
+
+        # Check if corpus has been loaded
+        if not self._is_corpus():
+            return "No corpus has been loaded"
+
+        msg = None
+        try:
+            df_dataset = self.DM.load_dataset(tag)[0]
+            processed_ids = df_dataset['id'].to_numpy()
+        except Exception:
+            df_dataset = pd.DataFrame([])
+            processed_ids = []
+        while True:
+
+            # Read keywords:
+            self.keywords = self._convert_keywords(keywords, out='list')
+            logging.info(f'-- Selected keyword: {self.keywords}')
+
+            # Filter documents by zero-shot classification
+            ids, scores = self.CorpusProc.filter_by_zeroshot(
+                self.keywords, n_max=n_max, s_min=s_min,
+                processed_ids=processed_ids)
+
+            if len(scores) == 0:
+                msg = '-- finished'
+                break
+
+            # Set the working class
+            self.class_name = tag
+
+            # Generate dataset dataframe
+            self.df_dataset = self.CorpusProc.make_PU_dataset(ids, scores)
+
+            # merge datasets
+            self.df_dataset = pd.concat([df_dataset, self.df_dataset])
+            self.df_dataset = self.df_dataset.reset_index(drop=True)
+
+            # ############
+            # Save dataset
+            msg = self.DM.save_dataset(
+                self.df_dataset, tag=self.class_name, save_csv=True)
+
+            processed_ids = self.df_dataset['id'].to_numpy()
+            df_dataset = self.df_dataset
+
+            # ################################
+            # Save parameters in metadata file
+            self.metadata[tag] = {
+                'doc_selection': {
+                    'method': 'zeroshot',
+                    'keyword': self.keywords,
+                    'n_max': n_max,
+                    's_min': s_min}}
+            self._save_metadata()
+
+        return msg
 
     def on_create_list_of_keywords(
             self, corpus_name: str, description: str = "",
@@ -1929,14 +1984,23 @@ class TaskManagerIMT(TaskManager):
         """
         self.evaluate_PUlabels(true_label_name)
 
-    def on_sample(self, sampler=""):
+    def on_sample(self, sampler: str = "", n_samples: int = -1):
         """
         on button click sample
+
+        Parameters
+        ----------
+        sampler : str, optional (default = "")
+            Type of sampler. If "", the sampler is read from the global
+            parameters
+        n_samples : int, optional (default=-1)
+            Number of samples to return.
+            If -1, the number of samples is taken from the configuration file
         """
-        self.get_feedback(sampler)
+        self.sample_documents(sampler, fmt="json", n_samples=n_samples)
 
     def on_save_feedback(self):
         """
         on button click save feedback
         """
-        self.annotate()
+        self.annotate(fmt='json')

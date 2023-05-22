@@ -32,7 +32,7 @@ export class DomainModelSamplingEditorModel extends BaseEditorModel {
 
       baseValidationArray.push({ key: 'name', validators: [Validators.required, Validators.pattern(/[\S]/)] });
       baseValidationArray.push({ key: 'numOfDocuments', validators: [Validators.required, Validators.min(1)] });
-      baseValidationArray.push({ key: 'sampler', validators: [Validators.required] });
+      baseValidationArray.push({ key: 'sampler', validators: [] });
 
       baseContext.validation = baseValidationArray;
       return baseContext;

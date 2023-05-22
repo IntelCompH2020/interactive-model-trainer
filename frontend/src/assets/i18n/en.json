@@ -471,6 +471,7 @@
 			"DOCUMENT": {
 				"LABEL": "Predicted class",
 				"ID": "ID",
+				"INDEX": "Index",
 				"TITLE": "Title",
 				"TEXT": "Text"
 			},
@@ -513,7 +514,7 @@
 					"CORPUS": "Corpus",
 					"DOMAIN-NAME": "Domain name",
 					"KEYWORD": "Keyword list",
-					"SUGGESTED-KEYWORDS": "Suggested keywords",
+					"SUGGESTED-KEYWORDS": "Suggested keywords (from existing lists)",
 					"SELECTED-KEYWORDS": "Selected keywords",
 					"PRIVATE": "Private",
 					"ADVANCED-OPTIONS": "Advanced options",
@@ -611,6 +612,7 @@
 					"N-DOCS": "# of documents",
 					"SAMPLER": "Sampler",
 					"SAMPLER-OPTIONS": {
+						"NONE": "None",
 						"EXTREMES": "Extremes",
 						"RANDOM": "Random"
 					},
@@ -646,9 +648,10 @@
 				"FILTER": "Filter",
 				"SEARCH-PLACEHOLDER": "Filter by document title",
 				"GIVE-FEEDBACK": "Give feedback",
-				"GIVE-FEEDBACK-TOOLTIP": "Not available yet",
+				"GIVE-FEEDBACK-TOOLTIP": "Select new labels for the sampled documents below",
 				"LABEL": "Label",
 				"ID": "ID",
+				"INDEX": "Index",
 				"TITLE": "Title",
 				"TEXT": "Text"
 			},
@@ -669,7 +672,11 @@
 				"TIME": "Finished At",
 				"DURATION": "Duration",
 				"ACTIONS": "Actions",
-				"VIEW-LOGS": "View logs"
+				"VIEW-LOGS": "View logs",
+				"VIEW-OUTPUT": "View diagrams",
+				"VIEW-DOCUMENTS": "View sampled documents",
+				"CLEAR": "Clear",
+				"MARKED-FOR-REMOVAL": "Marked for removal"
 			},
 			"PY-LDA-VIS-MODAL": {
 				"TITLE": "Topic LDA visualization"

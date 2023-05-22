@@ -68,7 +68,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
         nameof<LogicalCorpus>(x => x.creator),
         nameof<LogicalCorpus>(x => x.creation_date),
         nameof<LogicalCorpus>(x => x.valid_for),
-        nameof<LogicalCorpus>(x => x.dtsets)
+        nameof<LogicalCorpus>(x => x.Dtsets)
       ]
     };
 

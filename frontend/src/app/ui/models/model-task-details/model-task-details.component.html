@@ -19,17 +19,38 @@
             <td class="align-middle">{{enumUtils.toRunningTaskSubtypeString(item.subType)}}</td>
             <td class="align-middle">{{item.finishedAt | date:'short'}}</td>
             <td class="align-middle">{{getDuration(item) | secondsToTime}}</td>
-            <td class="align-middle">
-              <button mat-raised-button (click)="selectItem(item)">
+            <td class="align-middle" *ngIf="!isCleared(item)">
+              <button mat-raised-button (click)="showLogs(item)">
                 {{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.VIEW-LOGS' | translate}}
               </button>
+              <button *ngIf="hasOutput(item)" mat-raised-button (click)="showPUscores(item)">
+                {{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.VIEW-OUTPUT' | translate}}
+              </button>
+              <button *ngIf="hasDocuments(item)" mat-raised-button (click)="loadDocuments(item)">
+                {{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.VIEW-DOCUMENTS' | translate}}
+              </button>
+              <button mat-raised-button (click)="clearItem(item)">
+                {{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.CLEAR' | translate}}
+              </button>
             </td>
+            <td *ngIf="isCleared(item)">{{'APP.MODELS-COMPONENT.MODEL-TASK-DETAILS-COMPONENT.MARKED-FOR-REMOVAL' | translate}}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <div class="row mt-2">
+  <div *ngIf="PUscoresVisible" class="row mt-2">
+    <div class="col-4">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores.png'">
+    </div>
+    <div class="col-4">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores_log.png'">
+    </div>
+    <div class="col-4">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores_hist.png'">
+    </div>
+  </div>
+  <div *ngIf="logsHtml" class="row mt-2">
     <div class="col-12">
       <div [innerHTML]="logsHtml" class="col-12 text-white logs-console" style="background-color: black;"></div>
     </div>

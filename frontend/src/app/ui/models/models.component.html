@@ -192,7 +192,7 @@
                             <span>{{'APP.MODELS-COMPONENT.USER-MESSAGES.RECENT-TASKS' | translate}}</span>
                         </div>
                         <div class="col-1">
-                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.VIEW')"
+                            <button [disabled]="recentTasksRemoving" mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.VIEW')"
                                 (click)="showCuratingResults()">
                                 <mat-icon>view_headline</mat-icon>
                             </button>

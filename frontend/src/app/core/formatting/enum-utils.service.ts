@@ -86,6 +86,8 @@ export class AppEnumUtils extends BaseEnumUtilsService {
 			case RunningTaskSubType.RETRAIN_DOMAIN_MODEL: return "Retrain";
 			case RunningTaskSubType.CLASSIFY_DOMAIN_MODEL: return "Classification";
 			case RunningTaskSubType.EVALUATE_DOMAIN_MODEL: return "Evaluation";
+			case RunningTaskSubType.SAMPLE_DOMAIN_MODEL: return "Sampling";
+			case RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL: return "Annotation";
 			default: return '-';
 		}
 	}

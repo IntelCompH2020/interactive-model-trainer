@@ -471,18 +471,33 @@ export function samplingParams(): ModelParam[] {
     {
       name: 'sampler',
       realName: 'sampler',
-      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS.SAMPLER',
-      type: 'string',
-      default: "None",
-      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS-TOOLTIPS.SAMPLER',
-      validation: {}
+      displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ACTIVE-LEARNING-PARAMETERS.SAMPLER',
+      type: 'select',
+      default: null,
+      tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ACTIVE-LEARNING-PARAMETERS-TOOLTIPS.SAMPLER',
+      validation: {
+        options: [
+          {
+            displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ACTIVE-LEARNING-PARAMETERS.SAMPLER-OPTIONS.NONE',
+            value: null
+          },
+          {
+            displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ACTIVE-LEARNING-PARAMETERS.SAMPLER-OPTIONS.EXTREMES',
+            value: 'extremes'
+          },
+          {
+            displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.ACTIVE-LEARNING-PARAMETERS.SAMPLER-OPTIONS.RANDOM',
+            value: 'random'
+          }
+        ]
+      }
     },
     {
       name: 'numOfDocuments',
-      realName: 'numOfDocuments',
+      realName: 'n_samples',
       displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS.NUM-OF-DOCUMENTS',
       type: 'number',
-      default: 5,
+      default: 8,
       tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.SAMPLING-PARAMETERS-TOOLTIPS.NUM-OF-DOCUMENTS',
       validation: {
         min: 1

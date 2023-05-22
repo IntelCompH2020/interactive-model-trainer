@@ -91,7 +91,7 @@
             </mat-checkbox>
         </div>
     </div>
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-auto">
             <mat-checkbox [ngModelOptions]="{standalone: true}"
                 [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.ADVANCED-OPTIONS'
@@ -121,7 +121,8 @@
         </div>
     </ng-container>
 
-    <div class="mb-2" *ngIf="!advancedParamsForAL"></div>
+    <div class="mb-2" *ngIf="!advancedParamsForAL"></div> -->
+    <div class="mb-2"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup && classifierFormGroup">
@@ -131,7 +132,7 @@
             | translate}}</button>
     </div>
     <div class="col-auto">
-        <button mat-raised-button [disabled]="true" color="accent"
+        <button mat-raised-button [disabled]="!valid" color="accent"
             (click)="create()">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.SUBMIT'
             | translate}}</button>
     </div>

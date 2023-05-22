@@ -3,26 +3,29 @@ package gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
+import gr.cite.intelcomp.interactivemodeltrainer.data.DocumentEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.model.DocumentJsonModel;
+import gr.cite.intelcomp.interactivemodeltrainer.model.DomainLabelsSelectionJsonModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.tools.logging.LoggerService;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageCorpus.InnerPaths.DATASETS_ROOT;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
 
 @Service
 @Primary
@@ -72,7 +75,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
 
             return filePath;
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
         }
 
         return null;
@@ -93,7 +96,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
             String json = jsonHandlingService.toJsonSafe(contents);
             Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -108,7 +111,24 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
             Path filePath = Path.of(modelFolder, logFile);
             Files.write(filePath, new byte[]{});
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void generateLabelsFile(String modelName, DomainLabelsSelectionJsonModel labels) {
+        try {
+            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelName);
+            Path filePath = Path.of(documentsFolder, DC_MODEL_SELECTED_LABELS_FILE_NAME(modelName));
+            Map<String, Integer> newLabels = new LinkedHashMap<>();
+            labels.getLabels().forEach((key, value) -> {
+                newLabels.put(key.replace("index", ""), value);
+            });
+            labels.setLabels(newLabels);
+            String json = jsonHandlingService.toJsonSafe(labels);
+            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -123,9 +143,47 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
             Path filePath = Path.of(modelFolder, logFile);
             return Files.readAllLines(filePath);
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
         }
         return List.of();
+    }
+
+    @Override
+    public Map<String, byte[]> getPU_scores(String modelName) {
+        Map<String, byte[]> result = new HashMap<>();
+        try {
+            String outputFolder = containerServicesProperties.getDomainTrainingService().getOutputFolder(modelName);
+            result.put(modelName + "_PUscores.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores.png")));
+            result.put(modelName + "_PUscores_log.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_log.png")));
+            result.put(modelName + "_PUscores_hist.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_hist.png")));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<DocumentEntity> getSampledDocuments(String modelName) {
+        try {
+            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelName);
+            Path filePath = Path.of(documentsFolder, DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME(modelName));
+            String json = FileUtils.readFileToString(filePath.toFile(), Charset.defaultCharset());
+            DocumentJsonModel documentModel = jsonHandlingService.fromJson(DocumentJsonModel.class, json);
+            List<DocumentEntity> result = new ArrayList<>();
+            documentModel.getId().forEach((key, value) -> {
+                DocumentEntity entity = new DocumentEntity();
+                entity.setId(value);
+                entity.setIndex(Integer.valueOf(key));
+                entity.setLabel(documentModel.getLabels().get(key));
+                entity.setText(documentModel.getText().get(key));
+                entity.setPrediction(documentModel.getPrediction().get(key));
+                result.add(entity);
+            });
+            return result;
+        } catch (IOException | NumberFormatException e) {
+            logger.error(e.getMessage(), e);
+            return List.of();
+        }
     }
 
     @Override
@@ -135,7 +193,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
             Path filePath = Path.of(modelFolder, DC_MODEL_CONFIG_FILE_NAME);
             return this.jsonHandlingService.fromJson(DomainClassificationParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
         } catch (IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
             return new DomainClassificationParametersModel();
         }
     }

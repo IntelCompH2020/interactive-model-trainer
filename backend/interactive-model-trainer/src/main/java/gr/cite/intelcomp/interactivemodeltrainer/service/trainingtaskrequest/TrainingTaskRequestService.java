@@ -2,6 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
+import gr.cite.intelcomp.interactivemodeltrainer.model.DomainLabelsSelectionJsonModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.domainclassification.DomainClassificationRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
@@ -38,7 +39,8 @@ public interface TrainingTaskRequestService {
     TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
     TrainingTaskRequest persistDomainClassifyTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
     TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
-    TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model);
+    TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException;
+    TrainingTaskRequest persistDomainFeedbackTaskForRootModel(DomainClassificationRequestPersist model, DomainLabelsSelectionJsonModel labels) throws InvalidApplicationException;
 
     //GENERAL -----------------------------------------
 

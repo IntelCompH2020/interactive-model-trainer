@@ -31,7 +31,7 @@ import java.util.*;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_CONFIG_FILE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -52,9 +52,13 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
     public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING)) {
             return handleTraining(scheduledEvent, entityManager);
-        } else if (scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL) ||
+        } else if (
+                scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL) ||
                 scheduledEvent.getEventType().equals(ScheduledEventType.CLASSIFY_DOMAIN_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL)) {
+                scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.SAMPLE_DOMAIN_MODEL) ||
+                scheduledEvent.getEventType().equals(ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL)
+        ) {
             return handleCurating(scheduledEvent, entityManager);
         } else return EventProcessingStatus.Error;
     }
@@ -136,6 +140,10 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                         runRootClassification(trainingTaskRequest, scheduledEvent, entityManager);
                     else if (scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL))
                         runRootEvaluation(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.SAMPLE_DOMAIN_MODEL))
+                        runRootSampling(trainingTaskRequest, scheduledEvent, entityManager);
+                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL))
+                        runRootFeedback(trainingTaskRequest, scheduledEvent, entityManager);
                     status = EventProcessingStatus.Success;
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
@@ -171,7 +179,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("AL.")) params.put(key.replace("AL.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_retrain", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getCorpus(), request.getTask(), params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);
@@ -203,9 +211,9 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("classifier.")) params.put(key.replace("classifier.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_retrain", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "ai", "on_retrain", params));
         paramMap.put("COMMANDS", commands);
-        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "retrain-execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_RETRAIN_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
@@ -229,9 +237,9 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
 
         HashMap<String, String> params = new HashMap<>();
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_classify", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "ai", "on_classify", params));
         paramMap.put("COMMANDS", commands);
-        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "classification-execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_CLASSIFY_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
@@ -261,14 +269,72 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("evaluator.")) params.put(key.replace("evaluator.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "on_evaluate", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "ai", "on_evaluate", params));
         paramMap.put("COMMANDS", commands);
-        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "evaluation-execution.log");
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_EVALUATE_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
         logger.info("Container '{}' started running domain model evaluation task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runRootSampling(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
+        DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
+        if (request == null) return;
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+
+        HashMap<String, String> params = new HashMap<>();
+
+        RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
+        Objects.requireNonNull(eventData.getRequest().getParameters());
+        eventData.getRequest().getParameters().forEach((key, val) -> {
+            if (key.startsWith("sampler.") && val != null) params.put(key.replace("sampler.", ""), val);
+        });
+
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "ai", "on_sample", params));
+        paramMap.put("COMMANDS", commands);
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_SAMPLE_LOG_FILE_NAME);
+        paramMap.put("LOG_FILE", logFile);
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running domain model sampling task for request -> {}", containerId, trainingTaskRequest.getId());
+
+        TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
+        TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();
+        task.setStartedAt(Instant.now());
+        task.setStatus(TrainingTaskRequestStatus.PENDING);
+        entityManager.merge(task);
+        entityManager.flush();
+    }
+
+    private void runRootFeedback(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity event, EntityManager entityManager) throws IOException, ApiException {
+        DomainClassificationRequestPersist request = extractRequestBodyFromEventData(event);
+        if (request == null) return;
+
+        ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+        Map<String, String> paramMap = new HashMap<>();
+
+        HashMap<String, String> params = new HashMap<>();
+
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), "ai", "on_save_feedback", params));
+        paramMap.put("COMMANDS", commands);
+        String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_FEEDBACK_LOG_FILE_NAME);
+        paramMap.put("LOG_FILE", logFile);
+        executionParams.setEnvMapping(paramMap);
+        ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
+        String containerId = containerManagementService.runJob(executionParams);
+        logger.info("Container '{}' started running domain model feedback task for request -> {}", containerId, trainingTaskRequest.getId());
 
         TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
         TrainingTaskRequestEntity task = trainingTaskRequestQuery.ids(trainingTaskRequest.getId()).first();

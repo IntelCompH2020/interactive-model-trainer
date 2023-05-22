@@ -8,13 +8,32 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 public class CheckTasksSchedulerEventProperties {
 
     private final Long checkIntervalInSeconds;
+    private final CacheOptions cacheOptions;
 
-    public CheckTasksSchedulerEventProperties(Long checkIntervalInSeconds) {
+    public CheckTasksSchedulerEventProperties(Long checkIntervalInSeconds, CacheOptions cacheOptions) {
         this.checkIntervalInSeconds = checkIntervalInSeconds;
+        this.cacheOptions = cacheOptions;
     }
 
     public Long getCheckIntervalInSeconds() {
         return checkIntervalInSeconds;
+    }
+
+    public CacheOptions getCacheOptions() {
+        return cacheOptions;
+    }
+
+    public static class CacheOptions {
+
+        private final Integer taskResponseCacheRetentionInHours;
+
+        public CacheOptions(Integer taskResponseCacheRetentionInHours) {
+            this.taskResponseCacheRetentionInHours = taskResponseCacheRetentionInHours;
+        }
+
+        public Integer getTaskResponseCacheRetentionInHours() {
+            return taskResponseCacheRetentionInHours;
+        }
     }
 
 }

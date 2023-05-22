@@ -31,7 +31,7 @@ import { ModelPatchComponent } from '../model-patch/model-patch-modal.component'
 import { DomainModelFromCategoryNameComponent } from './domain-model-from-category-name/domain-model-from-category-name.component';
 import { DomainModelFromKeywordsComponent } from './domain-model-from-keywords/domain-model-from-keywords.component';
 import { DomainModelFromSelectionFunctionComponent } from './domain-model-from-selection-function/domain-model-from-selection-function.component';
-import { RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
+import { RunningTaskType, RunningTasksQueueService } from '@app/core/services/ui/running-tasks-queue.service';
 import { retrainParams, evaluateParams, samplingParams } from './domain-model-params.model';
 import { DomainModelEvaluateEditorModel } from './domain-model-evaluate-editor.model';
 import { DomainModelRetrainEditorModel } from './domain-model-retrain-editor.model';
@@ -65,12 +65,8 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 	onDocumentSelect = new EventEmitter<Document>();
 	private _domainModelSelected: DomainModel = null;
 	private _documentSelected: Document = null;
-
-	selectedSettings: BehaviorSubject<DomainModelSamplingEditorModel> = new BehaviorSubject(undefined);
-	private _selectedSettings: DomainModelSamplingEditorModel = null;
-	get settingsAreSelected(): boolean {
-		return this._selectedSettings ? true : false;
-	}
+	
+	documents: BehaviorSubject<Document[]> = new BehaviorSubject([]); 
 	documentLookup: DocumentLookup = new DocumentLookup();
 
 	SelectionType = SelectionType;
@@ -85,6 +81,10 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 
 	get samplingParams(): ModelParam[] {
 		return samplingParams();
+	}
+
+	get selectedModel(): DomainModel {
+		return this._domainModelSelected;
 	}
 
 	protected loadListing(): Observable<QueryResult<DomainModel>> {
@@ -175,7 +175,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		public enumUtils: AppEnumUtils,
 		protected dialog: MatDialog,
 		protected domainModelService: DomainModelService,
-		private trainingModelQueueService: RunningTasksQueueService,
+		private runningTasksQueueService: RunningTasksQueueService,
 		private pipeService: PipeService,
 		private formBuilder: FormBuilder
 	) {
@@ -200,12 +200,12 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._setUpLikeFilterFormGroup();
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
-		this.trainingModelQueueService.taskCompleted
+		this.runningTasksQueueService.taskCompleted
 			.pipe(
 				debounceTime(300)
 			).subscribe((task) => {
-				if (this.trainingModelQueueService.isDomainModelTask(task)) {
-					this.refresh(
+				if (this.runningTasksQueueService.isDomainModelTask(task)) {
+					this.refreshDocuments(
 						() => this.snackbars.successfulOperation(true)
 					);
 				}
@@ -217,9 +217,15 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._domainModelSelected = null;
 		this.onDocumentSelect.emit(null);
 		this._documentSelected = null;
-		this.selectedSettings.next(null);
-		this._selectedSettings = null;
+		this.documents.next([]);
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+		if (callback) callback();
+	}
+
+	public refreshDocuments(callback?: () => void): void {
+		this.onDocumentSelect.emit(null);
+		this._documentSelected = null;
+		this.documents.next([]);
 		if (callback) callback();
 	}
 
@@ -310,7 +316,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 						this.snackbars.operationStarted();
 						callback();
 					}
-				)
+				);
 			});
 	}
 
@@ -320,7 +326,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				this.snackbars.operationStarted();
 				callback();
 			}
-		)
+		);
 	}
 
 	public evaluate(model: DomainModel, callback: () => void): void {
@@ -354,7 +360,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 						this.snackbars.operationStarted();
 						callback();
 					}
-				)
+				);
 			});
 	}
 
@@ -378,8 +384,20 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 				takeUntil(this._destroyed)
 			)
 			.subscribe((settings: DomainModelSamplingEditorModel) => {
-				this._selectedSettings = settings;
-				this.selectedSettings.next(settings);
+				let params = {
+					'sampler.sampler': settings['sampler'],
+					'sampler.n_samples': settings['numOfDocuments']
+				}
+				let payload = {
+					name: model.name,
+					parameters: params
+				}
+				this.domainModelService.sample(payload).subscribe(
+					_response => {
+						this.snackbars.operationStarted();
+						callback();
+					}
+				);
 			});
 	}
 
@@ -436,24 +454,29 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		});
 	}
 
-	onRowActivated($event: RowActivateEvent) {
+	onRowActivated($event: RowActivateEvent): void {
 		const selectedModel: DomainModel = $event.row as DomainModel;
 		if ($event.type === 'click') {
 			if (this._domainModelSelected && selectedModel.name === this._domainModelSelected.name) return;
 			this.onDomainModelSelect.emit(selectedModel);
 			this._domainModelSelected = selectedModel;
-			this._selectedSettings = null;
-			this.selectedSettings.next(null);
 		}
 	}
 
-	onDocumentSelected(document: Document) {
+	onDocumentSelected(document: Document): void {
 		this._documentSelected = document;
 		this.onDocumentSelect.emit(document);
 	}
 
-	onDocumentLookup(lookup: DocumentLookup) {
+	onDocumentLookup(lookup: DocumentLookup): void {
 		this.documentLookup = lookup;
+	}
+
+	onFeedbackSubmitted(submitted: boolean): void {
+		if (submitted) {
+			this.refreshDocuments();
+			this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
+		}
 	}
 
 	newDomainModelFromKeywords(): void {

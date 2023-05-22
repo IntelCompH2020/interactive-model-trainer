@@ -13,11 +13,12 @@
                 <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
             </mat-form-field>
             <mat-form-field class="w-100" appearance="outline">
-                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.CORPUS' |
+                <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.CORPUS'
+                    |
                     translate}}</mat-label>
                 <mat-select formControlName="corpus" (selectionChange)="onCorpusSelected($event)">
-                    <mat-option [value]="item" *ngFor="let item of availableCorpora">
-                        {{item}}
+                    <mat-option [value]="item.Dtsets[0].source" *ngFor="let item of availableCorpora">
+                        {{item.name}}
                     </mat-option>
                 </mat-select>
                 <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
@@ -31,11 +32,12 @@
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.DESCRIPTION'
                     |
                     translate}}</mat-label>
-                <textarea matInput formControlName="description" rows="2"></textarea>
+                <textarea matInput formControlName="description" rows="4"></textarea>
             </mat-form-field>
         </div>
         <div *ngIf="params.length" class="col-12 col-lg-6">
-            <app-model-parameters-table [parameters]="params" [formGroup]="formGroup" [maxParamsPerRow]="2"></app-model-parameters-table>
+            <app-model-parameters-table [parameters]="params" [formGroup]="formGroup"
+                [maxParamsPerRow]="2"></app-model-parameters-table>
         </div>
     </div>
 
@@ -44,18 +46,29 @@
             <h6 class="text-bold">
                 {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.SUGGESTED-KEYWORDS'
                 | translate}}</h6>
-                <mat-form-field class="w-100 mt-2" appearance="outline">
-                    <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.KEYWORD' |
-                        translate}}</mat-label>
-                    <mat-select (selectionChange)="onKeywordListSelected($event)" [disabled]="!availableKeywordLists">
-                        <mat-option [value]="item" *ngFor="let item of availableKeywordLists">
-                            {{item.name}}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <div class="keyword-container">
+            <div class="row">
+                <div class="col-10">
+                    <mat-form-field class="w-100 mt-2" appearance="outline">
+                        <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.KEYWORD'
+                            |
+                            translate}}</mat-label>
+                        <mat-select (selectionChange)="onKeywordListSelected($event)"
+                            [disabled]="!availableKeywordLists">
+                            <mat-option [value]="item" *ngFor="let item of availableKeywordLists">
+                                {{item.name}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-2 mt-3">
+                    <button mat-button (click)="addAll()" [disabled]="!availableKeywordLists || !keywords?.length">Add all</button>
+                </div>
+            </div>
+
+            <div class="keyword-container">
                 <mat-chip-list>
-                    <mat-chip class="cursor-pointer" *ngFor="let item of keywords; let index = index" (click)="addKeyword($event.target.innerText)">
+                    <mat-chip class="cursor-pointer" *ngFor="let item of keywords; let index = index"
+                        (click)="addKeyword($event.target.innerText)">
                         {{item}}
                     </mat-chip>
                 </mat-chip-list>
@@ -64,7 +77,9 @@
         <div class="col">
             <h6 class="text-bold">
                 {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.SELECTED-KEYWORDS'
-                | translate}}</h6>
+                | translate}} 
+                <span *ngIf="this.selectedKeywords?.size" class="clear-all-keywords" (click)="clearAll()">Clear</span>
+            </h6>
             <div class="keyword-container text-muted h-100">
                 <mat-chip-list>
                     <mat-chip *ngFor="let item of selectedKeywords;">
@@ -81,11 +96,12 @@
     <div class="row">
         <div class="col-auto">
             <mat-checkbox (change)="onPrivateChange($event)" [checked]="isPrivate">
-                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PRIVATE' | translate}}
+                {{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PRIVATE'
+                | translate}}
             </mat-checkbox>
         </div>
     </div>
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-auto">
             <mat-checkbox [ngModelOptions]="{standalone: true}"
                 [(ngModel)]="advanced">{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.ADVANCED-OPTIONS'
@@ -115,7 +131,8 @@
         </div>
     </ng-container>
 
-    <div class="mb-2" *ngIf="!advancedParamsForAL"></div>
+    <div class="mb-2" *ngIf="!advancedParamsForAL"></div> -->
+    <div class="mb-2"></div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" *ngIf="formGroup && classifierFormGroup">

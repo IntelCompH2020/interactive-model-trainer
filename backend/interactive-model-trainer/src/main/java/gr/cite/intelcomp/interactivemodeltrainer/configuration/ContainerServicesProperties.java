@@ -67,11 +67,11 @@ public class ContainerServicesProperties {
 
     public static final class ManageDomainModels extends Manager {
 
-        public static List<String> TASK_CMD(String modelName, String task, HashMap<String, String> params) {
+        public static List<String> TASK_CMD(String modelName, String project, String task, HashMap<String, String> params) {
             List<String> command = new ArrayList<>(
-                    Arrays.asList("run_dc_task.py", "--source", "/data/DCmodels/datasets")
+                    List.of("run_dc_task.py")
             );
-            command.addAll(Arrays.asList("--p", InnerPaths.DC_PROJECT_ROOT + modelName));
+            command.addAll(Arrays.asList("--p", InnerPaths.DC_PROJECT_ROOT(project)));
             command.addAll(Arrays.asList("--task", task));
             command.addAll(Arrays.asList("--class_name", modelName));
             params.forEach((key, val) -> {
@@ -91,11 +91,21 @@ public class ContainerServicesProperties {
 
         public static final class InnerPaths {
             public static final String DC_MODELS_ROOT = "/data/DCmodels/models/";
-            public static final String DC_PROJECT_ROOT = "/data/DCmodels/";
+            public static String DC_PROJECT_ROOT(String dataset) {
+                return "/data/DCmodels/" + dataset + "_classification";
+            }
             public static final String DC_MODEL_CONFIG_FILE_NAME = "dc_config.json";
             public static final String DC_MODEL_RETRAIN_LOG_FILE_NAME = "retrain-execution.log";
             public static final String DC_MODEL_CLASSIFY_LOG_FILE_NAME = "classification-execution.log";
             public static final String DC_MODEL_EVALUATE_LOG_FILE_NAME = "evaluation-execution.log";
+            public static final String DC_MODEL_SAMPLE_LOG_FILE_NAME = "sampling-execution.log";
+            public static final String DC_MODEL_FEEDBACK_LOG_FILE_NAME = "feedback_execution.log";
+            public static String DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME(String modelName) {
+                return "selected_docs_{modelName}.json".replace("{modelName}", modelName);
+            }
+            public static String DC_MODEL_SELECTED_LABELS_FILE_NAME(String modelName) {
+                return "new_labels_{modelName}.json".replace("{modelName}", modelName);
+            }
         }
 
     }
@@ -144,6 +154,16 @@ public class ContainerServicesProperties {
             if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager)) return volumeConfiguration.get("tm_models_folder");
             if (volumeConfiguration.get("dc_models_folder") != null && ManageDomainModels.class.equals(manager)) return volumeConfiguration.get("dc_models_folder");
             return null;
+        }
+
+        public String getOutputFolder(String projectName) {
+            if (volumeConfiguration == null || volumeConfiguration.get("output_folder") == null) return null;
+            return volumeConfiguration.get("output_folder").replace("{project_name}", projectName);
+        }
+
+        public String getDocumentsFolder(String projectName) {
+            if (volumeConfiguration == null || volumeConfiguration.get("documents_folder") == null) return null;
+            return volumeConfiguration.get("documents_folder").replace("{project_name}", projectName);
         }
 
     }

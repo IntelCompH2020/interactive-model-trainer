@@ -220,6 +220,8 @@ public class EventSchedulerTask {
                 case RETRAIN_DOMAIN_MODEL:
                 case CLASSIFY_DOMAIN_MODEL:
                 case EVALUATE_DOMAIN_MODEL:
+                case SAMPLE_DOMAIN_MODEL:
+                case GIVE_FEEDBACK_DOMAIN_MODEL:
                     handler = applicationContext.getBean(RunDomainTrainingScheduledEventHandler.class);
                     break;
                 case CHECK_RUNNING_TASKS:

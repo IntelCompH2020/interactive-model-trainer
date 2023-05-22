@@ -6,7 +6,10 @@ import gr.cite.intelcomp.interactivemodeltrainer.cache.DomainModelCachedEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.TopicModelCachedEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.*;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.JobStatus;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventStatus;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
@@ -15,6 +18,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.Event
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskResponse;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
@@ -25,7 +29,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.Do
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
 import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -39,9 +42,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_DOMAIN_MODELS_SERVICE_NAME;
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.TRAIN_TOPIC_MODELS_SERVICE_NAME;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -90,16 +93,15 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             CheckTasksConsistencyHandler checkTasksConsistencyHandler = applicationContext.getBean(CheckTasksConsistencyHandler.class);
             Boolean isConsistent = (checkTasksConsistencyHandler.isConsistent(new CheckTasksConsistencyPredicates()));
             if (isConsistent) {
-                try {
-                    for (TrainingTaskRequestEntity request : runningTrainRequests) {
+                for (TrainingTaskRequestEntity request : runningTrainRequests) {
+                    try {
                         this.run(request, entityManager);
+                    } catch (Exception e) {
+                        this.omit(request, entityManager, e);
                     }
-                    status = EventProcessingStatus.Success;
-
-                } catch (Exception e) {
-                    status = EventProcessingStatus.Error;
-                    logger.error(e);
                 }
+                removeOldCache();
+                status = EventProcessingStatus.Success;
             } else {
                 status = EventProcessingStatus.Postponed;
             }
@@ -191,7 +193,14 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
                 cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
             }
         }
-        removeOldCache();
+    }
+
+    private void omit(TrainingTaskRequestEntity trainingTaskRequest, EntityManager entityManager, Exception e) {
+        trainingTaskRequest.setStatus(TrainingTaskRequestStatus.ERROR);
+        entityManager.merge(trainingTaskRequest);
+        entityManager.flush();
+        updateCache(UUID.fromString(trainingTaskRequest.getJobId()));
+        logger.error(e.getMessage(), e);
     }
 
     private void updateCache(UUID task) {
@@ -203,19 +212,33 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         item.setFinished(true);
         item.setFinishedAt(Instant.now());
 
-        try {
-            Field field = item.getClass().getSuperclass().getDeclaredField("label");
-            field.setAccessible(true);
-            String modelName = field.get(item).toString();
-            if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL.equals(item.getSubType())) {
-                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME));
-            } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL.equals(item.getSubType())) {
-                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME));
-            } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL.equals(item.getSubType())) {
-                item.setResponse(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            logger.error(e.getMessage(), e);
+        String modelName = item.getLabel();
+        if (modelName == null) {
+            logger.error("Cannot extract label from running task object. Updating cache failed.");
+            return;
+        }
+        if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL.equals(item.getSubType())) {
+            RunningTaskResponse response = new RunningTaskResponse();
+            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME));
+            item.setResponse(response);
+        } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL.equals(item.getSubType())) {
+            RunningTaskResponse response = new RunningTaskResponse();
+            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME));
+            item.setResponse(response);
+        } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL.equals(item.getSubType())) {
+            RunningTaskResponse response = new RunningTaskResponse();
+            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
+            response.setPuScores(domainClassificationParametersService.getPU_scores(modelName));
+            item.setResponse(response);
+        } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL.equals(item.getSubType())) {
+            RunningTaskResponse response = new RunningTaskResponse();
+            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME));
+            response.setDocuments(domainClassificationParametersService.getSampledDocuments(modelName));
+            item.setResponse(response);
+        } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL.equals(item.getSubType())) {
+            RunningTaskResponse response = new RunningTaskResponse();
+            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_FEEDBACK_LOG_FILE_NAME));
+            item.setResponse(response);
         }
     }
 
@@ -224,7 +247,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         if (cache != null && cache.getPayload() != null) {
             List<RunningTaskQueueItem> finishedItems = cache.getPayload().stream().filter(i -> i.isFinished() && i.getType().equals(RunningTaskType.curating)).collect(Collectors.toList());
             for (RunningTaskQueueItem item : finishedItems) {
-                if (item.getFinishedAt().isBefore(Instant.now().minus(1, ChronoUnit.DAYS))) cache.getPayload().remove(item);
+                if (item.getFinishedAt().isBefore(Instant.now().minus(config.get().getCacheOptions().getTaskResponseCacheRetentionInHours(), ChronoUnit.HOURS))) cache.getPayload().remove(item);
             }
         }
     }

@@ -22,7 +22,7 @@ import { DomainModelService } from '@app/core/services/http/domain-model.service
 })
 export class DomainModelFromCategoryNameComponent implements OnInit {
 
-  availableCorpora: string[];
+  availableCorpora: LogicalCorpus[];
 
   selectedCorpus: string = undefined;
 
@@ -36,8 +36,12 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
   advanced: boolean = false;
   advandedForAL: boolean = false;
 
+  // get valid() {
+  //   return this.formGroup?.valid && this.classifierFormGroup?.valid && this.activeLearningFormGroup?.valid;
+  // }
+
   get valid() {
-    return this.formGroup?.valid && this.classifierFormGroup?.valid && this.activeLearningFormGroup?.valid;
+    return this.formGroup?.valid;
   }
 
   get corpusInput(): FormControl {
@@ -65,13 +69,18 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
     public enumUtils: AppEnumUtils,
     private corpusService: LogicalCorpusService,
     private domainModelService: DomainModelService
-  ) {
-    const lookup = new LogicalCorpusLookup();
-    lookup.project = { fields: [nameof<LogicalCorpus>(x => x.name)] };
-    lookup.corpusValidFor = "DC";
-    this.corpusService.query(lookup).subscribe((response) => {
+  ) {}
+
+  private _loadCorpora(): void {
+    const logicalLookup = new LogicalCorpusLookup();
+    logicalLookup.project = { fields: [
+      nameof<LogicalCorpus>(x => x.name),
+      nameof<LogicalCorpus>(x => x.Dtsets)
+    ] };
+    logicalLookup.corpusValidFor = "DC";
+    this.corpusService.query(logicalLookup).subscribe((response) => {
       const corpora = response.items;
-      this.availableCorpora = corpora.map(corpus => corpus.name);
+      this.availableCorpora = corpora;
       this.corpusInput.enable();
     });
   }
@@ -86,6 +95,7 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
       this.activeLearningFormGroup = this.activeLearningEditorModel.buildForm();
       this.corpusInput.disable();
       this.setDefaultParamValues();
+      this._loadCorpora();
     }, 0);
   }
 
@@ -113,18 +123,18 @@ export class DomainModelFromCategoryNameComponent implements OnInit {
     parameters['DC.n_max'] = this.formGroup.get('numberOfElements').value;
     parameters['DC.s_min'] = this.formGroup.get('minimumScore').value;
 
-    parameters['classifier.modelType'] = this.classifierFormGroup.get('modelType').value;
-    parameters['classifier.modelName'] = this.classifierFormGroup.get('modelName').value;
-    parameters['classifier.maximumImbalance'] = this.classifierFormGroup.get('maximumImbalance').value;
-    parameters['classifier.nmax'] = this.classifierFormGroup.get('nmax').value;
-    parameters['classifier.freezeEncoder'] = this.classifierFormGroup.get('freezeEncoder').value;
-    parameters['classifier.epochs'] = this.classifierFormGroup.get('epochs').value;
-    parameters['classifier.batchSize'] = this.classifierFormGroup.get('batchSize').value;
+    // parameters['classifier.modelType'] = this.classifierFormGroup.get('modelType').value;
+    // parameters['classifier.modelName'] = this.classifierFormGroup.get('modelName').value;
+    // parameters['classifier.maximumImbalance'] = this.classifierFormGroup.get('maximumImbalance').value;
+    // parameters['classifier.nmax'] = this.classifierFormGroup.get('nmax').value;
+    // parameters['classifier.freezeEncoder'] = this.classifierFormGroup.get('freezeEncoder').value;
+    // parameters['classifier.epochs'] = this.classifierFormGroup.get('epochs').value;
+    // parameters['classifier.batchSize'] = this.classifierFormGroup.get('batchSize').value;
 
-    parameters['AL.nDocs'] = this.activeLearningFormGroup.get('nDocs').value;
-    parameters['AL.sampler'] = this.activeLearningFormGroup.get('sampler').value;
-    parameters['AL.pRatio'] = this.activeLearningFormGroup.get('pRatio').value;
-    parameters['AL.topProb'] = this.activeLearningFormGroup.get('topProb').value;
+    // parameters['AL.nDocs'] = this.activeLearningFormGroup.get('nDocs').value;
+    // parameters['AL.sampler'] = this.activeLearningFormGroup.get('sampler').value;
+    // parameters['AL.pRatio'] = this.activeLearningFormGroup.get('pRatio').value;
+    // parameters['AL.topProb'] = this.activeLearningFormGroup.get('topProb').value;
 
     const model: any = {
       name: this.formGroup.get('name').value,

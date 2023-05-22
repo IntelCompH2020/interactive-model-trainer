@@ -15,7 +15,7 @@ public abstract class RunningTaskQueueItem {
     private RunningTaskSubType subType;
     private Instant startedAt;
     private Instant finishedAt;
-    private Object response;
+    private RunningTaskResponse response;
     @JsonIgnore
     private UUID userId;
 
@@ -88,11 +88,11 @@ public abstract class RunningTaskQueueItem {
         this.finishedAt = finishedAt;
     }
 
-    public Object getResponse() {
+    public RunningTaskResponse getResponse() {
         return response;
     }
 
-    public void setResponse(Object response) {
+    public void setResponse(RunningTaskResponse response) {
         this.response = response;
     }
 

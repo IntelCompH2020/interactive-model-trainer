@@ -19,11 +19,8 @@
   </div>
 
   <div class="col-auto">
-    <mat-icon color="error" [matTooltip]="'This is temporary test data. Service not yet integrated'">warning</mat-icon>
-  </div>
-
-  <div class="col-auto">
-    <button mat-button [matMenuTriggerFor]="menu" class="background-gray">
+    <button [disabled]="true" mat-button [matMenuTriggerFor]="menu" class="background-gray"
+      [matTooltip]="language.instant('APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.GIVE-FEEDBACK-TOOLTIP')">
       <mat-icon>
         filter_alt
       </mat-icon>
@@ -52,6 +49,13 @@
   </div>
 </div>
 
-<app-listing #documents_list [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)"
-  [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
+<app-listing *ngIf="documents.length" [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
+  [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
   (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" [externalPaging]="true"></app-listing>
+
+<ng-template #labelCell let-row="row" let-value="value">
+  <mat-radio-group [value]="value">
+    <mat-radio-button [value]="0" (click)="onLabelChange($event, row, 0)"></mat-radio-button>
+    <mat-radio-button [value]="1" (click)="onLabelChange($event, row, 1)"></mat-radio-button>
+  </mat-radio-group>
+</ng-template>

@@ -5,6 +5,8 @@ event-scheduler:
       postponePeriodInSeconds: 60
     check-tasks:
       checkIntervalInSeconds: 60
+      cacheOptions:
+        taskResponseCacheRetentionInHours: 48
   task:
     name: EventSchedulerTask
     processor:
