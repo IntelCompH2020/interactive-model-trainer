@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODELS_ROOT;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
 
 @Service
@@ -337,7 +336,9 @@ public class DockerServiceImpl implements DockerService {
             List<DomainModelEntity> data = new ArrayList<>();
             DomainModelCachedEntity cached = (DomainModelCachedEntity) cacheLibrary.get(DomainModelCachedEntity.CODE);
             if (cached == null || cached.isDirty(checkTasksSchedulerEventConfig.get().getCacheOptions().getValidPeriodInSeconds())) {
-                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+                List<String> command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD(
+                        containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class))
+                );
                 command.add(ContainerServicesProperties.ManageDomainModels.LIST_ALL_DOMAIN_CMD);
 
                 String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
@@ -346,7 +347,7 @@ public class DockerServiceImpl implements DockerService {
                 });
                 if (models == null) return data;
                 models.forEach((key, value) -> {
-                    value.setLocation(DC_MODELS_ROOT + key);
+                    value.setLocation(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + key);
                     data.add(value);
                 });
                 DomainModelCachedEntity toCache = new DomainModelCachedEntity();
@@ -403,7 +404,7 @@ public class DockerServiceImpl implements DockerService {
             List<DomainModelEntity> data = new ArrayList<>();
             if (models == null) return data;
             models.forEach((key, value) -> {
-                value.setLocation(DC_MODELS_ROOT + key);
+                value.setLocation(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + key);
                 data.add(value);
             });
 
@@ -497,7 +498,9 @@ public class DockerServiceImpl implements DockerService {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.COPY_CMD);
         } else {
-            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD(
+                    containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class))
+            );
             command.add(ContainerServicesProperties.ManageDomainModels.COPY_CMD);
         }
         command.add(name);
@@ -544,7 +547,9 @@ public class DockerServiceImpl implements DockerService {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.RENAME_CMD);
         } else {
-            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD(
+                    containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class))
+            );
             command.add(ContainerServicesProperties.ManageDomainModels.RENAME_CMD);
         }
         command.add(oldName);
@@ -591,7 +596,9 @@ public class DockerServiceImpl implements DockerService {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.DELETE_CMD);
         } else {
-            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD);
+            command = new ArrayList<>(ContainerServicesProperties.ManageDomainModels.MANAGER_ENTRY_CMD(
+                    containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class))
+            );
             command.add(ContainerServicesProperties.ManageDomainModels.DELETE_CMD);
         }
         command.add(name);

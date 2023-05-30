@@ -7,6 +7,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.IsActive;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
+import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventPublishData;
@@ -68,10 +69,11 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     private final JsonHandlingService jsonHandlingService;
     private final CacheLibrary cacheLibrary;
     private final ContainerManagementService dockerExecutionService;
+    private final ContainerServicesProperties containerServicesProperties;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, CacheLibrary cacheLibrary, ContainerManagementService dockerExecutionService, ObjectMapper objectMapper) {
+    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, CacheLibrary cacheLibrary, ContainerManagementService dockerExecutionService, ContainerServicesProperties containerServicesProperties, ObjectMapper objectMapper) {
         this.scheduledEventManageService = scheduledEventManageService;
         this.userScope = userScope;
         this.entityManager = entityManager;
@@ -80,6 +82,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         this.jsonHandlingService = jsonHandlingService;
         this.cacheLibrary = cacheLibrary;
         this.dockerExecutionService = dockerExecutionService;
+        this.containerServicesProperties = containerServicesProperties;
         this.objectMapper = objectMapper;
     }
 
@@ -428,7 +431,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -464,7 +467,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -501,7 +504,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -538,7 +541,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -575,7 +578,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());
@@ -612,7 +615,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         entity.setId(requestId);
         entity.setStatus(TrainingTaskRequestStatus.NEW);
         entity.setIsActive(IsActive.ACTIVE);
-        entity.setConfig(DC_MODELS_ROOT + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        entity.setConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + model.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         entity.setCreatorId(userScope.getUserId());
         entity.setJobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME);
         entity.setJobId(requestId.toString());

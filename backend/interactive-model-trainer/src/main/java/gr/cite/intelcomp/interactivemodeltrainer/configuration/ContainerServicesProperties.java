@@ -80,9 +80,11 @@ public class ContainerServicesProperties {
             return command;
         }
 
-        public static final List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
-                Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/DCmodels-metadata/")
-        );
+        public static List<String> MANAGER_ENTRY_CMD(String path) {
+            return new ArrayList<>(
+                    Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", path)
+            );
+        }
 
         public static final String LIST_ALL_DOMAIN_CMD = "--listTMmodels";
         public static final String COPY_CMD = "--copyTM";
@@ -90,19 +92,22 @@ public class ContainerServicesProperties {
         public static final String DELETE_CMD = "--deleteTMmodel";
 
         public static final class InnerPaths {
-            public static final String DC_MODELS_ROOT = "/data/DCmodels-metadata/";
+
             public static String DC_PROJECT_ROOT(String tag) {
                 return tag + "_classification";
             }
+
             public static final String DC_MODEL_CONFIG_FILE_NAME = "dc_config.json";
             public static final String DC_MODEL_RETRAIN_LOG_FILE_NAME = "retrain-execution.log";
             public static final String DC_MODEL_CLASSIFY_LOG_FILE_NAME = "classification-execution.log";
             public static final String DC_MODEL_EVALUATE_LOG_FILE_NAME = "evaluation-execution.log";
             public static final String DC_MODEL_SAMPLE_LOG_FILE_NAME = "sampling-execution.log";
             public static final String DC_MODEL_FEEDBACK_LOG_FILE_NAME = "feedback-execution.log";
+
             public static String DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME(String modelName) {
                 return "selected_docs_{modelName}.json".replace("{modelName}", modelName);
             }
+
             public static String DC_MODEL_SELECTED_LABELS_FILE_NAME(String modelName) {
                 return "new_labels_{modelName}.json".replace("{modelName}", modelName);
             }
@@ -151,8 +156,19 @@ public class ContainerServicesProperties {
 
         public String getModelsFolder(Class<? extends Manager> manager) {
             if (volumeConfiguration == null) return null;
-            if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager)) return volumeConfiguration.get("tm_models_folder");
-            if (volumeConfiguration.get("dc_models_folder") != null && ManageDomainModels.class.equals(manager)) return volumeConfiguration.get("dc_models_folder");
+            if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager))
+                return volumeConfiguration.get("tm_models_folder");
+            if (volumeConfiguration.get("dc_models_folder") != null && ManageDomainModels.class.equals(manager))
+                return volumeConfiguration.get("dc_models_folder");
+            return null;
+        }
+
+        public String getModelsInnerFolder(Class<? extends Manager> manager) {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("tm_models_inner_folder") != null && ManageTopicModels.class.equals(manager))
+                return volumeConfiguration.get("tm_models_inner_folder");
+            if (volumeConfiguration.get("dc_models_inner_folder") != null && ManageDomainModels.class.equals(manager))
+                return volumeConfiguration.get("dc_models_inner_folder");
             return null;
         }
 

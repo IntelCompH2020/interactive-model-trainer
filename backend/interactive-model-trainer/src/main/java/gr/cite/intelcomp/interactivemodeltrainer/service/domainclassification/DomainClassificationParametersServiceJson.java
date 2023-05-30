@@ -51,7 +51,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
         contents.setTag(config.getTag());
         contents.setVisibility(config.getVisibility());
         contents.setCorpus(DATASETS_ROOT + config.getCorpus() + ".json");
-        contents.setPathToConfig(DC_MODELS_ROOT + config.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
+        contents.setPathToConfig(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + config.getName() + "/" + DC_MODEL_CONFIG_FILE_NAME);
         contents.setType(config.getType());
         contents.setCreator(userId.toString());
         contents.setCreationDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSD").format(Date.from(Instant.now())));
