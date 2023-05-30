@@ -16,6 +16,11 @@
           translate}}</mat-label>
         <textarea matInput formControlName="description" rows="4"></textarea>
       </mat-form-field>
+      <mat-form-field *ngIf="isDomainModel" class="w-100" appearance="outline">
+        <mat-label>{{'APP.MODELS-COMPONENT.MODEL-PATCH-COMPONENT.DOMAIN-NAME' |
+          translate}}</mat-label>
+        <input type="text" matInput formControlName="tag">
+      </mat-form-field>
     </div>
   </form>
 

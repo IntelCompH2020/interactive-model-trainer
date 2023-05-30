@@ -2,6 +2,7 @@
 	"APP": {
 		"COMMONS": {
 			"SUBMIT": "Submit",
+			"UPDATE": "Update",
 			"OK": "OK",
 			"CANCEL": "Cancel",
 			"NO-DATA": "No data to display",
@@ -104,7 +105,7 @@
 		},
 		"RENAME-DIALOG": {
 			"TITLE": "Rename item",
-			"OLD-NAME": "Old name",
+			"OLD-NAME": "Current name",
 			"NEW-NAME": "New name",
 			"CANCEL": "Cancel",
 			"SUBMIT": "Rename"
@@ -243,6 +244,7 @@
 			"CORPUS": "Corpus",
 			"TYPE": "Type",
 			"LOCATION": "Location",
+			"VISIBILITY": "Access",
 			"MORE-DETAILS": "More Details",
 			"MORE-DETAILS-SHOW": "Show training parameters",
 			"TRAINED-CORPUS": "Trained Corpus",
@@ -464,7 +466,7 @@
 				},
 				"RENAME-TOPIC-DIALOG": {
 					"TITLE": "Change Topic Label",
-					"OLD-LABEL": "Old label",
+					"OLD-LABEL": "Current label",
 					"NEW-LABEL": "New label"
 				}
 			},
@@ -662,8 +664,9 @@
 				"TITLE": "Update model",
 				"NAME": "Name",
 				"DESCRIPTION": "Description",
+				"DOMAIN-NAME":"Domain Name",
 				"PRIVATE": "Private",
-				"SUBMIT": "Save",
+				"SUBMIT": "Update",
 				"CANCEL": "Cancel"
 			},
 			"MODEL-TASK-DETAILS-COMPONENT": {
@@ -708,6 +711,7 @@
 			"CREATOR": "Creator",
 			"TYPE": "Type",
 			"LOCATION": "Location",
+			"VISIBILITY": "Access",
 			"MORE-DETAILS": "More Details",
 			"MORE-DETAILS-SHOW": "Show wordlist",
 			"KEYWORDS-LISTING-COMPONENT": {

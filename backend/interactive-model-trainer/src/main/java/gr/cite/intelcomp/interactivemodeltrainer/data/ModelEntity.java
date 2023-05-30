@@ -104,7 +104,8 @@ public class ModelEntity {
     }
 
     public String getCreator() {
-        return creator;
+        if (creator != null) return creator.trim();
+        return null;
     }
 
     public void setCreator(String creator) {

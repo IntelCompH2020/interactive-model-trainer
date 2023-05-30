@@ -5,11 +5,20 @@ import java.util.List;
 
 public class QueryResult<M> {
 	public QueryResult() { }
+
+	public QueryResult(List<M> items, long count, long countOverride) {
+		this.items = items;
+		this.count = count;
+		this.countOverride = countOverride;
+	}
+
 	public QueryResult(List<M> items, long count)
 	{
 		this.items = items;
 		this.count = count;
+		this.countOverride = 0;
 	}
+
 	public QueryResult(List<M> items)
 	{
 		this.items = items;
@@ -17,8 +26,9 @@ public class QueryResult<M> {
 		else this.count = 0;
 	}
 
-	public List<M> items;
-	public long count;
+	private List<M> items;
+	private long count;
+	private long countOverride;
 
 	public List<M> getItems() {
 		return items;
@@ -34,6 +44,14 @@ public class QueryResult<M> {
 
 	public void setCount(long count) {
 		this.count = count;
+	}
+
+	public long getCountOverride() {
+		return countOverride;
+	}
+
+	public void setCountOverride(long countOverride) {
+		this.countOverride = countOverride;
 	}
 
 	public static QueryResult<?> Empty()

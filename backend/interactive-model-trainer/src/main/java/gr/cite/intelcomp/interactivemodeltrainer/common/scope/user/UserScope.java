@@ -28,6 +28,7 @@ public class UserScope {
     }
 
     public void setUserId(UUID userId) {
+        logger.trace("User scope set {}", userId);
         this.userId = userId;
     }
 }

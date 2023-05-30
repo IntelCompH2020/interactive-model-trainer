@@ -510,6 +510,10 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         value: model.TrDtSet || "-"
       },
       {
+        label: 'APP.MODELS-COMPONENT.VISIBILITY',
+        value: model.visibility || "-"
+      },
+      {
         label: 'APP.MODELS-COMPONENT.MORE-DETAILS',
         value: 'APP.MODELS-COMPONENT.MORE-DETAILS-SHOW',
         button: true,
@@ -601,6 +605,10 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       {
         label: 'APP.MODELS-COMPONENT.TRAINED-CORPUS',
         value: model.TrDtSet || "-"
+      },
+      {
+        label: 'APP.MODELS-COMPONENT.VISIBILITY',
+        value: model.visibility || "-"
       },
       // {
       //   label: 'APP.MODELS-COMPONENT.MORE-DETAILS',

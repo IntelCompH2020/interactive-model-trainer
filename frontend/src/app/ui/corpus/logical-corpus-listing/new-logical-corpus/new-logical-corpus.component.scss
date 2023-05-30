@@ -19,6 +19,11 @@ $border-color: #dee2e6 ;
         z-index: 1;
         transform: translateY(-1px);
     }
+    tbody{
+        td{
+            vertical-align: middle;
+        }
+    }
 }
 
 :host ::ng-deep .padding-margin-none.mat-form-field-appearance-outline .mat-form-field-wrapper{

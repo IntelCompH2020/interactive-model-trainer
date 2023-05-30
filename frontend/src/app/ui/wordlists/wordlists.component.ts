@@ -174,6 +174,10 @@ export class WordListsComponent extends BaseComponent implements OnInit {
         value: item.location || '-'
       },
       {
+        label: 'APP.WORD-LIST-COMPONENT.VISIBILITY',
+        value: item.visibility || '-'
+      },
+      {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',
         value: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS-SHOW',
         button: true,
@@ -193,6 +197,7 @@ export class WordListsComponent extends BaseComponent implements OnInit {
       }
     ]
   }
+
   private _buildStopWordFields(item: Stopword): DetailsItem[] {
     if (!item) return [];
     return [
@@ -217,6 +222,10 @@ export class WordListsComponent extends BaseComponent implements OnInit {
         value: item.location || '-'
       },
       {
+        label: 'APP.WORD-LIST-COMPONENT.VISIBILITY',
+        value: item.visibility || '-'
+      },
+      {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',
         value: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS-SHOW',
         button: true,
@@ -236,6 +245,7 @@ export class WordListsComponent extends BaseComponent implements OnInit {
       }
     ]
   }
+  
   private _buildEquivalenceFields(item: Equivalence): DetailsItem[] {
     if (!item) return [];
     return [
@@ -258,6 +268,10 @@ export class WordListsComponent extends BaseComponent implements OnInit {
       {
         label: 'APP.WORD-LIST-COMPONENT.LOCATION',
         value: item.location || '-'
+      },
+      {
+        label: 'APP.WORD-LIST-COMPONENT.VISIBILITY',
+        value: item.visibility || '-'
       },
       {
         label: 'APP.WORD-LIST-COMPONENT.MORE-DETAILS',

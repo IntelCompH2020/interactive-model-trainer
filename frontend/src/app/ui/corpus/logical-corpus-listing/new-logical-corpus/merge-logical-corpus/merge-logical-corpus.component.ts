@@ -53,25 +53,29 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
     this.mergedFieldsData.valid_for = this.data.validFor;
     let datasets: LocalDataset[] = [];
     for (let field of this.data.corpora) {
+      let texts: string[] = [];
       let lemmas: string[] = [];
-      for (let item of field.corpusSelections) {
-        if (item.name !== "id") lemmas.push(item.name);
-      }
-      datasets.push({
+      let dataset: LocalDataset = {
         source: field.corpusName,
-        idfld: "id",
-        lemmasfld: lemmas,
         filter: ""
-      });
+      }
+      for (let item of field.corpusSelections) {
+        if (item.type === "id") dataset.idfld = item.name;
+        if (item.type === "title") dataset.titlefld = item.name;
+        if (item.type === "text") texts.push(item.name);
+        if (item.type === "lemmas") lemmas.push(item.name);
+        if (item.type === "emmbedings") dataset.emmbedingsfld = item.name;
+      }
+      dataset.textfld = texts;
+      dataset.lemmasfld = lemmas;
+      datasets.push(dataset);
     }
     this.mergedFieldsData.Dtsets = datasets;
     return this.mergedFieldsData;
   }
 
   merge(): void {
-    let _data = this.getCorpusData();
-
-    this.logicalCorpusService.create(_data).subscribe(
+    this.logicalCorpusService.create(this.getCorpusData()).subscribe(
       _response => {
         this.dialogRef.close(true);
       }

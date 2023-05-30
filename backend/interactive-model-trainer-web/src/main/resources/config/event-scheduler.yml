@@ -4,14 +4,15 @@ event-scheduler:
       parallelTrainingsThreshold: 2
       postponePeriodInSeconds: 60
     check-tasks:
-      checkIntervalInSeconds: 60
+      checkIntervalInSeconds: 20
       cacheOptions:
+        validPeriodInSeconds: 60
         taskResponseCacheRetentionInHours: 48
   task:
     name: EventSchedulerTask
     processor:
       enable: true
-      interval-seconds: 15
+      interval-seconds: 10
       options:
         retry-threshold: 300
         max-retry-delay-seconds: 10800

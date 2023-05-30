@@ -27,7 +27,7 @@
 	<ngx-datatable-footer>
 		<ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize" let-selectedCount="selectedCount" let-curPage="curPage" let-offset="offset">			
 			<div class="page-count">
-				{{rowCount}} {{'COMMONS.LISTING-COMPONENT.MESSAGE.TOTAL' | translate}}
+				{{countOverride ? countOverride : rowCount}} {{'COMMONS.LISTING-COMPONENT.MESSAGE.TOTAL' | translate}}
 			</div>			
 			<datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'" [pagerRightArrowIcon]="'datatable-icon-right'" [pagerPreviousIcon]="'datatable-icon-prev'" [pagerNextIcon]="'datatable-icon-skip'" [page]="curPage" [size]="pageSize" [count]="rowCount" [hidden]="!((rowCount / pageSize) > 1)" (change)="dataTable.onFooterPage($event)">
 			</datatable-pager>

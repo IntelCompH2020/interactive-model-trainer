@@ -34,6 +34,7 @@ export class ListingComponent extends BaseComponent implements OnInit, OnChanges
 	@Input() messages: StaticTableMessages;
 	@Input() externalPaging = true;
 	@Input() count = 0;
+	@Input() countOverride = 0;
 	@Input() offset = 0;
 	@Input() limit: number = undefined;
 	@Input() treeFromRelation: string;

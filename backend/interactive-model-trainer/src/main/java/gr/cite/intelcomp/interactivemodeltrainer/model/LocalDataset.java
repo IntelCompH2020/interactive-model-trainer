@@ -10,7 +10,11 @@ public class LocalDataset {
     private String parquet;
     private String source;
     private String idfld;
+    private String titlefld;
+    private ArrayList<String> textfld;
     private ArrayList<String> lemmasfld;
+    private String emmbedingsfld;
+
     private String filter;
 
     public String getParquet() {
@@ -37,12 +41,36 @@ public class LocalDataset {
         this.idfld = idfld;
     }
 
+    public String getTitlefld() {
+        return titlefld;
+    }
+
+    public void setTitlefld(String titlefld) {
+        this.titlefld = titlefld;
+    }
+
+    public ArrayList<String> getTextfld() {
+        return textfld;
+    }
+
+    public void setTextfld(ArrayList<String> textfld) {
+        this.textfld = textfld;
+    }
+
     public ArrayList<String> getLemmasfld() {
         return lemmasfld;
     }
 
     public void setLemmasfld(ArrayList<String> lemmasfld) {
         this.lemmasfld = lemmasfld;
+    }
+
+    public String getEmmbedingsfld() {
+        return emmbedingsfld;
+    }
+
+    public void setEmmbedingsfld(String emmbedingsfld) {
+        this.emmbedingsfld = emmbedingsfld;
     }
 
     public String getFilter() {

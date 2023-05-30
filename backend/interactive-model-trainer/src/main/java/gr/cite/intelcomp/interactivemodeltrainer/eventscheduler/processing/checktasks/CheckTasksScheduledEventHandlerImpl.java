@@ -35,7 +35,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;

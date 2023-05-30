@@ -77,9 +77,13 @@
             (click)="close()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-MANUALLY-DIALOG.CANCEL'
             | translate}}</button>
     </div>
-    <div class="col-auto">
+    <div *ngIf="isNew" class="col-auto">
         <button mat-raised-button [disabled]="!valid" color="accent"
             (click)="submit()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-MANUALLY-DIALOG.SUBMIT'
             | translate}}</button>
+    </div>
+    <div *ngIf="!isNew" class="col-auto">
+        <button mat-raised-button [disabled]="!valid" color="accent"
+            (click)="submit()">{{'APP.COMMONS.UPDATE'| translate}}</button>
     </div>
 </mat-dialog-actions>

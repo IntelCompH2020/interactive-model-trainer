@@ -1,6 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Keyword;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.WordListLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.wordlist.KeywordService;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 

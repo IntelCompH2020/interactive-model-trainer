@@ -19,6 +19,10 @@ export class NewStopwordManuallyComponent implements OnInit {
   editorModel: StopwordEditorModel;
   formGroup: FormGroup;
 
+  get stopword(): Stopword {
+    return this.data?.stopword;
+  }
+
   protected get stopWordsFormArray(): FormArray{
     return this.formGroup.get(nameof<Stopword>(x => x.wordlist)) as FormArray;
   }
@@ -28,7 +32,7 @@ export class NewStopwordManuallyComponent implements OnInit {
   }
 
   get isNew(): boolean {
-    return this.data?.stopword === undefined;
+    return this.stopword === undefined;
   }
 
   get valid(): boolean {
@@ -49,8 +53,8 @@ export class NewStopwordManuallyComponent implements OnInit {
   ) {
     
     this.editorModel = new StopwordEditorModel();
-    if(data?.stopword){
-      this.editorModel.fromModel(data.stopword as Stopword);
+    if(this.stopword){
+      this.editorModel.fromModel(this.stopword);
       this.currentStopword = ''
     }
     this.formGroup = this.editorModel.buildForm();

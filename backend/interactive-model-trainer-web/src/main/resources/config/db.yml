@@ -19,4 +19,4 @@ spring:
       maximum-pool-size: 10
       idle-timeout: 60000
       max-lifetime: 1800000
-      leakDetectionThreshold : 8000
+      leakDetectionThreshold : 15000

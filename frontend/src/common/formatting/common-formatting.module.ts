@@ -3,6 +3,7 @@ import { DataTableDateFormatPipe, DateFormatPipe } from '@common/formatting/pipe
 import { DataTableDateTimeFormatPipe, DateTimeFormatPipe } from '@common/formatting/pipes/date-time-format.pipe';
 import { SecondsToTimePipe } from './pipes/seconds-to-time.pipe';
 import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe';
+import { DataTableLogicalCorpusValidForFormatPipe } from './pipes/logical-corpus-valid-for.pipe';
 
 //
 //
@@ -16,6 +17,7 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
+		DataTableLogicalCorpusValidForFormatPipe,
 		SecondsToTimePipe
 	],
 	exports: [
@@ -24,6 +26,7 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
+		DataTableLogicalCorpusValidForFormatPipe,
 		SecondsToTimePipe
 	],
 	providers: [
@@ -32,6 +35,7 @@ import { DataTableTopicModelTypeFormatPipe } from './pipes/topic-model-type.pipe
 		DataTableDateFormatPipe,
 		DataTableDateTimeFormatPipe,
 		DataTableTopicModelTypeFormatPipe,
+		DataTableLogicalCorpusValidForFormatPipe,
 		SecondsToTimePipe
 	]
 })

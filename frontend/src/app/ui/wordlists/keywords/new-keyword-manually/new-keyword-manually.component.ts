@@ -32,7 +32,7 @@ export class NewKeywordManuallyComponent implements OnInit {
   }
 
   get isNew(): boolean {
-    return this.data?.keywordList === undefined;
+    return this.keyword === undefined;
   }
 
   get valid(): boolean {
@@ -52,7 +52,7 @@ export class NewKeywordManuallyComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data
   ) {
     this.editorModel = new KeywordEditorModel();
-    if (data?.keywordList) {
+    if (this.keyword) {
       this.editorModel.fromModel(this.keyword);
       this.currentKeyword = '';
     }

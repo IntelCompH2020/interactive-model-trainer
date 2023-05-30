@@ -47,16 +47,25 @@ public class BaseController {
     }
 
     public static <T, L extends Lookup> QueryResult<T> extractQueryResultWithCount(Function<L, List<T>> service, L lookup) {
+        return extractQueryResultWithCountWhen(service, lookup, null);
+    }
+
+    public static <T, L extends Lookup> QueryResult<T> extractQueryResultWithCountWhen(Function<L, List<T>> service, L lookup, Function<T, Boolean> when) {
         List<T> result = service.apply(lookup);
         lookup.setPage(null);
-        int count = service.apply(lookup).size();
-        return new QueryResult<>(result, count);
+        long count = service.apply(lookup).size();
+        if (when == null) return new QueryResult<>(result, count);
+        long countOverride = count;
+        for (T item : result) {
+            if (!when.apply(item)) countOverride--;
+        }
+        return new QueryResult<>(result, count, countOverride);
     }
 
     public static <T, L extends Lookup> QueryResult<T> extractQueryResultWithCount(BiFunction<String, L, List<T>> service, String name, L lookup) {
         List<T> result = service.apply(name, lookup);
         lookup.setPage(null);
-        int count = service.apply(name, lookup).size();
+        long count = service.apply(name, lookup).size();
         return new QueryResult<>(result, count);
     }
 

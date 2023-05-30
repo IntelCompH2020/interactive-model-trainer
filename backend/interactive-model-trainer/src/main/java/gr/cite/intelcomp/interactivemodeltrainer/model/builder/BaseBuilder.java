@@ -1,6 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
+import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.tools.data.builder.Builder;
 import gr.cite.tools.data.query.QueryBase;
 import gr.cite.tools.exception.MyApplicationException;
@@ -90,6 +91,13 @@ public abstract class BaseBuilder<M, D> implements Builder {
 
 	protected String asIndexer(String... names) {
 		return this.conventionService.asIndexer(names);
+	}
+
+	public static String extractUsername(String id, List<UserEntity> users) {
+		Optional<UserEntity> found = users.stream().filter(user ->
+				user.getId().equals(UUID.fromString(id)) || user.getSubjectId().equals(id)
+		).findFirst();
+		return found.map(UserEntity::getFirstName).orElse("-");
 	}
 
 }

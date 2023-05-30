@@ -37,6 +37,10 @@ export class ModelPatchComponent implements OnInit {
     return this.data['modelType'];
   }
 
+  get isDomainModel(): boolean {
+    return this.modelType === 'DOMAIN';
+  }
+
   constructor(
     private dialogRef: MatDialogRef<ModelPatchComponent>,
     private topicModelService: TopicModelService,
@@ -63,7 +67,7 @@ export class ModelPatchComponent implements OnInit {
   }
 
   update(): void {
-    if (this.modelType === 'TOPIC') {
+    if (!this.isDomainModel) {
       if ((this.model as TopicModel).hierarchyLevel === 0) {
         this.topicModelService.update(this.formGroup.value).subscribe(() => {
           this.dialogRef.close(true);

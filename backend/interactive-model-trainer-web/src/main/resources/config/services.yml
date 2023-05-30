@@ -16,7 +16,8 @@ services:
         temp_folder: ${DOCKER_WORKSPACE}\training\temp
     domainTraining:
       volumeConfiguration:
-        dc_models_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels\models
+        dc_models_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels-metadata
         temp_folder: ${DOCKER_WORKSPACE}\training\temp
         output_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels\{project_name}_classification\output
         documents_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels\{project_name}_classification\datasets\temp
+        zero_shot_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels-zero-shot

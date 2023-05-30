@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class LogicalCorpusJson extends CorpusJson {
 
     public static final String _creator = "creator";
-    private UUID creator;
+    private String creator;
 
     public static final String _valid_for = "valid_for";
     private CorpusValidFor valid_for;
@@ -37,17 +37,20 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setParquet("/data/datasets/parquet/"+dataset.getSource());
             d.setSource(dataset.getSource());
             d.setIdfld(dataset.getIdfld());
+            d.setTitlefld(dataset.getTitlefld());
+            d.setTextfld(dataset.getTextfld());
             d.setLemmasfld(dataset.getLemmasfld());
+            d.setEmmbedingsfld(dataset.getEmmbedingsfld());
             d.setFilter(dataset.getFilter());
             return d;
         }).collect(Collectors.toList());
     }
 
-    public UUID getCreator() {
+    public String getCreator() {
         return creator;
     }
 
-    public void setCreator(UUID creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 

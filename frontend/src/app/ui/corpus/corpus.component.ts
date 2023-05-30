@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { LogicalCorpusListingComponent } from './logical-corpus-listing/logical-corpus-listing.component';
 import { RawCorpusListingComponent } from './raw-corpus-listing/raw-corpus-listing.component';
+import { DataTableLogicalCorpusValidForFormatPipe } from '@common/formatting/pipes/logical-corpus-valid-for.pipe';
 
 @Component({
   selector: 'app-corpus',
@@ -141,12 +142,12 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         value: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short').transform(corpus.download_date) || '-'
       },
       {
-        label: 'APP.CORPUS-COMPONENT.VISIBILITY',
-        value: corpus.visibility || '-'
-      },
-      {
         label: 'APP.CORPUS-COMPONENT.TYPE',
         value: CorpusType.Raw,
+      },
+      {
+        label: 'APP.CORPUS-COMPONENT.VISIBILITY',
+        value: corpus.visibility || '-'
       },
       // {
       //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
@@ -175,16 +176,16 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         value: corpus.creator || '-'
       },
       {
-        label: 'APP.CORPUS-COMPONENT.VISIBILITY',
-        value: corpus.visibility || '-'
-      },
-      {
         label: 'APP.CORPUS-COMPONENT.TYPE',
         value: CorpusType.Logical,
       },
       {
         label: 'APP.CORPUS-COMPONENT.LOGICAL.VALID-FOR',
-        value: corpus.valid_for ? this.language.instant('APP.CORPUS-COMPONENT.LOGICAL.VALID-FOR-OPTIONS.'+corpus.valid_for) : 'N/A'
+        value: this.pipeService.getPipe<DataTableLogicalCorpusValidForFormatPipe>(DataTableLogicalCorpusValidForFormatPipe).transform(corpus.valid_for) || '-'
+      },
+      {
+        label: 'APP.CORPUS-COMPONENT.VISIBILITY',
+        value: corpus.visibility || '-'
       },
       // {
       //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',

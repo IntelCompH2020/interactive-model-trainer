@@ -1,5 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.model;
 
+import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.TopicModelCachedEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
@@ -31,14 +33,15 @@ import java.util.List;
 public class TopicModelService extends ModelService<TopicModel, TopicModelLookup> {
 
     private final ContainerServicesProperties containerServicesProperties;
-
     private final TopicModelingParametersService topicModelingParametersService;
+    private final CacheLibrary cacheLibrary;
 
     @Autowired
-    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties, TopicModelingParametersService topicModelingParametersService) {
+    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties, TopicModelingParametersService topicModelingParametersService, CacheLibrary cacheLibrary) {
         super(builderFactory, dockerService);
         this.containerServicesProperties = containerServicesProperties;
         this.topicModelingParametersService = topicModelingParametersService;
+        this.cacheLibrary = cacheLibrary;
     }
 
     @Override
@@ -49,14 +52,14 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
         return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data);
     }
 
-    @Override
     public void patch(String name, String description, String visibility) {
         this.topicModelingParametersService.updateRootConfigurationFile(name, description, visibility);
+        this.cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
     }
 
-    @Override
-    public void patch(String parentName, String name, String description, String visibility) {
+    public void patchHierarchical(String parentName, String name, String description, String visibility) {
         this.topicModelingParametersService.updateHierarchicalConfigurationFile(parentName, name, description, visibility);
+        this.cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
     }
 
     @SuppressWarnings("unchecked")

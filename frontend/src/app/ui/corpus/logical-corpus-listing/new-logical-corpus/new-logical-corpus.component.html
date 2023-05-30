@@ -58,16 +58,21 @@
                                 [attr.rowspan]="corpus.get('corpusSelections')?.controls.length" *ngIf="first">
                                 {{corpus.value.corpusName}}
                             </td>
-
                             <td>
                                 {{field.value.name}}
                             </td>
                             <td>
-                                {{field.value.type}}
+                                <mat-form-field class="padding-margin-none"
+                                    appearance="outline">
+                                    <mat-select placeholder="Select type" [formControl]="field.get('type')">
+                                        <mat-option *ngFor="let fieldType of availableFieldTypes.TM"
+                                            [value]="fieldType.value">{{fieldType.label}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </td>
                             <td>
                                 <mat-checkbox #checkbox [formControl]="field.get('selected')"
-                                    (change)="onFieldSelection(checkbox.checked)"></mat-checkbox>
+                                    (change)="onFieldSelection(checkbox.checked, field.get('type'))"></mat-checkbox>
                             </td>
 
                         </tr>

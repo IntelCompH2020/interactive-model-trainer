@@ -29,6 +29,7 @@ import { Observable } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { NewLogicalCorpusComponent } from './new-logical-corpus/new-logical-corpus.component';
+import { DataTableLogicalCorpusValidForFormatPipe } from '@common/formatting/pipes/logical-corpus-valid-for.pipe';
 
 @Component({
   selector: 'app-logical-corpus-listing',
@@ -101,6 +102,13 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
         resizeable: true,
         languageName: 'APP.CORPUS-COMPONENT.LOGICAL.CREATION-DATE',
         pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short')
+      },
+      {
+        prop: nameof<LogicalCorpus>(x => x.valid_for),
+        sortable: true,
+        resizeable: true,
+        languageName: 'APP.CORPUS-COMPONENT.LOGICAL.VALID-FOR',
+        pipe: this.pipeService.getPipe<DataTableLogicalCorpusValidForFormatPipe>(DataTableLogicalCorpusValidForFormatPipe)
       }
     ]);
   }
@@ -129,7 +137,8 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
       this.setupVisibleColumns([
         nameof<LogicalCorpus>(x => x.name),
         nameof<LogicalCorpus>(x => x.description),
-        nameof<LogicalCorpus>(x => x.creation_date)
+        nameof<LogicalCorpus>(x => x.creation_date),
+        nameof<LogicalCorpus>(X => X.valid_for)
       ]);
     }, 0);
   }

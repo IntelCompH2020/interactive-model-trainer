@@ -19,6 +19,10 @@ export class NewEquivalenceManuallyComponent implements OnInit {
   editorModel: EquivalenceEditorModel;
   formGroup: FormGroup;
 
+  get equivalence(): Equivalence {
+    return this.data?.equivalence;
+  }
+
   private get _equivalenciesFormArray(): FormArray {
     return this.formGroup.get('wordlist') as FormArray;
   }
@@ -28,7 +32,7 @@ export class NewEquivalenceManuallyComponent implements OnInit {
   }
 
   get isNew(): boolean {
-    return this.data?.equivalence === undefined;
+    return this.equivalence === undefined;
   }
 
   get valid(): boolean {
@@ -40,7 +44,7 @@ export class NewEquivalenceManuallyComponent implements OnInit {
   }
 
   term: string = '';
-  equivalence: string = '';
+  equivalenceTerm: string = '';
   currentEquivalence = '';
 
   constructor(
@@ -51,8 +55,8 @@ export class NewEquivalenceManuallyComponent implements OnInit {
   ) {
 
     this.editorModel = new EquivalenceEditorModel();
-    if (data?.equivalence) {
-      this.editorModel.fromModel(data.equivalence as Equivalence);
+    if (this.equivalence) {
+      this.editorModel.fromModel(this.equivalence);
       this.currentEquivalence = '';
     }
     this.formGroup = this.editorModel.buildForm();
@@ -89,6 +93,8 @@ export class NewEquivalenceManuallyComponent implements OnInit {
         equivalence
       })
     )
+    this.term = null;
+    this.equivalenceTerm = null;
   }
 
   removeEquivalence(index: number): void {
@@ -98,16 +104,6 @@ export class NewEquivalenceManuallyComponent implements OnInit {
     }
     
     this._equivalenciesFormArray.removeAt(index);
-  }
-
-  attemptEquivalenceInsert(): void {
-    if (!(this.term && this.equivalence)) {
-      return;
-    }
-
-    this.addEquivalence(this.term, this.equivalence);
-    this.term = null;
-    this.equivalence = null;
   }
 
   onPrivateChange(change: MatCheckboxChange): void {

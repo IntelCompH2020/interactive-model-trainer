@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCountWhen;
 
 @RestController
 @RequestMapping(path = "api/topic-model", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -53,13 +54,20 @@ public class TopicModelController {
     @PostMapping("all")
     @Transactional
     public QueryResult<TopicModel> GetAll(@RequestBody TopicModelLookup lookup) {
-        return extractQueryResultWithCount(l -> {
+        return extractQueryResultWithCountWhen(l -> {
             try {
                 return topicModelService.getAll(l);
             } catch (IOException | InterruptedException | ApiException e) {
                 throw new RuntimeException(e);
             }
-        }, lookup);
+        }, lookup, topicModel -> topicModel.getHierarchyLevel() == 0);
+//        return extractQueryResultWithCount(l -> {
+//            try {
+//                return topicModelService.getAll(l);
+//            } catch (IOException | InterruptedException | ApiException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }, lookup);
     }
 
     @GetMapping("{name}")
@@ -90,7 +98,7 @@ public class TopicModelController {
     @PatchMapping("{parentName}/{name}/patch")
     @Transactional
     public void Patch(@PathVariable("parentName") String parentName, @PathVariable("name") String name, @RequestBody ModelPatchInfo model) {
-        topicModelService.patch(parentName, name, model.getDescription(), model.getVisibility());
+        topicModelService.patchHierarchical(parentName, name, model.getDescription(), model.getVisibility());
     }
 
     @DeleteMapping("{name}/delete")

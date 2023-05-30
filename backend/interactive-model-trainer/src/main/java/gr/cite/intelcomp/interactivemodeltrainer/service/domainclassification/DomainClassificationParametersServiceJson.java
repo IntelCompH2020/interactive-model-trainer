@@ -82,7 +82,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
     }
 
     @Override
-    public void updateConfigurationFile(String name, String description, String visibility) {
+    public void updateConfigurationFile(String name, String description, String tag, String visibility) {
         try {
             String modelFolder = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + name;
             Path modelFolderPath = Path.of(modelFolder);
@@ -92,6 +92,7 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
             Path filePath = Path.of(modelFolder, DC_MODEL_CONFIG_FILE_NAME);
             DomainClassificationParametersModel contents = this.jsonHandlingService.fromJson(DomainClassificationParametersModel.class, Files.readString(filePath, StandardCharsets.UTF_8));
             contents.setDescription(description);
+            contents.setTag(tag);
             contents.setVisibility(visibility);
             String json = jsonHandlingService.toJsonSafe(contents);
             Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));

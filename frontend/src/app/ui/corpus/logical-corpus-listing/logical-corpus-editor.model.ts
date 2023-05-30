@@ -182,7 +182,7 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
             corpusSelections: this.formBuilder.array(
                 (corpus.corpusSelections ?? []).map((corpusSelection, j) => this.formBuilder.group({
                     name: [{ value: corpusSelection.name, disabled: disabled }, context.getValidation(`corpora[${index}].corpusSelections[${j}].name`).validators],
-                    type: [{ value: corpusSelection.type, disabled: disabled }, context.getValidation(`corpora[${index}].corpusSelections[${j}].type`).validators],
+                    type: [{ value: corpusSelection.type, disabled: disabled || !corpusSelection.selected }, context.getValidation(`corpora[${index}].corpusSelections[${j}].type`).validators],
                     selected: [{ value: corpusSelection.selected, disabled: disabled }, context.getValidation(`corpora[${index}].corpusSelections[${j}].selected`).validators],
                 }))
             )

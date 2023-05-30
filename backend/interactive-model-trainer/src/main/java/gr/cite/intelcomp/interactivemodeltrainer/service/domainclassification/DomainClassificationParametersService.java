@@ -15,7 +15,7 @@ public abstract class DomainClassificationParametersService {
 
     public abstract Path generateConfigurationFile(DomainClassificationRequestPersist config, UUID userId);
 
-    public abstract void updateConfigurationFile(String name, String description, String visibility);
+    public abstract void updateConfigurationFile(String name, String description, String tag, String visibility);
 
     public abstract void prepareLogFile(String modelName, String logFile);
     public abstract void generateLabelsFile(String modelName, DomainLabelsSelectionJsonModel labels);

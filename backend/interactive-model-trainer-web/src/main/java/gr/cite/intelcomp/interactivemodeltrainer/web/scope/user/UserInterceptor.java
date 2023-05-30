@@ -17,6 +17,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.WebRequestInterceptor;
 
@@ -145,10 +146,11 @@ public class UserInterceptor implements WebRequestInterceptor {
 
 	@Override
 	public void postHandle(@NonNull WebRequest request, ModelMap model) {
-		this.userScope.setUserId(null);
+
 	}
 
 	@Override
 	public void afterCompletion(@NonNull WebRequest request, Exception ex) {
+		this.userScope.setUserId(null);
 	}
 }

@@ -75,7 +75,7 @@ public class DomainModelController {
     @PatchMapping("{name}/patch")
     @Transactional
     public void Patch(@PathVariable("name") String name, @RequestBody ModelPatchInfo model) {
-        domainModelService.patch(name, model.getDescription(), model.getVisibility());
+        domainModelService.patch(name, model.getDescription(), model.getTag(), model.getVisibility());
     }
 
     @DeleteMapping("{name}/delete")

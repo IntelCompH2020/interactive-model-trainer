@@ -81,7 +81,7 @@ public class ContainerServicesProperties {
         }
 
         public static final List<String> MANAGER_ENTRY_CMD = new ArrayList<>(
-                Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/DCmodels/models/")
+                Arrays.asList("python", "/app/manageModels.py", "--path_TMmodels", "/data/DCmodels-metadata/")
         );
 
         public static final String LIST_ALL_DOMAIN_CMD = "--listTMmodels";
@@ -90,16 +90,16 @@ public class ContainerServicesProperties {
         public static final String DELETE_CMD = "--deleteTMmodel";
 
         public static final class InnerPaths {
-            public static final String DC_MODELS_ROOT = "/data/DCmodels/models/";
-            public static String DC_PROJECT_ROOT(String dataset) {
-                return "/data/DCmodels/" + dataset + "_classification";
+            public static final String DC_MODELS_ROOT = "/data/DCmodels-metadata/";
+            public static String DC_PROJECT_ROOT(String tag) {
+                return tag + "_classification";
             }
             public static final String DC_MODEL_CONFIG_FILE_NAME = "dc_config.json";
             public static final String DC_MODEL_RETRAIN_LOG_FILE_NAME = "retrain-execution.log";
             public static final String DC_MODEL_CLASSIFY_LOG_FILE_NAME = "classification-execution.log";
             public static final String DC_MODEL_EVALUATE_LOG_FILE_NAME = "evaluation-execution.log";
             public static final String DC_MODEL_SAMPLE_LOG_FILE_NAME = "sampling-execution.log";
-            public static final String DC_MODEL_FEEDBACK_LOG_FILE_NAME = "feedback_execution.log";
+            public static final String DC_MODEL_FEEDBACK_LOG_FILE_NAME = "feedback-execution.log";
             public static String DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME(String modelName) {
                 return "selected_docs_{modelName}.json".replace("{modelName}", modelName);
             }
@@ -164,6 +164,11 @@ public class ContainerServicesProperties {
         public String getDocumentsFolder(String projectName) {
             if (volumeConfiguration == null || volumeConfiguration.get("documents_folder") == null) return null;
             return volumeConfiguration.get("documents_folder").replace("{project_name}", projectName);
+        }
+
+        public String getZeroShotModelFolder() {
+            if (volumeConfiguration == null || volumeConfiguration.get("zero_shot_folder") == null) return null;
+            return volumeConfiguration.get("zero_shot_folder");
         }
 
     }

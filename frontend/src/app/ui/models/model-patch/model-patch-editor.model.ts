@@ -13,6 +13,7 @@ export class ModelPatchEditorModel extends BaseEditorModel {
   name: string;
   description: string;
   visibility: ModelVisibility;
+  tag?: string;
 
   public fromModel(item: TopicModel | DomainModel): ModelPatchEditorModel {
 		if (item) {
@@ -20,6 +21,7 @@ export class ModelPatchEditorModel extends BaseEditorModel {
       this.name = item.name;
 			this.description = item.description;
       this.visibility = item.visibility;
+      if ((<DomainModel> item).tag) this.tag = (<DomainModel> item).tag;
 		}
 		return this;
 	}
@@ -27,11 +29,20 @@ export class ModelPatchEditorModel extends BaseEditorModel {
   buildForm(context: ValidationContext = null, disabled: boolean = false): FormGroup {
     if (context == null) { context = this.createValidationContext(); }
 
-    return this.formBuilder.group({
-      name: [{ value: this.name, disabled: disabled }, context.getValidation('name').validators],
-      description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
-      visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators]
-    });
+    if (this.tag) {
+      return this.formBuilder.group({
+        name: [{ value: this.name, disabled: disabled }, context.getValidation('name').validators],
+        description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
+        tag: [{ value: this.tag, disabled: disabled }, context.getValidation('tag').validators],
+        visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators]
+      });
+    } else {
+      return this.formBuilder.group({
+        name: [{ value: this.name, disabled: disabled }, context.getValidation('name').validators],
+        description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
+        visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators]
+      });
+    }
   }
 
   createValidationContext(): ValidationContext {
@@ -40,6 +51,7 @@ export class ModelPatchEditorModel extends BaseEditorModel {
 
     baseValidationArray.push({ key: 'name', validators: [Validators.required] });
     baseValidationArray.push({ key: 'description', validators: [] });
+    if (this.tag) baseValidationArray.push({ key: 'tag', validators: [] });
     baseValidationArray.push({ key: 'visibility', validators: [Validators.required] });
 
     baseContext.validation = baseValidationArray;

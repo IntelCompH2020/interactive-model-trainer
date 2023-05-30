@@ -13,7 +13,7 @@ import java.util.UUID;
 public class LogicalCorpus extends Corpus{
 
     public static final String _creator = "_creator";
-    private UUID creator;
+    private String creator;
 
     public static final String _valid_for = "valid_for";
     @NotNull
@@ -27,11 +27,11 @@ public class LogicalCorpus extends Corpus{
     public static final String _creation_date = "creation_date";
     private Date creation_date;
 
-    public UUID getCreator() {
+    public String getCreator() {
         return creator;
     }
 
-    public void setCreator(UUID creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 

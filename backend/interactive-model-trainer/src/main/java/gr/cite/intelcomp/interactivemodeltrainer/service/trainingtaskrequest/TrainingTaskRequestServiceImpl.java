@@ -447,6 +447,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     public TrainingTaskRequest persistDomainRetrainingTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
+        DomainClassificationParametersModel parametersModel = domainClassificationParametersService.getConfigurationModel(model.getName());
+        model.setTag(parametersModel.getTag());
         RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
@@ -474,7 +476,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_RETRAIN_LOG_FILE_NAME);
-        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.RETRAIN_DOMAIN_MODEL);
+        updateCuratingCache(parametersModel, requestId, RunningTaskSubType.RETRAIN_DOMAIN_MODEL);
         return result;
     }
 
@@ -482,6 +484,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     public TrainingTaskRequest persistDomainClassifyTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
+        DomainClassificationParametersModel parametersModel = domainClassificationParametersService.getConfigurationModel(model.getName());
+        model.setTag(parametersModel.getTag());
         RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
@@ -509,7 +513,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_CLASSIFY_LOG_FILE_NAME);
-        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.CLASSIFY_DOMAIN_MODEL);
+        updateCuratingCache(parametersModel, requestId, RunningTaskSubType.CLASSIFY_DOMAIN_MODEL);
         return result;
     }
 
@@ -517,6 +521,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     public TrainingTaskRequest persistDomainEvaluateTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
+        DomainClassificationParametersModel parametersModel = domainClassificationParametersService.getConfigurationModel(model.getName());
+        model.setTag(parametersModel.getTag());
         RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
@@ -544,7 +550,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_EVALUATE_LOG_FILE_NAME);
-        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.EVALUATE_DOMAIN_MODEL);
+        updateCuratingCache(parametersModel, requestId, RunningTaskSubType.EVALUATE_DOMAIN_MODEL);
         return result;
     }
 
@@ -552,6 +558,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     public TrainingTaskRequest persistDomainSampleTaskForRootModel(DomainClassificationRequestPersist model) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
+        DomainClassificationParametersModel parametersModel = domainClassificationParametersService.getConfigurationModel(model.getName());
+        model.setTag(parametersModel.getTag());
         RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
@@ -579,7 +587,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_SAMPLE_LOG_FILE_NAME);
-        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.SAMPLE_DOMAIN_MODEL);
+        updateCuratingCache(parametersModel, requestId, RunningTaskSubType.SAMPLE_DOMAIN_MODEL);
         return result;
     }
 
@@ -587,6 +595,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     public TrainingTaskRequest persistDomainFeedbackTaskForRootModel(DomainClassificationRequestPersist model, DomainLabelsSelectionJsonModel labels) throws InvalidApplicationException {
         UUID requestId = UUID.randomUUID();
 
+        DomainClassificationParametersModel parametersModel = domainClassificationParametersService.getConfigurationModel(model.getName());
+        model.setTag(parametersModel.getTag());
         RunDomainTrainingScheduledEventData eventData = new RunDomainTrainingScheduledEventData(requestId, model);
 
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
@@ -615,7 +625,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_FEEDBACK_LOG_FILE_NAME);
         domainClassificationParametersService.generateLabelsFile(model.getName(), labels);
-        updateCuratingCache(domainClassificationParametersService.getConfigurationModel(model.getName()), requestId, RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL);
+        updateCuratingCache(parametersModel, requestId, RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL);
         return result;
     }
 

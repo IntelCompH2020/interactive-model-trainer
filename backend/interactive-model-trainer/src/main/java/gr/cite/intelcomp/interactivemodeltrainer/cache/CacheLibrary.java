@@ -21,7 +21,7 @@ public class CacheLibrary extends ConcurrentHashMap<String, CachedEntity<?>> {
     public void setDirtyByKey(String key) {
         if (key == null) return;
         CachedEntity<?> entity = get(key);
-        if (entity != null) entity.setDirty(true);
+        if (entity != null) entity.setDirty();
     }
 
     public void clearByKey(String key) {

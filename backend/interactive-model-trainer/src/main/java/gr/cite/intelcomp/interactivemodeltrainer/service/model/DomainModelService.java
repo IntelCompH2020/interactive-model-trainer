@@ -1,5 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.model;
 
+import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
+import gr.cite.intelcomp.interactivemodeltrainer.cache.DomainModelCachedEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
@@ -20,11 +22,13 @@ import java.util.List;
 public class DomainModelService extends ModelService<DomainModel, DomainModelLookup>{
 
     private final DomainClassificationParametersService domainClassificationParametersService;
+    private final CacheLibrary cacheLibrary;
 
     @Autowired
-    protected DomainModelService(BuilderFactory builderFactory, DockerService dockerService, DomainClassificationParametersService domainClassificationParametersService) {
+    protected DomainModelService(BuilderFactory builderFactory, DockerService dockerService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary) {
         super(builderFactory, dockerService);
         this.domainClassificationParametersService = domainClassificationParametersService;
+        this.cacheLibrary = cacheLibrary;
     }
 
     @Override
@@ -35,14 +39,9 @@ public class DomainModelService extends ModelService<DomainModel, DomainModelLoo
         return builderFactory.builder(DomainModelBuilder.class).build(lookup.getProject(), (List<DomainModelEntity>) data);
     }
 
-    @Override
-    public void patch(String name, String description, String visibility) {
-        domainClassificationParametersService.updateConfigurationFile(name, description, visibility);
-    }
-
-    @Override
-    public void patch(String parentName, String name, String description, String visibility) {
-        patch(name, description, visibility);
+    public void patch(String name, String description, String tag, String visibility) {
+        domainClassificationParametersService.updateConfigurationFile(name, description, tag, visibility);
+        cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
     }
 
 }

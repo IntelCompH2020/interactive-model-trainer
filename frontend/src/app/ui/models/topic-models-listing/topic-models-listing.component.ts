@@ -76,6 +76,8 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   SelectionType = SelectionType;
 
+  countOverride: number = 0;
+
   protected loadListing(): Observable<QueryResult<TopicModel>> {
     return this.topicModelService.query(this.lookup);
   }
@@ -183,6 +185,11 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.availableTypes = this.enumUtils.getEnumValues<TopicModelType>(TopicModelType);
     this.availableSubTypes = this.enumUtils.getEnumValues<TopicModelSubtype>(TopicModelSubtype);
     this._buildFilterEditorConfiguration();
+
+    this.latestLoadedResults$.subscribe(results => {
+      if (!results?.items?.length) return;
+      this.countOverride = results.countOverride;
+    });
 
     setTimeout(() => {
       this.setupVisibleColumns([
@@ -538,9 +545,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     }
   }
 
-  onTreeAction(event: any) {
-
-  }
+  onTreeAction(_event: any) {}
 
   onTopicSelected(topic: Topic) {
     this._topicSelected = topic;

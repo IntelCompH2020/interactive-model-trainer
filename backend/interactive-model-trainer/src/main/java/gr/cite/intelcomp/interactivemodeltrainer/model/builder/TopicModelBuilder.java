@@ -4,9 +4,11 @@ import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
+import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
@@ -14,6 +16,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -28,11 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity> {
 
     private final CacheLibrary cacheLibrary;
+    private final ApplicationContext applicationContext;
 
     @Autowired
-    public TopicModelBuilder(ConventionService conventionService, CacheLibrary cacheLibrary) {
+    public TopicModelBuilder(ConventionService conventionService, CacheLibrary cacheLibrary, ApplicationContext applicationContext) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(TopicModelBuilder.class)));
         this.cacheLibrary = cacheLibrary;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -42,6 +47,8 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
         List<TopicModel> models = new ArrayList<>();
+
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
 
         if (data == null) return models;
         for (TopicModelEntity d : data) {
@@ -60,7 +67,7 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
                             .replace("Subcorpus created from ", "")
                             .replace(".json", "")
             );
-            if (fields.hasField(this.asIndexer(TopicModelEntity._creator))) m.setCreator(d.getCreator());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._creator))) m.setCreator(extractUsername(d.getCreator(), users));
             if (fields.hasField(this.asIndexer(TopicModelEntity._params))) m.setParams(d.getParams());
             if (fields.hasField(this.asIndexer(TopicModelEntity._location))) m.setLocation(d.getLocation());
             if (fields.hasField(this.asIndexer(TopicModelEntity._creation_date))) m.setCreation_date(d.getCreation_date());

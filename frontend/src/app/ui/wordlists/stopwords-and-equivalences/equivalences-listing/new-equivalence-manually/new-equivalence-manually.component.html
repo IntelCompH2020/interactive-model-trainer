@@ -26,25 +26,21 @@
         <mat-form-field appearance="outline" class="col-3 pb-0 mb-0">
             <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.TERM'
                 | translate}}</mat-label>
-            <input (keyup.enter)="attemptEquivalenceInsert()" [(ngModel)]="term" [ngModelOptions]="{standalone: true}"
-                type="text" matInput
-                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.TERM-PLACEHOLDER' | translate"
-                value="vegetable">
+            <input [(ngModel)]="term" [ngModelOptions]="{standalone: true}" type="text" matInput
+                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.TERM-PLACEHOLDER' | translate">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="col-3 pb-0 mb-0">
             <mat-label>{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.EQUIVALENCE'
                 | translate}}</mat-label>
-            <input (keyup.enter)="attemptEquivalenceInsert()" [(ngModel)]="equivalence"
-                [ngModelOptions]="{standalone: true}" type="text" matInput
-                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.EQUIVALENCE-PLACEHOLDER' | translate"
-                value="growing">
+            <input [(ngModel)]="equivalenceTerm" [ngModelOptions]="{standalone: true}" type="text" matInput
+                [placeholder]="'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.EQUIVALENCE-PLACEHOLDER' | translate">
         </mat-form-field>
 
         <div class="col-12 col-lg-auto" [matTooltipShowDelay]="400" matTooltipPosition="above"
             [matTooltip]="((term && equivalence)? 'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.ADD-EQUIVALENCE' :'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.ADD-EQUIVALENCE-HINT') | translate">
-            <button mat-icon-button [disabled]="!term || !equivalence"
-                (click)="addEquivalence(term, equivalence); term = null; equivalence = null;">
+            <button mat-icon-button [disabled]="!term || !equivalenceTerm"
+                (click)="addEquivalence(term, equivalenceTerm)">
                 <mat-icon>
                     arrow_right_alt
                 </mat-icon>
@@ -81,9 +77,13 @@
             (click)="close()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.CANCEL'
             | translate}}</button>
     </div>
-    <div class="col-auto">
+    <div *ngIf="isNew" class="col-auto">
         <button mat-raised-button [disabled]="!valid" color="accent"
             (click)="submit()">{{'APP.WORD-LIST-COMPONENT.EQUIVALENCES-LISTING-COMPONENT.NEW-EQUIVALENCE-MANUALLY-DIALOG.SUBMIT'
             | translate}}</button>
+    </div>
+    <div *ngIf="!isNew" class="col-auto">
+        <button mat-raised-button [disabled]="!valid" color="accent" (click)="submit()">{{'APP.COMMONS.UPDATE'|
+            translate}}</button>
     </div>
 </mat-dialog-actions>

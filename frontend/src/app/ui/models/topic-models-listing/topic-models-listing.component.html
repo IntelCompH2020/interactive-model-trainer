@@ -48,10 +48,10 @@
 </div>
 
 <app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
-    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
-    (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
-    [treeFromRelation]="'TrDtSet'" [treeToRelation]="'name'" (treeAction)="onTreeAction($event)">
+    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [countOverride]="countOverride"
+    [limit]="10" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" [treeFromRelation]="'TrDtSet'"
+    [treeToRelation]="'name'" (treeAction)="onTreeAction($event)">
 </app-listing>
-<app-topics-listing [model]="selectedModel" [parentModelCurating]="isParentModelCurating" (onTopicLookup)="onTopicLookup($event)"
-    (onTopicSelect)="onTopicSelected($event)">
+<app-topics-listing [model]="selectedModel" [parentModelCurating]="isParentModelCurating"
+    (onTopicLookup)="onTopicLookup($event)" (onTopicSelect)="onTopicSelected($event)">
 </app-topics-listing>

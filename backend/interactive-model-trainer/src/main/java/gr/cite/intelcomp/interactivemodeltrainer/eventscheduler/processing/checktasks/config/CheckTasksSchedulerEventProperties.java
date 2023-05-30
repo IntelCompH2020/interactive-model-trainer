@@ -26,14 +26,21 @@ public class CheckTasksSchedulerEventProperties {
     public static class CacheOptions {
 
         private final Integer taskResponseCacheRetentionInHours;
+        private final Integer validPeriodInSeconds;
 
-        public CacheOptions(Integer taskResponseCacheRetentionInHours) {
+        public CacheOptions(Integer taskResponseCacheRetentionInHours, Integer validPeriodInSeconds) {
             this.taskResponseCacheRetentionInHours = taskResponseCacheRetentionInHours;
+            this.validPeriodInSeconds = validPeriodInSeconds;
         }
 
         public Integer getTaskResponseCacheRetentionInHours() {
             return taskResponseCacheRetentionInHours;
         }
+
+        public Integer getValidPeriodInSeconds() {
+            return validPeriodInSeconds;
+        }
+
     }
 
 }

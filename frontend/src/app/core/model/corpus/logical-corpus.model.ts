@@ -42,10 +42,13 @@ export interface LogicalCorpusPersist {
 }
 
 export interface LocalDataset {
-  source: string;
-  idfld: string;
-  lemmasfld: string[];
-  filter: string;
+  source?: string;
+  idfld?: string;
+  titlefld?: string;
+  textfld?: string[];
+  lemmasfld?: string[];
+  emmbedingsfld?: string;
+  filter?: string;
 }
 
 export interface LogicalCorpusField {
