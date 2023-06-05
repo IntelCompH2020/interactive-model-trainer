@@ -6,9 +6,10 @@
 
 <div class="col-12" [formGroup]="formGroup" *ngIf="formGroup">
 
-  <div class="row">
+  <div class="row mt-3">
     <div class="col-12">
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Name</mat-label>
         <input type="text" matInput placeholder="Name" formControlName="name">
         <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
       </mat-form-field>
@@ -17,8 +18,13 @@
 
   <div class="row">
     <div class="col-12">
-      <mat-form-field appearance="outline">
-        <input type="text" matInput placeholder="Type" formControlName="type">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Type</mat-label>
+        <mat-select placeholder="Select type" formControlName="type">
+          <mat-option *ngFor="let fieldType of availableFieldTypes" [value]="fieldType.value">
+            {{fieldType.label}}
+          </mat-option>
+        </mat-select>
         <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
       </mat-form-field>
     </div>

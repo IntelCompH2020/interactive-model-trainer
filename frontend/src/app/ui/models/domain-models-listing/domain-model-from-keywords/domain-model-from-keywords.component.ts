@@ -52,7 +52,7 @@ export class DomainModelFromKeywordsComponent implements OnInit {
 
   get valid() {
     return this.formGroup?.valid
-    && this.selectedKeywords && this.selectedKeywords.size
+      && this.selectedKeywords && this.selectedKeywords.size
   }
 
   get corpusInput(): FormControl {
@@ -98,10 +98,12 @@ export class DomainModelFromKeywordsComponent implements OnInit {
 
   private _loadCorpora(): void {
     const logicalLookup = new LogicalCorpusLookup();
-    logicalLookup.project = { fields: [
-      nameof<LogicalCorpus>(x => x.name),
-      nameof<LogicalCorpus>(x => x.Dtsets)
-    ] };
+    logicalLookup.project = {
+      fields: [
+        nameof<LogicalCorpus>(x => x.name),
+        nameof<LogicalCorpus>(x => x.Dtsets)
+      ]
+    };
     logicalLookup.corpusValidFor = "DC";
     this.corpusService.query(logicalLookup).subscribe((response) => {
       const corpora = response.items;
@@ -186,6 +188,9 @@ export class DomainModelFromKeywordsComponent implements OnInit {
     // parameters['AL.pRatio'] = this.activeLearningFormGroup.get('pRatio').value;
     // parameters['AL.topProb'] = this.activeLearningFormGroup.get('topProb').value;
 
+    const selectedSet = new Set<string>();
+    this.selectedKeywords.forEach(k => selectedSet.add(k.replaceAll(" ", "_")))
+
     const model: any = {
       name: this.formGroup.get('name').value,
       description: this.formGroup.get('description').value,
@@ -193,7 +198,7 @@ export class DomainModelFromKeywordsComponent implements OnInit {
       corpus: this.formGroup.get('corpus').value,
       visibility: this.isPrivate ? "Private" : "Public",
       task: "on_create_list_of_keywords",
-      keywords: [...this.selectedKeywords].join(','),
+      keywords: [...selectedSet].join(','),
       parameters
     }
 

@@ -14,6 +14,7 @@ public class LocalDataset {
     private ArrayList<String> textfld;
     private ArrayList<String> lemmasfld;
     private String emmbedingsfld;
+    private String categoryfld;
 
     private String filter;
 
@@ -71,6 +72,14 @@ public class LocalDataset {
 
     public void setEmmbedingsfld(String emmbedingsfld) {
         this.emmbedingsfld = emmbedingsfld;
+    }
+
+    public String getCategoryfld() {
+        return categoryfld;
+    }
+
+    public void setCategoryfld(String categoryfld) {
+        this.categoryfld = categoryfld;
     }
 
     public String getFilter() {

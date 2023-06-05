@@ -1,11 +1,15 @@
 package gr.cite.intelcomp.interactivemodeltrainer.configuration;
 
+import gr.cite.tools.logging.LoggerService;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.*;
 
 @ConfigurationProperties(prefix = "services")
 public class ContainerServicesProperties {
+
+    private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ContainerServicesProperties.class));
 
     public static abstract class Manager {}
 
@@ -77,6 +81,7 @@ public class ContainerServicesProperties {
             params.forEach((key, val) -> {
                 command.addAll(Arrays.asList("--" + key, Objects.requireNonNullElse(val, "")));
             });
+            logger.trace("TASK_CMD -> {}", command);
             return command;
         }
 

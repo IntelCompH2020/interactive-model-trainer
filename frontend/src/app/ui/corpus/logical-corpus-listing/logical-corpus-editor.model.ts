@@ -206,3 +206,15 @@ export function getLogicalCorpusUses(): {
         }
     ];
 }
+
+export function availableFieldTypes(): any[] {
+    return [
+        { value: null, label: "Select type", multiSelect: true },
+        { value: "id", label: "Id", multiSelect: false },
+        { value: "title", label: "Title", multiSelect: false },
+        { value: "text", label: "Text", multiSelect: true },
+        { value: "lemmas", label: "Lemmas", multiSelect: true },
+        { value: "embeddings", label: "Embeddings", multiSelect: false },
+        { value: "category", label: "Category", multiSelect: false },
+    ];
+}

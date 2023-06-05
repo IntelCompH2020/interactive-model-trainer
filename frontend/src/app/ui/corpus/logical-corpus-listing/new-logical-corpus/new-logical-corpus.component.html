@@ -51,8 +51,8 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white">
-                    <ng-container *ngFor="let corpus of corporaArray.controls">
-                        <tr *ngFor="let field of corpus.get('corpusSelections')?.controls; let first = first">
+                    <ng-container *ngFor="let corpus of corporaArray.controls; let corpusIndex = index;">
+                        <tr *ngFor="let field of corpus.get('corpusSelections')?.controls; let first = first;">
 
                             <td style="vertical-align: middle;" align="center" class="td-border-right"
                                 [attr.rowspan]="corpus.get('corpusSelections')?.controls.length" *ngIf="first">
@@ -62,11 +62,12 @@
                                 {{field.value.name}}
                             </td>
                             <td>
-                                <mat-form-field class="padding-margin-none"
-                                    appearance="outline">
+                                <mat-form-field class="padding-margin-none" appearance="outline">
                                     <mat-select placeholder="Select type" [formControl]="field.get('type')">
-                                        <mat-option *ngFor="let fieldType of availableFieldTypes.TM"
-                                            [value]="fieldType.value">{{fieldType.label}}</mat-option>
+                                        <mat-option [disabled]="!canSelectType(fieldType, corpusIndex)"
+                                            *ngFor="let fieldType of availableFieldTypes" [value]="fieldType.value">
+                                            {{fieldType.label}}
+                                        </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                             </td>

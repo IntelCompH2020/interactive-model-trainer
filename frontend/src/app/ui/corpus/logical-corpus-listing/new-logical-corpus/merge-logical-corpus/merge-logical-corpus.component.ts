@@ -61,10 +61,11 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
       }
       for (let item of field.corpusSelections) {
         if (item.type === "id") dataset.idfld = item.name;
-        if (item.type === "title") dataset.titlefld = item.name;
-        if (item.type === "text") texts.push(item.name);
-        if (item.type === "lemmas") lemmas.push(item.name);
-        if (item.type === "emmbedings") dataset.emmbedingsfld = item.name;
+        else if (item.type === "title") dataset.titlefld = item.name;
+        else if (item.type === "text") texts.push(item.name);
+        else if (item.type === "lemmas") lemmas.push(item.name);
+        else if (item.type === "emmbedings") dataset.emmbedingsfld = item.name;
+        else if (item.type === "category") dataset.categoryfld = item.name;
       }
       dataset.textfld = texts;
       dataset.lemmasfld = lemmas;
@@ -93,9 +94,13 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
       let targetField: LogicalCorpusField = this.getLogicalCorpusFieldByName(event.targetFieldName);
 
       this.dialog.open(NewMergedFieldComponent, {
-        width: "50rem",
+        width: "30rem",
         maxWidth: "90vw",
-        disableClose: true
+        disableClose: true,
+        data: {
+          field,
+          targetField
+        }
       })
         .afterClosed()
         .pipe(
@@ -199,7 +204,7 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
   private prepareCorpusData(): void {
     //Keep only selected fields from the previous modal
     for (let corpus of this.data.corpora) {
-      corpus['corpusSelections'] = corpus['corpusSelections'].filter((s: any) => s['selected']);
+      corpus['corpusSelections'] = corpus['corpusSelections'].filter((s: any) => s['selected'] && s['type']);
     }
 
     //Get the distinct field names

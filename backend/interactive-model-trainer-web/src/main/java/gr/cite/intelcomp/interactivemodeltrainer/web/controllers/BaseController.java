@@ -24,6 +24,8 @@ import java.util.function.Function;
 @Order(100)
 public class BaseController {
 
+    public static final Integer DEFAULT_LOG_LINE_LIMIT = 2000;
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody

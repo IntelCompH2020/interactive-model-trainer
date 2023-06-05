@@ -17,7 +17,7 @@
                     |
                     translate}}</mat-label>
                 <mat-select formControlName="corpus" (selectionChange)="onCorpusSelected($event)">
-                    <mat-option [value]="item.Dtsets[0].source" *ngFor="let item of availableCorpora">
+                    <mat-option [value]="item.name" *ngFor="let item of availableCorpora">
                         {{item.name}}
                     </mat-option>
                 </mat-select>

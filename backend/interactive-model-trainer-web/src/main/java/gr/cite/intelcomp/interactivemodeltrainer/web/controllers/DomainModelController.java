@@ -24,11 +24,14 @@ import javax.management.InvalidApplicationException;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import javax.ws.rs.QueryParam;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.DEFAULT_LOG_LINE_LIMIT;
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
 @RestController
@@ -92,11 +95,16 @@ public class DomainModelController {
 
     @GetMapping("train/logs/{name}")
     @Transactional
-    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
+    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, @RequestParam(value = "last", required = false) Integer last, HttpServletResponse response) {
         try {
             List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class), modelName, "execution.log"));
-            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
-            return lines;
+            if (lines.isEmpty()) {
+                lines.add("INFO: Logs empty. Nothing to display.");
+                return lines;
+            }
+            return lines.subList(
+                    Math.max(lines.size() - Objects.requireNonNullElse(last, DEFAULT_LOG_LINE_LIMIT), 0), lines.size()
+            );
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");

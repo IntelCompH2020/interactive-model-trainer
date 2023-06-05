@@ -12,7 +12,7 @@ import { RawCorpusService } from '@app/core/services/http/raw-corpus.service';
 import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { getLogicalCorpusUses, LogicalCorpusEditorModel } from '../logical-corpus-editor.model';
+import { availableFieldTypes, getLogicalCorpusUses, LogicalCorpusEditorModel } from '../logical-corpus-editor.model';
 import { MergeLogicalCorpusComponent } from './merge-logical-corpus/merge-logical-corpus.component';
 
 @Component({
@@ -43,28 +43,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   availableCorpora: RawCorpus[];
   corpusValidFor = getLogicalCorpusUses();
 
-  public availableFieldTypes: any = {
-    TM: [
-      { value: null, label: "Select type" },
-      { value: "id", label: "Id" },
-      { value: "title", label: "Title" },
-      { value: "text", label: "Text" },
-      { value: "lemmas", label: "Lemmas" },
-      { value: "embeddings", label: "Embeddings" },
-    ],
-    DC: [
-      { value: null, label: "Select type" },
-      { value: "id", label: "Id" },
-      { value: "title", label: "Title" },
-      { value: "text", label: "Text" },
-      { value: "lemmas", label: "Lemmas" },
-      { value: "embeddings", label: "Embeddings" },
-    ]
-  }
-
-  print(item: any) {
-    console.log(item);
-  }
+  availableFieldTypes: any[] = availableFieldTypes();
 
   constructor(
     private dialogRef: MatDialogRef<NewLogicalCorpusComponent>,
@@ -116,6 +95,15 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
     this.updateSelectAllControl(this.selectedFieldsCount == this.fieldsCount);
   }
 
+  canSelectType(fieldType: any, corpusIndex: number): boolean {
+    if (fieldType.multiSelect) return true;
+    else {
+      const count = this.corporaArray.controls[corpusIndex].get('corpusSelections').value.filter(e => fieldType.value === e.type).length;
+      if (count && count >= 1) return false;
+      else return true;
+    }
+  }
+
   onAllFieldsSelection(checked: boolean) {
     if (checked) {
       this.fieldsCheckboxControls.forEach(control => {
@@ -149,11 +137,40 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   }
 
   onValidForSelected(event: MatSelectChange) {
-    this.refresh(event.value);
+    // this.refresh(event.value);
   }
 
   canMerge(): boolean {
-    return this.selectedFieldsCount > 0 && this.formGroup.value['name']
+    if (!this.formGroup.value['name']) return false;
+    if (this.corporaArray.length === 1) return this.selectedFieldsCount > 0;
+    if (this.corporaArray.length >= 2) {
+      const overallSelections: Map<string, string[]> = new Map<string, string[]>();
+      for (let corpus of this.corporaArray.controls) {
+        const selections = (corpus as FormGroup).controls.corpusSelections.value.filter(item => item.selected).map(item => item.type);
+        overallSelections.set((corpus as FormGroup).controls.corpusName.value, selections);
+      }
+      const accSelectionsPerCorpus: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
+      for (let corpus of this.corporaArray.controls) {
+        const accSelections: Map<string, number> = new Map<string, number>()
+        let corpusSelections = overallSelections.get(corpus.value.corpusName);
+        for (let sel of corpusSelections) {
+          if (!sel) continue;
+          if (accSelections.has(sel)) accSelections.set(sel, accSelections.get(sel) + 1)
+          else accSelections.set(sel, 1);
+        }
+        accSelectionsPerCorpus.set(corpus.value.corpusName, accSelections);
+      }
+      const allEqual = (arr: any[]) => arr.every(val => val === arr[0]);
+      for (let fieldType of this.availableFieldTypes) {
+        if (!fieldType.value) continue;
+        let acc: number[] = []
+        for (let corpus of this.corporaArray.controls) {
+          acc.push(accSelectionsPerCorpus.get(corpus.value.corpusName).get(fieldType.value))
+        }
+        if (!allEqual(acc)) return false;
+      }
+      return true;
+    }
   }
 
   mergeCorpus(): void {
@@ -215,7 +232,8 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
     this.editorModel = new LogicalCorpusEditorModel();
     this.formGroup = this.editorModel.buildForm();
     this.formGroup.patchValue({
-      validFor
+      validFor,
+      combineFields: true
     });
     this.selectAllFormGroup = new FormGroup({
       selectAll: new FormControl({ value: false, disabled: true })

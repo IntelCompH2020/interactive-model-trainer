@@ -48,6 +48,7 @@ export interface LocalDataset {
   textfld?: string[];
   lemmasfld?: string[];
   emmbedingsfld?: string;
+  categoryfld?: string;
   filter?: string;
 }
 

@@ -312,7 +312,7 @@ class TaskManager(baseTaskManager):
             return self.keywords
         else:
             # Transform string into list of keywords
-            keywords = keywords.split(",")
+            keywords = keywords.replace("_", "").split(",")
             # Clean extra blank spaces keyword-by-keyword
             keywords = [" ".join(k.split()) for k in keywords]
 
@@ -1911,7 +1911,7 @@ class TaskManagerIMT(TaskManager):
                  'statistical machine translation', 'pytorch']
                 + self.DM.get_keywords_list())
         if keyword_list == '':
-            self.keywords = np.array(keywords.split(','))
+            self.keywords = np.array(keywords.replace("_", "").split(','))
 
         self.get_labels_by_keywords(wt, n_max, s_min, tag, method, keywords)
         self.train_PUmodel(

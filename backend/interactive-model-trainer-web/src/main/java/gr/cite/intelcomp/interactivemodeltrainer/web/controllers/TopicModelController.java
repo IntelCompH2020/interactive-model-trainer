@@ -30,9 +30,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Objects;
 
-import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
-import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCountWhen;
+import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.*;
 
 @RestController
 @RequestMapping(path = "api/topic-model", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -61,13 +61,6 @@ public class TopicModelController {
                 throw new RuntimeException(e);
             }
         }, lookup, topicModel -> topicModel.getHierarchyLevel() == 0);
-//        return extractQueryResultWithCount(l -> {
-//            try {
-//                return topicModelService.getAll(l);
-//            } catch (IOException | InterruptedException | ApiException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }, lookup);
     }
 
     @GetMapping("{name}")
@@ -202,11 +195,16 @@ public class TopicModelController {
 
     @GetMapping("train/logs/{name}")
     @Transactional
-    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, HttpServletResponse response) {
+    public List<String> getTrainingLogs(@PathVariable(name = "name") String modelName, @RequestParam(value = "last", required = false) Integer last, HttpServletResponse response) {
         try {
             List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), modelName, "execution.log"));
-            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
-            return lines;
+            if (lines.isEmpty()) {
+                lines.add("INFO: Logs empty. Nothing to display.");
+                return lines;
+            }
+            return lines.subList(
+                    Math.max(lines.size() - Objects.requireNonNullElse(last, DEFAULT_LOG_LINE_LIMIT), 0), lines.size()
+            );
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");
@@ -215,11 +213,16 @@ public class TopicModelController {
 
     @GetMapping("train/logs/{parent}/{name}")
     @Transactional
-    public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName, HttpServletResponse response) {
+    public List<String> getHierarchicalTrainingLogs(@PathVariable(name = "parent") String parentModelName, @PathVariable(name = "name") String modelName, @RequestParam(value = "last", required = false) Integer last, HttpServletResponse response) {
         try {
             List<String> lines = Files.readAllLines(Path.of(containerServicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), parentModelName, modelName, "execution.log"));
-            if (lines.isEmpty()) lines.add("INFO: Logs empty. Nothing to display.");
-            return lines;
+            if (lines.isEmpty()) {
+                lines.add("INFO: Logs empty. Nothing to display.");
+                return lines;
+            }
+            return lines.subList(
+                    Math.max(lines.size() - Objects.requireNonNullElse(last, DEFAULT_LOG_LINE_LIMIT), 0), lines.size()
+            );
         } catch (IOException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return List.of("ERROR: Logs not found.");

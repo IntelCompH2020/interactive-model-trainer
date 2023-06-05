@@ -16,8 +16,8 @@
                 <mat-label>{{'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-SELECTION-FUNCTION-DIALOG.CORPUS' |
                     translate}}</mat-label>
                 <mat-select formControlName="corpus" (selectionChange)="onCorpusSelected($event)">
-                    <mat-option [value]="item" *ngFor="let item of availableCorpora">
-                        {{item}}
+                    <mat-option [value]="item.name" *ngFor="let item of availableCorpora">
+                        {{item.name}}
                     </mat-option>
                 </mat-select>
                 <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>

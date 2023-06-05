@@ -138,21 +138,21 @@ class DataManager(object):
 
         return
 
-#    def __update_metadata(self):
-#
-#        path2metadata = self.path2corpus / 'metadata.yaml'
-#        with open(path2metadata, 'w') as f:
-#            yaml.dump(self.metadata, f)
-#
-#        return
+    #    def __update_metadata(self):
+    #
+    #        path2metadata = self.path2corpus / 'metadata.yaml'
+    #        with open(path2metadata, 'w') as f:
+    #            yaml.dump(self.metadata, f)
+    #
+    #        return
 
-#    def __determineCorpusHasEmbeddings(self, columns):
-#
-#        self.metadata["corpus_has_embeddings"] = bool(
-#            (np.array(columns) == 'embeddings').sum() > 0)
-#        self.__update_metadata()
-#
-#        return
+    #    def __determineCorpusHasEmbeddings(self, columns):
+    #
+    #        self.metadata["corpus_has_embeddings"] = bool(
+    #            (np.array(columns) == 'embeddings').sum() > 0)
+    #        self.__update_metadata()
+    #
+    #        return
 
     def get_metadata(self):
         """
@@ -325,7 +325,6 @@ class DataManager(object):
         # #################################################
         # Load corpus data from feather file (if it exists)
         if path2feather.is_file():
-
             logging.info(f'-- -- Feather file {path2feather} found...')
             df_corpus = pd.read_feather(path2feather)
 
@@ -486,7 +485,7 @@ class DataManager(object):
 
             # Map list of euroSciVoc codes to a string (otherwise, no
             # feather file can be saved)
-            col = 'euroSciVocCode'   # Just to abbreviate
+            col = 'euroSciVocCode'  # Just to abbreviate
             if col in df_corpus:
                 df_corpus[col] = df_corpus[col].apply(
                     lambda x: ','.join(
@@ -570,7 +569,7 @@ class DataManager(object):
 
             # Map list of keywords to a string (otherwise, no feather file can
             # be saved)
-            col = 'keywords'   # Just to abbreviate
+            col = 'keywords'  # Just to abbreviate
             df_corpus[col] = df_corpus[col].apply(
                 lambda x: ','.join(x.astype(str)) if x is not None else '')
         elif corpus_name in {'patstat', 'patstat_emb'}:
@@ -657,7 +656,8 @@ class DataManager(object):
         t0 = time()
         path2feather = self._get_path2feather(sampling_factor)
         if not path2feather.is_file():
-            raise Exception('No feather file')
+            logging.info(f'-- -- Feather file {path2feather} not found...')
+            return None
 
         logging.info(f'-- -- Feather file {path2feather} found...')
         df_corpus = pd.read_feather(path2feather)
@@ -1178,7 +1178,7 @@ class DataManager(object):
             "description": description,
             "visibility": visibility,  # "Private" or "Public"
             "type": model_type,  # "Keyword-based", "Zero-shot-based",
-                                 # "TM-based", "Source-based",
+            # "TM-based", "Source-based",
             "corpus": str(self.path2corpus),
             "tag": tag,
             "path_to_config": str(self.path2models / 'dc_config.json'),
@@ -1207,24 +1207,42 @@ class LogicalDataManager(DataManager):
         self.corpus_manager = CorpusManager()
 
     def load_corpus(self, corpus_name, sampling_factor=1):
+        """
+        Loads a dataframe of documents from a given corpus.
+        When available, the names of the relevant dataframe components are
+        mapped to normalized names: id, title, description, keywords and
+        target_xxx
+        Parameters
+        ----------
+        corpus_name : str
+            Name of the corpus. It should be the name of a folder in
+            self.path2source
+        sampling_factor : float, optional (default=1)
+            Fraction of documents to be taken from the original corpus.
+        (Used for SemanticScholar and Patstat only)
+        """
 
         logging.info(f'-- Loading corpus {corpus_name}')
 
-        # #################################################
         # Load corpus data from feather file (if it exists)
         self.path2corpus = self.path2source
-        try:
-            return self._get_corpus_from_feather(sampling_factor, corpus_name)
-        except Exception:
+        df_corpus = self._get_corpus_from_feather(
+            sampling_factor, corpus_name)
+
+        # If there is no feather file, load corpus from the original source
+        if df_corpus is None:
             df_corpus = self.__get_corpus_from_logical_dataset(
                 sampling_factor, corpus_name)
+            # Save corpus in new feather file for future loadings
             path2feather = self._get_path2feather(sampling_factor)
             self._save_feather(df_corpus, path2feather)
-            return df_corpus
+
+        return df_corpus
 
     def __get_metadata_from_json(self, corpus_name):
 
         path2json = Path(self.tm.global_parameters["dataset_path"])
+        logging.info(f'-- Trying to load metadata for corpus {corpus_name} from {path2json}')
         datasets = np.array(list(
             self.corpus_manager.listTrDtsets(path2json).keys()))
         idx = np.where(self.get_corpus_list() == corpus_name)[0][0]
@@ -1243,18 +1261,28 @@ class LogicalDataManager(DataManager):
         metadata = self.__get_metadata_from_json(corpus_name)
         dfs = []
         for dataset in metadata['Dtsets']:
-            selected_cols = np.array([dataset['idfld'],
-                                      dataset['titlefld'],
-                                      dataset['textfld'],
-                                      dataset['categoryfld']])
-
+            # Read sampled parquet file
             df = dd.read_parquet(dataset['parquet'], split_row_groups=True)
             dfsmall = df.sample(frac=sampling_factor, random_state=0)
+
             with ProgressBar():
                 df_corpus = dfsmall.compute()
-            df_corpus = df_corpus[selected_cols]
-            df_corpus.columns = np.array(
-                ['id', 'title', 'description', 'keywords'])
+
+            if dataset['categoryfld'] == "":
+                selected_cols = np.array([dataset['idfld'],
+                                          dataset['titlefld'],
+                                          dataset['textfld'][0]])
+                df_corpus = df_corpus[selected_cols]
+                df_corpus.columns = np.array(['id', 'title', 'description'])
+            else:
+                selected_cols = np.array([dataset['idfld'],
+                                          dataset['titlefld'],
+                                          dataset['textfld'][0],
+                                          dataset['categoryfld']])
+                df_corpus = df_corpus[selected_cols]
+                df_corpus.columns = np.array(
+                    ['id', 'title', 'description', 'keywords'])
+
             dfs.append(df_corpus)
 
         # ############

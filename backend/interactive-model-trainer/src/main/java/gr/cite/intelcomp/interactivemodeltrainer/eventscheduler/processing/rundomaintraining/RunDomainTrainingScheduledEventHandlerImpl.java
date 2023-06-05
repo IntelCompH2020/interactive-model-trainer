@@ -173,7 +173,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         HashMap<String, String> params = new HashMap<>();
         params.put("corpus_name", request.getCorpus());
         params.put("tag", request.getName());
-        if (request.getKeywords() != null && !request.getKeywords().isEmpty()) params.put("keywords", request.getKeywords());
+        if (request.getKeywords() != null && !request.getKeywords().isEmpty()) params.put("keywords", "\""+request.getKeywords()+"\"");
         else params.put("keywords", "");
         if ("on_create_category_name".equals(request.getTask())) {
             params.put("zeroshot", containerServicesProperties.getDomainTrainingService().getZeroShotModelFolder());
@@ -187,6 +187,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         });
 
         String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getTag(), request.getTask(), params));
+        logger.debug("COMMANDS -> {}", commands);
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");
         paramMap.put("LOG_FILE", logFile);

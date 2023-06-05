@@ -41,6 +41,7 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setTextfld(dataset.getTextfld());
             d.setLemmasfld(dataset.getLemmasfld());
             d.setEmmbedingsfld(dataset.getEmmbedingsfld());
+            d.setCategoryfld(dataset.getCategoryfld());
             d.setFilter(dataset.getFilter());
             return d;
         }).collect(Collectors.toList());
