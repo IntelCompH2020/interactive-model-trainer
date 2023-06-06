@@ -230,18 +230,23 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       });
   }
 
-  public refresh(callback?: () => void): void {
+  public refreshWithoutReloading(): void {
     this.onTopicModelSelect.emit(null);
     this._topicModelSelected = null;
     this.onTopicSelect.emit(null);
     this.topicLookup = new TopicLookup();
     this.selectedModel.next(undefined);
+  }
+  
+  public refresh(callback?: () => void): void {
+    this.refreshWithoutReloading();
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
     if (callback) callback();
   }
 
   public refreshTopics(callback?: () => void): void {
     this.onTopicSelect.emit(null);
+    this.topicLookup = new TopicLookup();
     this.selectedModel.next(this._topicModelSelected);
     if (callback) callback();
   }
@@ -542,6 +547,17 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       this.onTopicModelSelect.emit(selectedModel);
       this._topicModelSelected = selectedModel;
       this.selectedModel.next(this._topicModelSelected);
+    }
+  }
+
+  alterPage(event: PageLoadEvent) {
+    this.refreshWithoutReloading();
+    if (event) {
+      this.lookup.page.offset = event.offset * this.lookup.page.size;
+      this.onPageLoad({ offset: event.offset } as PageLoadEvent);
+    } else {
+      this.lookup.page.offset = 0;
+      this.onPageLoad({ offset: 0 } as PageLoadEvent);
     }
   }
 

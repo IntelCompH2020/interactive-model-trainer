@@ -38,7 +38,7 @@ export class NewEquivalenceFromFileComponent implements OnInit {
   ) {
     this.formGroup = this.formBuilder.group({
       name: ['', Validators.required],
-      visibility: [false]
+      visibility: [WordListVisibility.Public]
     });
    }
 
