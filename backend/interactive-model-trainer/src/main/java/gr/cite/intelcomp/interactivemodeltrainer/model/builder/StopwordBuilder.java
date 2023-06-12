@@ -18,14 +18,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity>{
+public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity> implements SortableByOwner<Stopword, WordListEntity> {
 
     private final ApplicationContext applicationContext;
 
@@ -62,5 +60,17 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity>{
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
+    }
+
+    @Override
+    public List<Stopword> buildSortedByOwnerAsc(FieldSet directives, List<WordListEntity> data) {
+        Comparator<Stopword> byOwner = Comparator.comparing(Stopword::getCreator);
+        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Stopword> buildSortedByOwnerDesc(FieldSet directives, List<WordListEntity> data) {
+        Comparator<Stopword> byOwner = Comparator.comparing(Stopword::getCreator);
+        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
     }
 }

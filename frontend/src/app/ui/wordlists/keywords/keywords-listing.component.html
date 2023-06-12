@@ -1,4 +1,3 @@
-
 <div class="row align-items-center pb-4">
     <div class="col-auto">
         <h4>
@@ -9,14 +8,16 @@
     <form [formGroup]="likeFilterFormGroup" class="col padding-margin-none">
         <mat-form-field appearance="outline" class="padding-margin-none w-100">
             <mat-icon matPrefix class="search-icon-search-bar">search</mat-icon>
-            <input type="search" [placeholder]="'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.SEARCH-PLACEHOLDER' | translate" matInput formControlName="like">
+            <input type="search"
+                [placeholder]="'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.SEARCH-PLACEHOLDER' | translate"
+                matInput formControlName="like">
         </mat-form-field>
     </form>
-    
+
     <div class="col-auto" *ngIf="items_loading">
         <mat-spinner color="accent" diameter="20"></mat-spinner>
     </div>
-    
+
     <div class="col-auto">
         <button mat-button [matMenuTriggerFor]="menu" class="background-gray">
             <mat-icon>
@@ -34,11 +35,12 @@
             <ng-template matMenuContent>
 
                 <div (click)="$event.stopPropagation();">
-                    <app-filter-editor [filterFormGroup]="filterFormGroup" [config]="filterEditorConfiguration"></app-filter-editor>
+                    <app-filter-editor [filterFormGroup]="filterFormGroup"
+                        [config]="filterEditorConfiguration"></app-filter-editor>
                 </div>
             </ng-template>
         </mat-menu>
-    </div> 
+    </div>
     <div class="col-auto">
         <button mat-raised-button [matMenuTriggerFor]="addKeywordsMenu" color="accent">
             {{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW' | translate}}
@@ -48,11 +50,19 @@
         </button>
 
         <mat-menu #addKeywordsMenu="matMenu">
-            <button mat-menu-item (click)="addNewKeywordFromFile()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-FROM-FILE' | translate}}</button>        
-            <button mat-menu-item (click)="addNewKeywordManually()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MANUALLY' | translate}}</button>
-            <button mat-menu-item (click)="addNewKeywordMerge()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MERGE' | translate}}</button>        
+            <button mat-menu-item
+                (click)="addNewKeywordFromFile()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-FROM-FILE'
+                | translate}}</button>
+            <button mat-menu-item
+                (click)="addNewKeywordManually()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MANUALLY'
+                | translate}}</button>
+            <button mat-menu-item
+                (click)="addNewKeywordMerge()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.ADD-NEW-MERGE' |
+                translate}}</button>
         </mat-menu>
-    </div> 
+    </div>
 </div>
 
-<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"></app-listing>
+<app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
+    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [defaultSort]="defaultSort"
+    [externalSorting]="true" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"></app-listing>

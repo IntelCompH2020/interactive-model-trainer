@@ -35,7 +35,7 @@ public class RawCorpusController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<RawCorpus> GetAll(@RequestBody CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
+    public QueryResult<RawCorpus> GetAll(@RequestBody CorpusLookup lookup) {
         return extractQueryResultWithCount(l -> {
             try {
                 return rawCorpusService.getAll(lookup);

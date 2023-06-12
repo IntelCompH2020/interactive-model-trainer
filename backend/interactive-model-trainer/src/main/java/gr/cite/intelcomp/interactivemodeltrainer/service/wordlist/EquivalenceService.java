@@ -25,6 +25,14 @@ public class EquivalenceService extends WordlistService<Equivalence, WordListLoo
     @Override
     public List<Equivalence> getAll(WordListLookup lookup) throws IOException, InterruptedException, ApiException {
         List<WordListEntity> data = dockerService.listWordLists(lookup);
+        String orderItem = lookup.getOrder().getItems().get(0);
+        if (orderItem.endsWith("creator")) {
+            if (orderItem.startsWith("-")) {
+                return builderFactory.builder(EquivalenceBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            } else {
+                return builderFactory.builder(EquivalenceBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+            }
+        }
         return builderFactory.builder(EquivalenceBuilder.class).build(lookup.getProject(), data);
     }
 

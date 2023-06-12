@@ -84,7 +84,7 @@ export class RunningTasksQueueService {
                 if (this._finished.findIndex(t => { 
                     return t.task === item.task;
                 }) === -1) {
-                    this.taskCompleted.next(item);
+                    this._taskCompleted.next(item);
                 }
             } else {
                 toQueue.push(item);
@@ -106,7 +106,7 @@ export class RunningTasksQueueService {
                 toCurating.push(item);
             } else {
                 toFinished.push(item);
-                if (previouslyCurating.filter((i) => i.task === item.task).length) this.taskCompleted.next(item);
+                if (previouslyCurating.filter((i) => i.task === item.task).length) this._taskCompleted.next(item);
             }
         }
         this._curating.splice(0, this._curating.length);

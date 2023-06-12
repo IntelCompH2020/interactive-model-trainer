@@ -1,5 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.cache;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -8,6 +10,13 @@ public abstract class CachedEntity<T> {
 
     public CachedEntity() {
         this.updatedAt = Instant.now();
+    }
+
+    @JsonCreator
+    public CachedEntity(boolean dirty, Instant updatedAt, List<T> payload) {
+        this.dirty = dirty;
+        this.updatedAt = updatedAt;
+        this.payload = payload;
     }
 
     private boolean dirty = false;

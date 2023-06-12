@@ -19,10 +19,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class KeywordBuilder extends BaseBuilder<Keyword, WordListEntity>{
+public class KeywordBuilder extends BaseBuilder<Keyword, WordListEntity> implements SortableByOwner<Keyword, WordListEntity>{
 
     private final ApplicationContext applicationContext;
 
@@ -60,4 +61,17 @@ public class KeywordBuilder extends BaseBuilder<Keyword, WordListEntity>{
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
     }
+
+    @Override
+    public List<Keyword> buildSortedByOwnerAsc(FieldSet directives, List<WordListEntity> data) {
+        Comparator<Keyword> byOwner = Comparator.comparing(Keyword::getCreator);
+        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Keyword> buildSortedByOwnerDesc(FieldSet directives, List<WordListEntity> data) {
+        Comparator<Keyword> byOwner = Comparator.comparing(Keyword::getCreator);
+        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
+    }
+
 }

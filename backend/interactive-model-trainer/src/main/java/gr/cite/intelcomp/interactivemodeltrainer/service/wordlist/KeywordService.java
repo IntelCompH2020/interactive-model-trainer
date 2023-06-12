@@ -25,6 +25,14 @@ public class KeywordService extends WordlistService<Keyword, WordListLookup> {
     @Override
     public List<Keyword> getAll(WordListLookup lookup) throws IOException, InterruptedException, ApiException {
         List<WordListEntity> data = dockerService.listWordLists(lookup);
+        String orderItem = lookup.getOrder().getItems().get(0);
+        if (orderItem.endsWith("creator")) {
+            if (orderItem.startsWith("-")) {
+                return builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            } else {
+                return builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+            }
+        }
         return builderFactory.builder(KeywordBuilder.class).build(lookup.getProject(), data);
     }
 

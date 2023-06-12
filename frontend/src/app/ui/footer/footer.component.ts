@@ -61,7 +61,6 @@ export class FooterComponent extends BaseComponent implements OnInit {
         //If the response is true, the user just hides the dialog
         if (!response) {
           this.trainingModelQueueService.removeItem(item.task);
-          this.trainingModelQueueService.taskCompleted.next(item);
         }
       })
     if (item.finished) {

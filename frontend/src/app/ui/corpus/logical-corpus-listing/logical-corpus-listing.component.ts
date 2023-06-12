@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,7 +20,7 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -48,6 +48,10 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
   onCorpusSelect = new EventEmitter<LogicalCorpus>();
 
   SelectionType = SelectionType;
+
+  defaultSort = ["-creation_date"];
+
+  @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<LogicalCorpus>> {
     return this.logicalCorpusService.query(this.lookup);
@@ -86,7 +90,7 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
       },
       {
         prop: nameof<LogicalCorpus>(x => x.description),
-        sortable: true,
+        sortable: false,
         resizeable: true,
         languageName: 'APP.CORPUS-COMPONENT.DESCRIPTION'
       },
@@ -151,8 +155,12 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
   }
 
   public refresh(): void {
+    this.refreshWithoutReloading();
+    this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+  }
+
+  public refreshWithoutReloading(): void {
     this.onCorpusSelect.emit(null);
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
   public edit(corpus: LogicalCorpus): void {
@@ -251,6 +259,24 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
       this.onCorpusSelect.emit($event.row);
     }
   }
+
+  alterPage(event: PageLoadEvent) {
+    this.refreshWithoutReloading();
+    if (event) {
+      this.lookup.page.offset = event.offset * this.lookup.page.size;
+      this.onPageLoad({ offset: event.offset } as PageLoadEvent);
+    } else {
+      this.lookup.page.offset = 0;
+      this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    }
+  }
+
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
 
   addNewCorpusManually(): void {
     this.dialog.open(NewLogicalCorpusComponent, {

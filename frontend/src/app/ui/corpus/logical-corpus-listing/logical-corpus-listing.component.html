@@ -53,6 +53,7 @@
     </div>
 </div>
 
-<app-listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
-    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10" (pageLoad)="alterPage($event)"
+<app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
+    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [defaultSort]="defaultSort"
+    [externalSorting]="true" [limit]="10" (pageLoad)="alterPage($event)"
     (columnSort)="onColumnSort($event)"></app-listing>

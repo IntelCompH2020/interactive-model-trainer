@@ -20,15 +20,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEntity> {
+public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEntity> implements SortableByOwner<DomainModel, DomainModelEntity> {
 
     private final CacheLibrary cacheLibrary;
     private final ApplicationContext applicationContext;
@@ -88,5 +86,17 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
             });
         }
         return result.get();
+    }
+
+    @Override
+    public List<DomainModel> buildSortedByOwnerAsc(FieldSet directives, List<DomainModelEntity> data) {
+        Comparator<DomainModel> byOwner = Comparator.comparing(DomainModel::getCreator);
+        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DomainModel> buildSortedByOwnerDesc(FieldSet directives, List<DomainModelEntity> data) {
+        Comparator<DomainModel> byOwner = Comparator.comparing(DomainModel::getCreator);
+        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
     }
 }

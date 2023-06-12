@@ -130,6 +130,10 @@ public class ModelEntity {
         this.creation_date = creation_date;
     }
 
+    public long getCreationMilliseconds() {
+        return creation_date.toInstant().toEpochMilli();
+    }
+
     @JsonProperty("hierarchy-level")
     public Integer getHierarchyLevel() {
         return hierarchyLevel;

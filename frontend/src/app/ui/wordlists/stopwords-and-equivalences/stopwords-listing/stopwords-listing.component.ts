@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +19,7 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -67,6 +67,10 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
 
   SelectionType = SelectionType;
 
+  defaultSort = ["-creation_date"];
+
+  @ViewChild('listing') listingComponent: ListingComponent;
+
   protected loadListing(): Observable<QueryResult<Stopword>> {
     return this.stopwordService.query(this.lookup);
   }
@@ -75,7 +79,7 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
     lookup.metadata = { countAll: true };
     lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
     lookup.isActive = [IsActive.Active];
-    lookup.order = { items: ['-' + nameof<Stopword>(x => x.createdAt)] };
+    lookup.order = { items: ["-" + nameof<Stopword>(x => x.creation_date)] };
     this.updateOrderUiFields(lookup.order);
 
     lookup.project = {
@@ -104,7 +108,7 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
       },
       {
         prop: nameof<Stopword>(x => x.description),
-        sortable: true,
+        sortable: false,
         resizeable: true,
         languageName: 'APP.WORD-LIST-COMPONENT.DESCRIPTION'
       },
@@ -123,7 +127,7 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
       },
       {
         prop: nameof<Stopword>(x => x.location),
-        sortable: true,
+        sortable: false,
         resizeable: true,
         languageName: 'APP.WORD-LIST-COMPONENT.LOCATION'
       },
@@ -163,12 +167,16 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
     super.ngOnInit();
     this._setUpLikeFilterFormGroup();
     this._setUpFiltersFormGroup();
-    this.refresh();
+    this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
   public refresh(): void {
+    this.refreshWithoutReloading();
+    this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+  }
+
+  public refreshWithoutReloading(): void {
     this.onStopwordSelect.emit(null);
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
   public edit(stopword: Stopword, updateAll: boolean = false): void {
@@ -255,6 +263,24 @@ export class StopwordsListingComponent extends BaseListingComponent<Stopword, St
       this.onStopwordSelect.emit($event.row);
     }
   }
+
+  alterPage(event: PageLoadEvent) {
+    this.refreshWithoutReloading();
+    if (event) {
+      this.lookup.page.offset = event.offset * this.lookup.page.size;
+      this.onPageLoad({ offset: event.offset } as PageLoadEvent);
+    } else {
+      this.lookup.page.offset = 0;
+      this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    }
+  }
+
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
 
   addNewStopwordFromFile(): void {
     this.dialog.open(NewStopwordFromFileComponent, {

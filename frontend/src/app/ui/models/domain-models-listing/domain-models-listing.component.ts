@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,13 +19,13 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, filter, takeUntil } from 'rxjs/operators';
+import { debounceTime, filter, takeUntil, throttleTime } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ModelPatchComponent } from '../model-patch/model-patch-modal.component';
 import { DomainModelFromCategoryNameComponent } from './domain-model-from-category-name/domain-model-from-category-name.component';
@@ -87,6 +87,10 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		return this._domainModelSelected;
 	}
 
+	defaultSort = ["-creation_date"];
+
+	@ViewChild('listing') listingComponent: ListingComponent;
+
 	protected loadListing(): Observable<QueryResult<DomainModel>> {
 		return this.domainModelService.query(this.lookup);
 	}
@@ -145,7 +149,7 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		},
 		{
 			prop: nameof<DomainModel>(x => x.TrDtSet),
-			sortable: true,
+			sortable: false,
 			resizeable: true,
 			languageName: 'APP.MODELS-COMPONENT.CORPUS'
 		},
@@ -201,11 +205,10 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
 		this.runningTasksQueueService.taskCompleted
-			.pipe(
-				debounceTime(300)
-			).subscribe((task) => {
+			.pipe()
+			.subscribe((task) => {
 				if (this.runningTasksQueueService.isDomainModelTask(task)) {
-					this.refreshDocuments(
+					this.refresh(
 						() => this.snackbars.successfulOperation(true)
 					);
 				}
@@ -213,12 +216,8 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 	}
 
 	public refresh(callback?: () => void): void {
-		this.onDomainModelSelect.emit(null);
-		this._domainModelSelected = null;
-		this.onDocumentSelect.emit(null);
-		this._documentSelected = null;
-		this.documents.next([]);
-		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+		this.refreshWithoutReloading();
+		this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
 		if (callback) callback();
 	}
 
@@ -227,6 +226,14 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 		this._documentSelected = null;
 		this.documents.next([]);
 		if (callback) callback();
+	}
+
+	public refreshWithoutReloading(): void {
+		this.onDomainModelSelect.emit(null);
+		this._domainModelSelected = null;
+		this.onDocumentSelect.emit(null);
+		this._documentSelected = null;
+		this.documents.next([]);
 	}
 
 	public edit(model: DomainModel, updateAll: boolean = false): void {
@@ -460,7 +467,26 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 			if (this._domainModelSelected && selectedModel.name === this._domainModelSelected.name) return;
 			this.onDomainModelSelect.emit(selectedModel);
 			this._domainModelSelected = selectedModel;
+			this.refreshDocuments();
 		}
+	}
+
+	alterPage(event: PageLoadEvent) {
+    this.refreshWithoutReloading();
+    if (event) {
+      this.lookup.page.offset = event.offset * this.lookup.page.size;
+      this.onPageLoad({ offset: event.offset } as PageLoadEvent);
+    } else {
+      this.lookup.page.offset = 0;
+      this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    }
+  }
+
+	onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}
 
 	onDocumentSelected(document: Document): void {

@@ -48,8 +48,16 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     @SuppressWarnings("unchecked")
     public List<TopicModel> getAll(TopicModelLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setModelType(ModelType.TOPIC);
-        List<? extends ModelEntity> data = dockerService.listModels(lookup);
-        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data);
+        List<TopicModelEntity> data = (List<TopicModelEntity>) dockerService.listModels(lookup);
+        String orderItem = lookup.getOrder().getItems().get(0);
+        if (orderItem.endsWith("creator")) {
+            if (orderItem.startsWith("-")) {
+                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            } else {
+                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+            }
+        }
+        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data);
     }
 
     public void patch(String name, String description, String visibility) {

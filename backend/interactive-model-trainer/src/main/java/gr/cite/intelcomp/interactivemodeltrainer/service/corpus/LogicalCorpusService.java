@@ -1,7 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.corpus;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
-import gr.cite.intelcomp.interactivemodeltrainer.data.CorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.LogicalCorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpus;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
@@ -28,8 +27,16 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
     @SuppressWarnings("unchecked")
     public List<LogicalCorpus> getAll(CorpusLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setCorpusType(CorpusType.LOGICAL);
-        List<? extends CorpusEntity> data = dockerService.listCorpus(lookup);
-        return builderFactory.builder(LogicalCorpusBuilder.class).build(lookup.getProject(), (List<LogicalCorpusEntity>) data);
+        List<LogicalCorpusEntity> data = (List<LogicalCorpusEntity>) dockerService.listCorpus(lookup);
+        String orderItem = lookup.getOrder().getItems().get(0);
+        if (orderItem.endsWith("creator")) {
+            if (orderItem.startsWith("-")) {
+                return builderFactory.builder(LogicalCorpusBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            } else {
+                return builderFactory.builder(LogicalCorpusBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+            }
+        }
+        return builderFactory.builder(LogicalCorpusBuilder.class).build(lookup.getProject(), data);
     }
 
     @Override

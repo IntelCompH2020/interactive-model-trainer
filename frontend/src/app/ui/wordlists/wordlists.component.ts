@@ -82,9 +82,9 @@ export class WordListsComponent extends BaseComponent implements OnInit {
           takeUntil(this._destroyed)
         ).subscribe(
           model => {
+            if (model) this.itemDetails = this._buildKeywordFields(model);
             this.modelSelected = model;
             this.selectedModelType = AvailableModelsType.Keyword;
-            if (model) this.itemDetails = this._buildKeywordFields(model);
           }
         )
         this.onRefresh = () => {
@@ -113,9 +113,9 @@ export class WordListsComponent extends BaseComponent implements OnInit {
           takeUntil(this._destroyed)
         ).subscribe(
           model => {
+            if (model) this.itemDetails = this._buildStopWordFields(model);
             this.modelSelected = model;
             this.selectedModelType = AvailableModelsType.Stopword;
-            if (model) this.itemDetails = this._buildStopWordFields(model);
           }
         );
 
@@ -123,9 +123,9 @@ export class WordListsComponent extends BaseComponent implements OnInit {
           takeUntil(this._destroyed)
         ).subscribe(
           model => {
+            if (model) this.itemDetails = this._buildEquivalenceFields(model);
             this.modelSelected = model;
             this.selectedModelType = AvailableModelsType.Equivalence;
-            if (model) this.itemDetails = this._buildEquivalenceFields(model);
           }
         );
 

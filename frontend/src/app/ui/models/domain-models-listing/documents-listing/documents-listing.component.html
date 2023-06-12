@@ -18,7 +18,7 @@
     <mat-spinner color="accent" diameter="20"></mat-spinner>
   </div>
 
-  <div class="col-auto">
+  <!-- <div class="col-auto">
     <button [disabled]="true" mat-button [matMenuTriggerFor]="menu" class="background-gray"
       [matTooltip]="language.instant('APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.GIVE-FEEDBACK-TOOLTIP')">
       <mat-icon>
@@ -40,7 +40,7 @@
         </div>
       </ng-template>
     </mat-menu>
-  </div>
+  </div> -->
   <div class="col-auto">
     <button mat-raised-button [disabled]="!canGiveFeedback" color="accent" (click)="giveFeedback()"
       [matTooltip]="canGiveFeedback ? '' : language.instant('APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.GIVE-FEEDBACK-TOOLTIP')">
@@ -49,9 +49,10 @@
   </div>
 </div>
 
-<app-listing *ngIf="documents.length" [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
-  [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
-  (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" [externalPaging]="true"></app-listing>
+<app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
+  [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [defaultSort]="defaultSort"
+  [limit]="10" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
+  [externalPaging]="false"></app-listing>
 
 <ng-template #labelCell let-row="row" let-value="value">
   <mat-radio-group [value]="value">

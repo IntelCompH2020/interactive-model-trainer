@@ -41,15 +41,14 @@
         </mat-menu>
     </div>
     <div class="col-auto">
-        <button mat-raised-button [disabled]="!canCreateSubmodel"
-            color="accent" (click)="addNewTopicSubModel()"
+        <button mat-raised-button [disabled]="!canCreateSubmodel" color="accent" (click)="addNewTopicSubModel()"
             [matTooltip]="canCreateSubmodel ? '' : language.instant('APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ADD-NEW-TOOLTIP')">
             {{'APP.MODELS-COMPONENT.TOPICS-LISTING-COMPONENT.ADD-NEW' | translate}}
         </button>
     </div>
 </div>
 
-<app-listing #topics_list [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)"
-    [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [limit]="10"
-    (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
-    [externalPaging]="true"></app-listing>
+<app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)"
+    [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements"
+    [defaultSort]="defaultSort" [externalSorting]="true" [limit]="10" (pageLoad)="alterPage($event)"
+    (columnSort)="onColumnSort($event)" [externalPaging]="true"></app-listing>

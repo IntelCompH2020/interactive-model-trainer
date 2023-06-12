@@ -47,4 +47,9 @@ public class LogicalCorpusEntity extends CorpusEntity {
     public void setCreation_date(Date creation_date) {
         this.creation_date = creation_date;
     }
+
+    public long getCreationMilliseconds() {
+        return creation_date.toInstant().toEpochMilli();
+    }
+
 }

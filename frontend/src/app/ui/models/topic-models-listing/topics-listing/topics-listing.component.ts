@@ -14,7 +14,7 @@ import { BaseListingComponent } from '@common/base/base-listing-component';
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnMode, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnMode, ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatatableComponent, SelectionType } from '@swimlane/ngx-datatable';
@@ -59,7 +59,9 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
 
   SelectionType = SelectionType;
 
-  @ViewChild('topics_list') table: DatatableComponent;
+  defaultSort = ["+id"];
+
+  @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<Topic>> {
     if (this.model) return this.topicModelService.queryTopics(this.model.name, this.lookup);
@@ -71,7 +73,7 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     lookup.metadata = { countAll: true };
     lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
     lookup.isActive = [IsActive.Active];
-    lookup.order = { items: ['-' + nameof<Topic>(x => x.label)] };
+    lookup.order = { items: [nameof<Topic>(x => x.id)] };
     this.updateOrderUiFields(lookup.order);
 
     lookup.project = {
@@ -178,15 +180,27 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
     this._setUpLikeFilterFormGroup();
     this.modelSubject.subscribe(value => {
       this.model = value;
-      this.refresh();
+      if (value) this.refresh();
+      else {
+        if (this.listingComponent) {
+          this.listingComponent.rows = [];
+          this.listingComponent.count = 0;
+          this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+        }
+      }
     });
   }
 
   public refresh(): void {
+    this.refreshWithoutReloading();
+    this.lookup.page.offset = 0;
+    this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+  }
+
+  public refreshWithoutReloading(): void {
     this._topicSelected = null;
     this.onTopicSelect.emit(null);
     this.onTopicLookup.emit(this.lookup);
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
   }
 
   private _buildFilterEditorConfiguration(): void {
@@ -243,7 +257,15 @@ export class TopicsListingComponent extends BaseListingComponent<Topic, TopicLoo
       this.lookup.page.offset = 0;
       this.onPageLoad({ offset: 0 } as PageLoadEvent);
     }
+    this.refreshWithoutReloading();
   }
+
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
 
   addNewTopicSubModel(): void {
     this.dialog.open(NewHierarchicalTopicModelComponent, {

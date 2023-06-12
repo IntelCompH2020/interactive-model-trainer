@@ -648,7 +648,7 @@
 			"DOCUMENTS-LISTING-COMPONENT": {
 				"FILTER-TITLE": "Documents",
 				"FILTER": "Filter",
-				"SEARCH-PLACEHOLDER": "Filter by document title",
+				"SEARCH-PLACEHOLDER": "Filter by document text",
 				"GIVE-FEEDBACK": "Give feedback",
 				"GIVE-FEEDBACK-TOOLTIP": "Select new labels for the sampled documents below",
 				"LABEL": "Label",

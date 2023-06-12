@@ -2,6 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,10 @@ import org.springframework.stereotype.Component;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class JsonHandlingService {
 	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	public JsonHandlingService() {
+		objectMapper.registerModule(new JavaTimeModule());
+	}
 
 	public String toJson(Object item) throws JsonProcessingException {
 		if (item == null) return null;

@@ -4,7 +4,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.DomainModelCachedEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.DomainModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.DomainModelBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.DomainModelLookup;
@@ -35,8 +34,16 @@ public class DomainModelService extends ModelService<DomainModel, DomainModelLoo
     @SuppressWarnings("unchecked")
     public List<DomainModel> getAll(DomainModelLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setModelType(ModelType.DOMAIN);
-        List<? extends ModelEntity> data = dockerService.listModels(lookup);
-        return builderFactory.builder(DomainModelBuilder.class).build(lookup.getProject(), (List<DomainModelEntity>) data);
+        List<DomainModelEntity> data = (List<DomainModelEntity>) dockerService.listModels(lookup);
+        String orderItem = lookup.getOrder().getItems().get(0);
+        if (orderItem.endsWith("creator")) {
+            if (orderItem.startsWith("-")) {
+                return builderFactory.builder(DomainModelBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            } else {
+                return builderFactory.builder(DomainModelBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+            }
+        }
+        return builderFactory.builder(DomainModelBuilder.class).build(lookup.getProject(), data);
     }
 
     public void patch(String name, String description, String tag, String visibility) {

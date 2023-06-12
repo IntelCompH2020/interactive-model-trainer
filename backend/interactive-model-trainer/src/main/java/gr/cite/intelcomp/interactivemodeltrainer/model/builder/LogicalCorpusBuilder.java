@@ -20,10 +20,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorpusEntity> {
+public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorpusEntity> implements SortableByOwner<LogicalCorpus, LogicalCorpusEntity> {
 
     private final ApplicationContext applicationContext;
 
@@ -59,5 +60,17 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
+    }
+
+    @Override
+    public List<LogicalCorpus> buildSortedByOwnerAsc(FieldSet directives, List<LogicalCorpusEntity> data) {
+        Comparator<LogicalCorpus> byOwner = Comparator.comparing(LogicalCorpus::getCreator);
+        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LogicalCorpus> buildSortedByOwnerDesc(FieldSet directives, List<LogicalCorpusEntity> data) {
+        Comparator<LogicalCorpus> byOwner = Comparator.comparing(LogicalCorpus::getCreator);
+        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
     }
 }

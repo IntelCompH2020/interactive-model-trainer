@@ -4,7 +4,7 @@ import { CollectionUtils } from '@common/utilities/collection-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { ListingSettingsDialogComponent } from '@common/modules/listing/listing-settings/listing-settings-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { TableColumn } from '@swimlane/ngx-datatable';
+import { DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -16,7 +16,7 @@ import { takeUntil } from 'rxjs/operators';
 export class ListingComponent extends BaseComponent implements OnInit, OnChanges {
 
 	@ViewChild('functionValueTemplate', { static: true }) functionValueTemplate: TemplateRef<any>;
-
+	@ViewChild('dataTable') table: DatatableComponent
 
 	selected = [];
 
@@ -152,6 +152,7 @@ export class ListingComponent extends BaseComponent implements OnInit, OnChanges
 				limit: event.limit,
 				offset: event.offset,
 			});
+			this.table.offset = event.offset;
 		}
 	}
 

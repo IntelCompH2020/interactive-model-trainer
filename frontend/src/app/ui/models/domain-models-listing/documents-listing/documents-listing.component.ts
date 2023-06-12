@@ -12,7 +12,7 @@ import { BaseListingComponent } from '@common/base/base-listing-component';
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { ColumnMode, PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnMode, ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -42,12 +42,9 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
   @Input("documents")
   documentsSubject: BehaviorSubject<Document[]> = new BehaviorSubject([]);
   documents: Document[] = [];
-  @Output()
-  onDocumentSelect = new EventEmitter<Document>();
-  @Output()
-  onDocumentLookup = new EventEmitter<DocumentLookup>();
-  @Output()
-  onFeedbackSubmitted = new EventEmitter<boolean>();
+  @Output() onDocumentSelect = new EventEmitter<Document>();
+  @Output() onDocumentLookup = new EventEmitter<DocumentLookup>();
+  @Output() onFeedbackSubmitted = new EventEmitter<boolean>();
   private _documentSelected = null;
   private _updatedLabels: any;
 
@@ -61,12 +58,15 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
 
   SelectionType = SelectionType;
 
+  defaultSort = ["index"];
+
   @ViewChild('labelCell', { static: true }) labelCell: TemplateRef<any>;
+  @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<Document>> {
     return of({
       count: this.documents.length,
-      items: this.documents.slice(this.lookup.page.offset, Math.min(this.lookup.page.offset + this.lookup.page.size, this.documents.length))
+      items: this.documents
     });
   }
 
@@ -75,7 +75,7 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
     lookup.metadata = { countAll: true };
     lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
     lookup.isActive = [IsActive.Active];
-    lookup.order = { items: ['-' + nameof<Document>(x => x.label)] };
+    lookup.order = { items: [nameof<Document>(x => x.index)] };
     this.updateOrderUiFields(lookup.order);
 
     lookup.project = {
@@ -95,14 +95,14 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
       ...[
         {
           prop: nameof<Document>(x => x.id),
-          sortable: true,
+          sortable: false,
           resizeable: true,
           maxWidth: 150,
           languageName: 'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.ID'
         },
         {
           cellTemplate: this.labelCell,
-          sortable: true,
+          sortable: false,
           resizeable: true,
           alwaysShown: true,
           maxWidth: 100,
@@ -118,13 +118,13 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
         },
         {
           prop: nameof<Document>(x => x.title),
-          sortable: true,
+          sortable: false,
           resizeable: true,
           languageName: 'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.TITLE'
         },
         {
           prop: nameof<Document>(x => x.text),
-          sortable: true,
+          sortable: false,
           resizeable: true,
           languageName: 'APP.MODELS-COMPONENT.DOCUMENTS-LISTING-COMPONENT.TEXT'
         }
@@ -166,19 +166,31 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
     this._setUpLikeFilterFormGroup();
     this.documentsSubject.subscribe(docs => {
       this.documents = docs;
-      this.refresh();
+      if (docs.length) this.refresh();
+      else {
+        if (this.listingComponent) {
+          this.listingComponent.rows = [];
+          this.listingComponent.count = 0;
+          this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+        }
+      }
     });
   }
 
   public refresh(): void {
-    this._documentSelected = null;
-    this.onDocumentSelect.emit(null);
-    this.onDocumentLookup.emit(this.lookup);
+    this.refreshWithoutReloading();
     this._updatedLabels = {};
     for (let doc of this.documents) {
       this._updatedLabels['index' + doc.index.toString()] = doc.label;
     }
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
+  }
+
+  public refreshWithoutReloading(): void {
+    this._documentSelected = null;
+    this.onDocumentSelect.emit(null);
+    this.onDocumentLookup.emit(this.lookup);
+    this.listingComponent.selected = [];
   }
 
   private _buildFilterEditorConfiguration(): void {
@@ -227,12 +239,6 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
     }
   }
 
-  onLabelChange(event: Event, row: Document, value) {
-    event.preventDefault();
-    this.documents[this.documents.indexOf(row)].label = value;
-    this._updatedLabels['index' + row.index.toString()] = value;
-  }
-
   alterPage(event: PageLoadEvent) {
     if (event) {
       this.lookup.page.offset = event.offset * this.lookup.page.size;
@@ -241,6 +247,19 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
       this.lookup.page.offset = 0;
       this.onPageLoad({ offset: 0 } as PageLoadEvent);
     }
+  }
+
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
+
+  onLabelChange(event: Event, row: Document, value) {
+    event.preventDefault();
+    this.documents[this.documents.indexOf(row)].label = value;
+    this._updatedLabels['index' + row.index.toString()] = value;
   }
 
   giveFeedback(): void {

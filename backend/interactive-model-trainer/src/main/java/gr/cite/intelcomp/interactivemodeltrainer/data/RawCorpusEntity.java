@@ -25,6 +25,10 @@ public class RawCorpusEntity extends CorpusEntity {
         this.download_date = download_date;
     }
 
+    public long getDownloadedAtMilliseconds() {
+        return download_date.toInstant().toEpochMilli();
+    }
+
     public Integer getRecords() {
         return records;
     }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,7 +16,7 @@ import { DataTableDateTimeFormatPipe } from '@common/formatting/pipes/date-time-
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
@@ -39,17 +39,7 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
         key: 'createdAt',
         type: FilterEditorFilterType.DatePicker,
         label: 'APP.CORPUS-COMPONENT.RAW-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATION-DATE-PLACEHOLDER'
-      },
-      {
-        key: 'creator',
-        type: FilterEditorFilterType.TextInput,
-        placeholder: 'APP.CORPUS-COMPONENT.RAW-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.CREATOR-PLACEHOLDER'
-      },
-      {
-        key: 'mine',
-        type: FilterEditorFilterType.Checkbox,
-        label: 'APP.CORPUS-COMPONENT.RAW-CORPUS-LISTING-COMPONENT.FILTER-OPTIONS.MINE-ITEMS'
-      },
+      }
     ]
   };
 
@@ -59,6 +49,10 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
   @Output() onCorpusSelect = new EventEmitter<RawCorpus>();
 
   SelectionType = SelectionType;
+
+  defaultSort = ["-download_date"];
+
+  @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<RawCorpus>> {
     return this.rawCorpusService.query(this.lookup);
@@ -110,7 +104,7 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
       },
       {
         prop: nameof<RawCorpus>(x => x.source),
-        sortable: true,
+        sortable: false,
         resizeable: true,
         languageName: 'APP.CORPUS-COMPONENT.RAW.SOURCE'
       },
@@ -160,8 +154,12 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
   }
 
   public refresh(): void{
+    this.refreshWithoutReloading();
+    this.listingComponent.onPageLoad({offset: 0} as PageLoadEvent);
+  }
+
+  public refreshWithoutReloading(): void {
     this.onCorpusSelect.emit(null);
-    this.onPageLoad({offset: 0} as PageLoadEvent);
   }
 
   public export(corpus: RawCorpus): void {
@@ -208,5 +206,23 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
       this.onCorpusSelect.emit($event.row);
     }
   }
+
+  alterPage(event: PageLoadEvent) {
+    this.refreshWithoutReloading();
+    if (event) {
+      this.lookup.page.offset = event.offset * this.lookup.page.size;
+      this.onPageLoad({ offset: event.offset } as PageLoadEvent);
+    } else {
+      this.lookup.page.offset = 0;
+      this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    }
+  }
+
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
 
 }

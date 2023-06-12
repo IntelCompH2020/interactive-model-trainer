@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,13 +20,13 @@ import { DataTableTopicModelTypeFormatPipe } from '@common/formatting/pipes/topi
 import { QueryResult } from '@common/model/query-result';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterEditorConfiguration, FilterEditorFilterType } from '@common/modules/listing/filter-editor/filter-editor.component';
-import { PageLoadEvent, RowActivateEvent } from '@common/modules/listing/listing.component';
+import { ColumnSortEvent, ListingComponent, PageLoadEvent, RowActivateEvent, SortDirection } from '@common/modules/listing/listing.component';
 import { UiNotificationService } from '@common/modules/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, filter, takeUntil } from 'rxjs/operators';
+import { debounceTime, filter, takeUntil, throttleTime } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { TopicSelectionComponent } from './topic-selection-modal/topic-selection-modal.component';
 import { NewTopicModelComponent } from './new-topic-model/new-topic-model.component';
@@ -78,6 +78,10 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   countOverride: number = 0;
 
+  defaultSort = ["-creation_date"];
+
+  @ViewChild('listing') listingComponent: ListingComponent;
+
   protected loadListing(): Observable<QueryResult<TopicModel>> {
     return this.topicModelService.query(this.lookup);
   }
@@ -87,7 +91,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     lookup.metadata = { countAll: true };
     lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
     lookup.isActive = [IsActive.Active];
-    lookup.order = { items: ['-' + nameof<TopicModel>(x => x.createdAt)] };
+    lookup.order = { items: ['-' + nameof<TopicModel>(x => x.creation_date)] };
     this.updateOrderUiFields(lookup.order);
 
     lookup.project = {
@@ -126,7 +130,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     {
       prop: nameof<TopicModel>(x => x.type),
       pipe: this.pipeService.getPipe<DataTableTopicModelTypeFormatPipe>(DataTableTopicModelTypeFormatPipe),
-      sortable: false,
+      sortable: true,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.TYPE'
     },
@@ -209,13 +213,15 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.onPageLoad({ offset: 0 } as PageLoadEvent);
 
     this.trainingModelQueueService.taskCompleted
-      .pipe(
-        debounceTime(300)
-      )
+      .pipe()
       .subscribe((task) => {
         if (this.trainingModelQueueService.isTopicModelTask(task)) {
-          if (task.subType === RunningTaskSubType.FUSE_TOPIC_MODEL ||
-            task.subType === RunningTaskSubType.SORT_TOPIC_MODEL) {
+          if (task.subType === RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING ||
+            task.subType === RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING) {
+            this.refresh(
+              () => this.snackbars.successfulOperation(true)
+            );
+          } else {
             if (this._topicModelSelected && this._topicModelSelected.name === task.label) {
               this.refreshTopics(
                 () => this.snackbars.successfulUpdate()
@@ -223,9 +229,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
             } else {
               this.snackbars.successfulUpdate()
             }
-          } else this.refresh(
-            () => this.snackbars.successfulOperation(true)
-          );
+          }
         }
       });
   }
@@ -237,10 +241,10 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.topicLookup = new TopicLookup();
     this.selectedModel.next(undefined);
   }
-  
+
   public refresh(callback?: () => void): void {
     this.refreshWithoutReloading();
-    this.onPageLoad({ offset: 0 } as PageLoadEvent);
+    this.listingComponent.onPageLoad({ offset: 0 } as PageLoadEvent);
     if (callback) callback();
   }
 
@@ -561,7 +565,14 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     }
   }
 
-  onTreeAction(_event: any) {}
+  onColumnSort(event: ColumnSortEvent) {
+    this.refreshWithoutReloading();
+		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+		this.lookup.order = { items: sortItems };
+		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
+
+  onTreeAction(_event: any) { }
 
   onTopicSelected(topic: Topic) {
     this._topicSelected = topic;
