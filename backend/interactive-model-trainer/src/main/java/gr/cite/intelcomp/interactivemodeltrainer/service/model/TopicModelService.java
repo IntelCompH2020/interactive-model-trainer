@@ -49,6 +49,9 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     public List<TopicModel> getAll(TopicModelLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setModelType(ModelType.TOPIC);
         List<TopicModelEntity> data = (List<TopicModelEntity>) dockerService.listModels(lookup);
+        if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
+            return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data);
+        }
         String orderItem = lookup.getOrder().getItems().get(0);
         if (orderItem.endsWith("creator")) {
             if (orderItem.startsWith("-")) {

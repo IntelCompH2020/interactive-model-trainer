@@ -28,6 +28,9 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
     public List<LogicalCorpus> getAll(CorpusLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setCorpusType(CorpusType.LOGICAL);
         List<LogicalCorpusEntity> data = (List<LogicalCorpusEntity>) dockerService.listCorpus(lookup);
+        if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
+            return builderFactory.builder(LogicalCorpusBuilder.class).build(lookup.getProject(), data);
+        }
         String orderItem = lookup.getOrder().getItems().get(0);
         if (orderItem.endsWith("creator")) {
             if (orderItem.startsWith("-")) {
