@@ -427,11 +427,11 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
             Comparator<TopicEntity> byId = Comparator.comparing(TopicEntity::getId);
-            Comparator<TopicEntity> bySize = Comparator.comparing(TopicEntity::getSize);
+            Comparator<TopicEntity> bySize = Comparator.comparing(TopicEntity::getSizeNumber);
             Comparator<TopicEntity> byLabel = Comparator.comparing(TopicEntity::getLabel);
-            Comparator<TopicEntity> byDocsActive = Comparator.comparing(TopicEntity::getDocsActive);
-            Comparator<TopicEntity> byCoherence = Comparator.comparing(TopicEntity::getTopicCoherence);
-            Comparator<TopicEntity> byEntropy = Comparator.comparing(TopicEntity::getTopicEntropy);
+            Comparator<TopicEntity> byDocsActive = Comparator.comparing(TopicEntity::getDocsActiveNumber);
+            Comparator<TopicEntity> byCoherence = Comparator.comparing(TopicEntity::getTopicCoherenceNumber);
+            Comparator<TopicEntity> byEntropy = Comparator.comparing(TopicEntity::getTopicEntropyNumber);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
                 switch (orderItem) {
@@ -444,13 +444,13 @@ public class DockerServiceImpl implements DockerService {
                     case "label":
                         result = result.stream().sorted(byLabel.reversed()).collect(Collectors.toList());
                         break;
-                    case "docsActive":
+                    case "docsactive":
                         result = result.stream().sorted(byDocsActive.reversed()).collect(Collectors.toList());
                         break;
-                    case "topicCoherence":
+                    case "topiccoherence":
                         result = result.stream().sorted(byCoherence.reversed()).collect(Collectors.toList());
                         break;
-                    case "topicEntropy":
+                    case "topicentropy":
                         result = result.stream().sorted(byEntropy.reversed()).collect(Collectors.toList());
                         break;
                 }
@@ -465,13 +465,13 @@ public class DockerServiceImpl implements DockerService {
                     case "label":
                         result = result.stream().sorted(byLabel).collect(Collectors.toList());
                         break;
-                    case "docsActive":
+                    case "docsactive":
                         result = result.stream().sorted(byDocsActive).collect(Collectors.toList());
                         break;
-                    case "topicCoherence":
+                    case "topiccoherence":
                         result = result.stream().sorted(byCoherence).collect(Collectors.toList());
                         break;
-                    case "topicEntropy":
+                    case "topicentropy":
                         result = result.stream().sorted(byEntropy).collect(Collectors.toList());
                         break;
                 }

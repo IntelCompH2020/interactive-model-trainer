@@ -1,6 +1,9 @@
 package gr.cite.intelcomp.interactivemodeltrainer.data.topic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.security.core.parameters.P;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 public class TopicEntity {
 
@@ -37,6 +40,10 @@ public class TopicEntity {
         return size;
     }
 
+    public Double getSizeNumber() {
+        return Double.parseDouble(size);
+    }
+
     @JsonProperty("Size")
     public void setSize(String size) {
         this.size = size;
@@ -67,6 +74,10 @@ public class TopicEntity {
         return docsActive;
     }
 
+    public Integer getDocsActiveNumber() {
+        return Integer.parseInt(docsActive);
+    }
+
     @JsonProperty("Ndocs Active")
     public void setDocsActive(String docsActive) {
         this.docsActive = docsActive;
@@ -77,6 +88,10 @@ public class TopicEntity {
         return topicEntropy;
     }
 
+    public Double getTopicEntropyNumber() {
+        return Double.parseDouble(topicEntropy);
+    }
+
     @JsonProperty("Topics entropy")
     public void setTopicEntropy(String topicEntropy) {
         this.topicEntropy = topicEntropy;
@@ -85,6 +100,10 @@ public class TopicEntity {
     @JsonProperty("Topics coherence")
     public String getTopicCoherence() {
         return topicCoherence;
+    }
+
+    public Double getTopicCoherenceNumber() {
+        return Double.parseDouble(topicCoherence);
     }
 
     @JsonProperty("Topics coherence")
