@@ -7,11 +7,11 @@
 
     <div class="row">
         <div class="col-12 table-container pt-3">
-            <table 
+            <table *ngFor="let dataset of mergedFieldsData.Dtsets" 
                 app-merged-corpus-table 
-                [corpusSubject]="mergedFieldsDataSubject" 
-                (change)="onMergeEvent($event)" 
-                class="table text-center"></table>
+                [dataset]="dataset"
+                class="table round-table shadow-table text-center">
+            </table>
         </div>
     </div>
 

@@ -21,10 +21,6 @@ export class ModelPatchComponent implements OnInit {
   editorModel: ModelPatchEditorModel;
   formGroup: FormGroup;
 
-  get isPrivate(): boolean {
-    return !!(this.formGroup?.get(nameof<TopicModel | DomainModel>(x => x.visibility))?.value === ModelVisibility.Private);
-  }
-
   get valid(): boolean {
     return this.formGroup?.valid;
   }
@@ -39,6 +35,14 @@ export class ModelPatchComponent implements OnInit {
 
   get isDomainModel(): boolean {
     return this.modelType === 'DOMAIN';
+  }
+
+  get isPrivate(): boolean {
+    return !!(this.formGroup?.get(nameof<TopicModel | DomainModel>(x => x.visibility))?.value === ModelVisibility.Private);
+  }
+
+  get canPrivate(): boolean {
+    return this.model.creator != null && this.model.creator != "-"
   }
 
   constructor(

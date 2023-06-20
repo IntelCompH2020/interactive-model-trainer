@@ -11,6 +11,8 @@ export class TopicModelLookup extends Lookup implements TopicModelFilter {
 	constructor() {
 		super();
 	}
+	
+	hierarchyLevel: number;
 }
 
 export interface TopicModelFilter {
@@ -18,4 +20,5 @@ export interface TopicModelFilter {
 	excludedIds: Guid[];
 	like: string;
 	isActive: IsActive[];
+	hierarchyLevel: number;
 }

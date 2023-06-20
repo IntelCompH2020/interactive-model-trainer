@@ -1,9 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.data.topic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.security.core.parameters.P;
-
-import javax.persistence.criteria.CriteriaBuilder;
 
 public class TopicEntity {
 

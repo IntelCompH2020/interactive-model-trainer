@@ -1,6 +1,5 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Stopword;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.WordListLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.wordlist.StopwordService;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
@@ -25,7 +23,6 @@ import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseCont
 public class StopwordController {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(StopwordController.class));
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final StopwordService stopwordService;
 
@@ -50,6 +47,12 @@ public class StopwordController {
     @Transactional
     public void Create(@Valid @RequestBody Stopword stopword) throws InterruptedException, IOException, ApiException {
         stopwordService.create(stopword);
+    }
+
+    @PostMapping("patch")
+    @Transactional
+    public void Patch(@Valid @RequestBody Stopword stopword) throws InterruptedException, IOException, ApiException {
+        stopwordService.patch(stopword);
     }
 
     @PostMapping("copy/{name}")

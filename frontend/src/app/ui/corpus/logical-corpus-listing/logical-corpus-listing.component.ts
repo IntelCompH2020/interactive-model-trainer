@@ -30,11 +30,12 @@ import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { NewLogicalCorpusComponent } from './new-logical-corpus/new-logical-corpus.component';
 import { DataTableLogicalCorpusValidForFormatPipe } from '@common/formatting/pipes/logical-corpus-valid-for.pipe';
+import { CorpusPatchComponent } from '../corpus-patch/corpus-patch-modal.component';
 
 @Component({
   selector: 'app-logical-corpus-listing',
   templateUrl: './logical-corpus-listing.component.html',
-  styleUrls: ['./logical-corpus-listing.component.css']
+  styleUrls: ['./logical-corpus-listing.component.scss']
 })
 export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalCorpus, LogicalCorpusLookup> implements OnInit {
   userSettingsKey: UserSettingsKey;
@@ -163,27 +164,49 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
     this.onCorpusSelect.emit(null);
   }
 
-  public edit(corpus: LogicalCorpus): void {
-    this.dialog.open(RenameDialogComponent, {
-      width: '25rem',
-      maxWidth: "90vw",
-      disableClose: true,
-      data: {
-        name: corpus.name,
-        title: this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
-      }
-    })
-      .afterClosed()
-      .pipe(
-        filter(x => x),
-        takeUntil(this._destroyed)
+  public edit(corpus: LogicalCorpus, updateAll: boolean = false): void {
+    if (updateAll) {
+      this.dialog.open(CorpusPatchComponent,
+        {
+          width: "40rem",
+          maxWidth: "90vw",
+          disableClose: true,
+          data: {
+            corpus
+          }
+        }
       )
-      .subscribe((rename: RenamePersist) => {
-        this.logicalCorpusService.rename(rename).subscribe((_response) => {
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe(() => {
           this.snackbars.successfulUpdate();
           this.refresh();
         });
-      });
+    } else {
+      this.dialog.open(RenameDialogComponent, {
+        width: '25rem',
+        maxWidth: "90vw",
+        disableClose: true,
+        data: {
+          name: corpus.name,
+          title: this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
+        }
+      })
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe((rename: RenamePersist) => {
+          this.logicalCorpusService.rename(rename).subscribe((_response) => {
+            this.snackbars.successfulUpdate();
+            this.refresh();
+          });
+        });
+    }
   }
 
   private _buildFilterEditorConfiguration(): void {
@@ -273,15 +296,16 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
 
   onColumnSort(event: ColumnSortEvent) {
     this.refreshWithoutReloading();
-		const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
-		this.lookup.order = { items: sortItems };
-		this.onPageLoad({ offset: 0 } as PageLoadEvent);
-	}
+    const sortItems = event.sortDescriptors.map(x => (x.direction === SortDirection.Ascending ? '' : '-') + x.property);
+    this.lookup.order = { items: sortItems };
+    this.onPageLoad({ offset: 0 } as PageLoadEvent);
+  }
 
   addNewCorpusManually(): void {
     this.dialog.open(NewLogicalCorpusComponent, {
       width: "50rem",
       maxWidth: "90vw",
+      maxHeight: "90vh",
       disableClose: true
     })
       .afterClosed()

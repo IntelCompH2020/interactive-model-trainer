@@ -1,7 +1,5 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Keyword;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.WordListLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.wordlist.KeywordService;
@@ -25,7 +23,6 @@ import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseCont
 public class KeywordController {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(KeywordController.class));
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final KeywordService keywordService;
 
@@ -50,6 +47,12 @@ public class KeywordController {
     @Transactional
     public void Create(@Valid @RequestBody Keyword keyword) throws InterruptedException, IOException, ApiException {
         keywordService.create(keyword);
+    }
+
+    @PostMapping("patch")
+    @Transactional
+    public void Patch(@Valid @RequestBody Keyword keyword) throws InterruptedException, IOException, ApiException {
+        keywordService.patch(keyword);
     }
 
     @PostMapping("copy/{name}")

@@ -19,7 +19,6 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
     creation_date: Date;
     visibility: CorpusVisibility;
     validFor: string;
-    combineFields: boolean;
     corpora: CorpusItemPersist[] = [];
 
     public fromModel(item: LogicalCorpus): LogicalCorpusEditorModel {
@@ -32,13 +31,6 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
             this.creation_date = item.creation_date;
             this.visibility = item.visibility;
             this.validFor = item.valid_for;
-            this.combineFields = false;
-            // this.corpora = (item?.corpora ?? []).map(x => ({
-            //     corpusId: x?.corpus?.id,
-            //     corpusName: x?.corpus?.name,
-            //     corpusSelections: x.corpusSelections
-
-            // }));
         }
         return this;
     }
@@ -55,7 +47,6 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
             creator: [{ value: this.creator, disabled: disabled }, context.getValidation('creator').validators],
             visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators],
             validFor: [{ value: this.validFor, disabled: disabled }, context.getValidation("validFor").validators],
-            combineFields: [{ value: this.combineFields, disabled: disabled }, context.getValidation('combineFields').validators],
 
             corpora: this.formBuilder.array(
                 this.corpora.map((corpus, i) => this.formBuilder.group({
@@ -87,7 +78,6 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
         baseValidationArray.push({ key: 'creation_date', validators: [] });
         baseValidationArray.push({ key: 'visibility', validators: [] });
         baseValidationArray.push({ key: 'validFor', validators: [Validators.required] });
-        baseValidationArray.push({ key: 'combineFields', validators: [] });
         baseValidationArray.push({ key: 'hash', validators: [] });
 
         corpora?.forEach((corpus, i) => {

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
@@ -47,45 +46,30 @@ public class LogicalCorpusController {
     @PostMapping("create")
     @Transactional
     public void Create(@Valid @RequestBody LogicalCorpus corpus) throws InterruptedException, IOException, ApiException {
-        //logger.debug(new MapLogEntry("persisting" + Keyword.class.getSimpleName()).And("model", keyword);
-
         logicalCorpusService.create(corpus);
+    }
 
-        //this.auditService.track(AuditableAction.Keyword_Persist, Map.ofEntries(
-        //        new AbstractMap.SimpleEntry<String, Object>("model", keyword)
-        //));
+    @PostMapping("patch")
+    @Transactional
+    public void Patch(@Valid @RequestBody LogicalCorpus corpus) throws InterruptedException, IOException, ApiException {
+        logicalCorpusService.patch(corpus);
     }
 
     @PostMapping("copy/{name}")
     @Transactional
     public void Copy(@PathVariable("name") String name) throws InterruptedException, IOException, ApiException {
-        //logger.debug(new MapLogEntry("copying" + Keyword.class.getSimpleName()).And("name", name);
-
         logicalCorpusService.copy(name);
-
-        //this.auditService.track(AuditableAction.Keyword_Copy, Map.ofEntries(
-        //        new AbstractMap.SimpleEntry<String, Object>("name", name)
-        //));
     }
 
     @PutMapping("rename")
     @Transactional
     public void Rename(@Valid @RequestBody RenameInfo renameInfo) throws InterruptedException, IOException, ApiException {
         logicalCorpusService.rename(renameInfo.getOldName(), renameInfo.getNewName());
-
-        //this.auditService.track(AuditableAction.Keyword_Rename, Map.ofEntries(
-        //        new AbstractMap.SimpleEntry<String, Object>("oldName", wordList.getOldName()),
-        //		  new AbstractMap.SimpleEntry<String, Object>("newName", wordList.getNewName())
-        //));
     }
 
     @DeleteMapping("delete/{name}")
     @Transactional
     public void Delete(@PathVariable("name") String name) throws InterruptedException, IOException, ApiException {
-        //logger.debug(new MapLogEntry("retrieving" + Keyword.class.getSimpleName()).And("name", name));
-
         logicalCorpusService.delete(name);
-
-        //this.auditService.track(AuditableAction.Keyword_Delete, "name", name);
     }
 }

@@ -1,6 +1,8 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.WordlistType;
+import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
@@ -40,12 +42,19 @@ public class EquivalenceBuilder extends BaseBuilder<Equivalence, WordListEntity>
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        UserScope userScope = applicationContext.getBean(UserScope.class);
 
         List<Equivalence> models = new ArrayList<>();
 
         if (data == null) return models;
         for (WordListEntity d : data) {
             if (d.getValid_for() == WordlistType.equivalences) {
+                if (Visibility.Private.equals(d.getVisibility())) {
+                    if (!userScope.isSet()) continue;
+                    if (d.getCreator() != null
+                            && !d.getCreator().equals("-")
+                            && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
+                }
                 Equivalence m = new Equivalence();
                 if (fields.hasField(this.asIndexer(WordListJson._id))) m.setId(d.getId());
                 if (fields.hasField(this.asIndexer(WordListJson._name))) m.setName(d.getName());

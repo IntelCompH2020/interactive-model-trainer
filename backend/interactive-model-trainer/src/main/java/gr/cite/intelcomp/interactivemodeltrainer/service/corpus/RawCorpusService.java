@@ -33,4 +33,7 @@ public class RawCorpusService extends CorpusService<RawCorpus, CorpusLookup>{
 
     @Override
     public void create(RawCorpus word) throws IOException, InterruptedException {}
+
+    @Override
+    public void patch(RawCorpus corpus) throws IOException, InterruptedException, ApiException {}
 }

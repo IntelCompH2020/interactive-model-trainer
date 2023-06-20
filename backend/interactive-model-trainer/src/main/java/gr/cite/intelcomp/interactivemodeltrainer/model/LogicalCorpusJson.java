@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,14 +19,14 @@ public class LogicalCorpusJson extends CorpusJson {
     private List<LocalDataset> Dtsets;
 
     public static final String _creation_date = "creation_date";
-    private Date creation_date;
+    private String creation_date;
 
     public LogicalCorpusJson(LogicalCorpus corpus) {
         super(corpus);
         this.setCreator(corpus.getCreator());
         this.setValid_for(corpus.getValid_for());
         this.setDtsets(enrichDatasets((ArrayList<LocalDataset>) corpus.getDtsets()));
-        this.setCreation_date(corpus.getCreation_date());
+//        this.setCreation_date(corpus.getCreation_date());
     }
 
     private static ArrayList<LocalDataset> enrichDatasets(ArrayList<LocalDataset> datasets) {
@@ -39,7 +38,7 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setTitlefld(dataset.getTitlefld());
             d.setTextfld(dataset.getTextfld());
             d.setLemmasfld(dataset.getLemmasfld());
-            d.setEmmbedingsfld(dataset.getEmmbedingsfld());
+            d.setEmbeddingsfld(dataset.getEmbeddingsfld());
             d.setCategoryfld(dataset.getCategoryfld());
             d.setFilter(dataset.getFilter());
             return d;
@@ -72,11 +71,11 @@ public class LogicalCorpusJson extends CorpusJson {
         Dtsets = dtsets;
     }
 
-    public Date getCreation_date() {
+    public String getCreation_date() {
         return creation_date;
     }
 
-    public void setCreation_date(Date creation_date) {
+    public void setCreation_date(String creation_date) {
         this.creation_date = creation_date;
     }
 }

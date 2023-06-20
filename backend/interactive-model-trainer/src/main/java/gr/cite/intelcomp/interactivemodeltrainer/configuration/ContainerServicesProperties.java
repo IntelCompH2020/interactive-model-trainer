@@ -126,6 +126,14 @@ public class ContainerServicesProperties {
         return services;
     }
 
+    public DockerServiceConfiguration getWordlistService() {
+        return services.get("manageLists");
+    }
+
+    public DockerServiceConfiguration getCorpusService() {
+        return services.get("manageCorpus");
+    }
+
     public DockerServiceConfiguration getTopicTrainingService() {
         return services.get("training");
     }
@@ -158,6 +166,18 @@ public class ContainerServicesProperties {
         public String getTempFolder() {
             if (volumeConfiguration == null || volumeConfiguration.get("temp_folder") == null) return null;
             return volumeConfiguration.get("temp_folder");
+        }
+
+        public String getWordlistsFolder() {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("wordlists_folder") != null) return volumeConfiguration.get("wordlists_folder");
+            return null;
+        }
+
+        public String getDatasetsFolder() {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("datasets_folder") != null) return volumeConfiguration.get("datasets_folder");
+            return null;
         }
 
         public String getModelsFolder(Class<? extends Manager> manager) {

@@ -43,6 +43,11 @@ export class NewStopwordManuallyComponent implements OnInit {
     return !!(this.formGroup?.get(nameof<Stopword>(x => x.visibility))?.value === WordListVisibility.Private );
   }
 
+  get canPrivate(): boolean {
+    if (this.isNew) return true;
+    else return this.stopword.creator != null && this.stopword.creator != "-"
+  }
+
   currentStopword = '';
 
   constructor(
@@ -70,11 +75,19 @@ export class NewStopwordManuallyComponent implements OnInit {
       return;
     }
 
-    this.stopwordService.create(this.formGroup.value).subscribe(
-      _response => {
-        this.dialogRef.close(true);
-      }
-    )
+    if (this.isNew) {
+      this.stopwordService.create(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    } else {
+      this.stopwordService.patch(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    }
 
   }
   

@@ -29,6 +29,11 @@ export class EquivalenceService {
     return this.http.post<void>(url, equivalence);
   }
 
+  patch(equivalence: Equivalence): Observable<void>{
+    const url = `${this.apiBase}/patch`;
+    return this.http.post<void>(url, equivalence);
+  }
+
   copy(name: string): Observable<void> {
     const url = `${this.apiBase}/copy/${name}`;
     return this.http.post<void>(url, {});

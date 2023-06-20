@@ -118,7 +118,7 @@
 				"SCHEMA": "Schema"
 			},
 			"LOGICAL": {
-				"CREATION-DATE": "Created At",
+				"CREATION-DATE": "Created / Updated",
 				"CREATOR": "Creator",
 				"VALID-FOR": "Valid For",
 				"VALID-FOR-OPTIONS": {
@@ -137,6 +137,7 @@
 			"TYPE": "Type",
 			"VISIBILITY": "Access",
 			"MORE-DETAILS": "More Details",
+			"MORE-DETAILS-SHOW": "Show corpus fields",
 			"RAW-CORPUS-LISTING-COMPONENT": {
 				"FILTER-TITLE": "Raw Corpora",
 				"SEARCH-PLACEHOLDER": "Filter by corpus name",
@@ -170,7 +171,7 @@
 				"ADD-NEW-MANUALLY": "Create corpus",
 				"ADD-NEW-FROM-FILE": "Import corpus",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine",
 					"VALID-FOR":"Valid for"
@@ -187,14 +188,16 @@
 					},
 					"ADD-CORPUS": "Add corpus",
 					"PRIVATE": "Private",
-					"COMBINE-FIELDS": "Combine fields with same name",
 					"VALID-FOR": "Valid for",
 					"VALID-FOR-OPTIONS": {
 						"TM": "Topic Modeling",
 						"DC": "Domain Classification"
 					},
 					"CANCEL": "Cancel",
-					"SUBMIT": "Merge"
+					"SUBMIT": "Review and save",
+					"TOOLTIPS": {
+						"CANNOT-SUBMIT": "The number and the type of fields selected must match between datasets"
+					}
 				},
 				"NEW-CORPUS-FROM-FILE-DIALOG": {
 					"NAME": "Name",
@@ -209,13 +212,24 @@
 					"SUBMIT": "Create"
 				},
 				"MERGE-DIALOG": {
-					"TITLE": "Drag fields to merge",
+					"TITLE": "Selected fields per dataset",
 					"CANCEL": "Cancel",
-					"MERGE": "Merge"
+					"MERGE": "Save"
 				},
 				"RENAME-DIALOG": {
 					"TITLE": "Rename logical corpus"
 				}
+			},
+			"CORPUS-DETAILS-COMPONENT": {
+				"TITLE": "Corpus fields"
+			},
+			"CORPUS-PATCH-COMPONENT": {
+				"TITLE": "Update corpus",
+				"NAME": "Name",
+				"DESCRIPTION": "Description",
+				"PRIVATE": "Private",
+				"SUBMIT": "Update",
+				"CANCEL": "Cancel"
 			}
 		},
 		"MODELS-COMPONENT": {
@@ -239,7 +253,7 @@
 			"NAME": "Name",
 			"DESCRIPTION": "Description",
 			"DOMAIN-NAME": "Domain Name",
-			"CREATION-DATE": "Creation Date",
+			"CREATION-DATE": "Created / Updated",
 			"CREATOR": "Creator",
 			"CORPUS": "Corpus",
 			"TYPE": "Type",
@@ -263,7 +277,7 @@
 				"FILTER": "Filter",
 				"ADD-NEW": "New model",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine",
 					"TYPE": "Type",
@@ -487,7 +501,7 @@
 				"ADD-NEW-FROM-SELECTION-FUNCTION": "From topic selection function",
 				"ADD-NEW-FROM-CATEGORY-NAME": "From category name",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"DOMAIN-NAME-PLACEHOLDER": "Domain Name",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
@@ -707,7 +721,7 @@
 			"DETAILS": "Details",
 			"NAME": "Name",
 			"DESCRIPTION": "Description",
-			"CREATION-DATE": "Creation Date",
+			"CREATION-DATE": "Created / Updated",
 			"CREATOR": "Creator",
 			"TYPE": "Type",
 			"LOCATION": "Location",
@@ -723,7 +737,7 @@
 				"ADD-NEW-MANUALLY": "Manually",
 				"ADD-NEW-MERGE": "Merge existing keyword lists",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
@@ -765,7 +779,7 @@
 				"ADD-NEW-MANUALLY": "Manually",
 				"ADD-NEW-MERGE": "Merge existing stopword lists",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},
@@ -804,7 +818,7 @@
 				"ADD-NEW-MANUALLY": "Manually",
 				"ADD-NEW-MERGE": "Merge existing equivalence lists",
 				"FILTER-OPTIONS": {
-					"CREATION-DATE-PLACEHOLDER": "Creation Date",
+					"CREATION-DATE-PLACEHOLDER": "Created / Updated",
 					"CREATOR-PLACEHOLDER": "Creator",
 					"MINE-ITEMS": "Show only mine"
 				},

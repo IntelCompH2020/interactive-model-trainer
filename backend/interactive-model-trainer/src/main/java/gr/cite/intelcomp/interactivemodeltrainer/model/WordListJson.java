@@ -3,7 +3,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.WordlistType;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,11 +34,12 @@ public class WordListJson {
     private List<String> wordlist;
 
     public final static String _creation_date = "creation_date";
-    private Date creation_date;
+    private String creation_date;
 
     public WordListJson(){}
 
     public WordListJson(Keyword keyword){
+        this.setId(keyword.getId());
         this.setName(keyword.getName());
         this.setDescription(keyword.getDescription());
         this.setVisibility(keyword.getVisibility());
@@ -50,6 +50,7 @@ public class WordListJson {
     }
 
     public WordListJson(Stopword stopword){
+        this.setId(stopword.getId());
         this.setName(stopword.getName());
         this.setDescription(stopword.getDescription());
         this.setVisibility(stopword.getVisibility());
@@ -60,6 +61,7 @@ public class WordListJson {
     }
 
     public WordListJson(Equivalence equivalence){
+        this.setId(equivalence.getId());
         this.setName(equivalence.getName());
         this.setDescription(equivalence.getDescription());
         this.setVisibility(equivalence.getVisibility());
@@ -127,10 +129,10 @@ public class WordListJson {
         this.wordlist = wordlist;
     }
 
-    public Date getCreation_date() {
+    public String getCreation_date() {
         return creation_date;
     }
-    public void setCreation_date(Date creation_date) {
+    public void setCreation_date(String creation_date) {
         this.creation_date = creation_date;
     }
 

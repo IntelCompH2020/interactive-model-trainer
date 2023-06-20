@@ -34,13 +34,13 @@ export class ModelPatchEditorModel extends BaseEditorModel {
         name: [{ value: this.name, disabled: disabled }, context.getValidation('name').validators],
         description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
         tag: [{ value: this.tag, disabled: disabled }, context.getValidation('tag').validators],
-        visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators]
+        visibility: [{ value: this.visibility || ModelVisibility.Public, disabled: disabled }, context.getValidation('visibility').validators]
       });
     } else {
       return this.formBuilder.group({
         name: [{ value: this.name, disabled: disabled }, context.getValidation('name').validators],
         description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
-        visibility: [{ value: this.visibility, disabled: disabled }, context.getValidation('visibility').validators]
+        visibility: [{ value: this.visibility || ModelVisibility.Public, disabled: disabled }, context.getValidation('visibility').validators]
       });
     }
   }

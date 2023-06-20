@@ -32,7 +32,7 @@
 
     <div class="row">
         <div class="col-12 table-container">
-            <table class="table text-center">
+            <table class="table round-table shadow-table text-center mt-3">
                 <thead class="table-head-gray">
                     <tr>
                         <th class="td-border-right">
@@ -104,11 +104,6 @@
                 [checked]="isPrivate">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.PRIVATE'
                 | translate}}</mat-checkbox>
         </div>
-        <div class="col-auto">
-            <mat-checkbox
-                formControlName="combineFields">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.COMBINE-FIELDS'
-                | translate}}</mat-checkbox>
-        </div>
     </div>
 
     <div class="mb-2"></div>
@@ -121,8 +116,10 @@
             translate}}</button>
     </div>
     <div class="col-auto">
-        <button mat-raised-button color="accent" (click)="mergeCorpus()"
-            [disabled]="!canMerge()">{{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.SUBMIT'
-            | translate}}</button>
+        <button mat-raised-button color="accent" (click)="mergeCorpus()" [disabled]="!canMerge()"
+            [matTooltip]="canMerge() || !this.formGroup.value['name'] ? '' :
+            language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.TOOLTIPS.CANNOT-SUBMIT')">
+            {{'APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.NEW-CORPUS-DIALOG.SUBMIT' | translate}}
+        </button>
     </div>
 </mat-dialog-actions>

@@ -39,6 +39,11 @@ export class KeywordService {
     return this.http.post<void>(url, keyword);
   }
 
+  patch(keyword: Keyword): Observable<void> {
+    const url = `${this.apiBase}/patch`;
+    return this.http.post<void>(url, keyword);
+  }
+
   rename(rename: RenamePersist): Observable<void> {
     const url = `${this.apiBase}/rename`;
     return this.http.put<void>(url, rename);

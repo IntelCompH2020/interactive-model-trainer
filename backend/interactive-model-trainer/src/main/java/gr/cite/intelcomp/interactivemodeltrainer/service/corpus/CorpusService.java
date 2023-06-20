@@ -23,6 +23,8 @@ public abstract class CorpusService<C extends Corpus, L extends Lookup> {
 
     public abstract void create(C corpus) throws IOException, InterruptedException, ApiException;
 
+    public abstract void patch(C corpus) throws IOException, InterruptedException, ApiException;
+
     public void copy(String name) throws InterruptedException, IOException, ApiException {
         dockerService.copyCorpus(name);
     }

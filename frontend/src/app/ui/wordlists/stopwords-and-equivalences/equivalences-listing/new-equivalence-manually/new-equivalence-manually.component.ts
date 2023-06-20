@@ -43,6 +43,11 @@ export class NewEquivalenceManuallyComponent implements OnInit {
     return !!(this.formGroup?.get(nameof<Equivalence>(x => x.visibility))?.value === WordListVisibility.Private);
   }
 
+  get canPrivate(): boolean {
+    if (this.isNew) return true;
+    else return this.equivalence.creator != null && this.equivalence.creator != "-"
+  }
+
   term: string = '';
   equivalenceTerm: string = '';
   currentEquivalence = '';
@@ -75,11 +80,19 @@ export class NewEquivalenceManuallyComponent implements OnInit {
       return;
     }
 
-    this.equivaleceService.create(this.formGroup.value).subscribe(
-      _response => {
-        this.dialogRef.close(true);
-      }
-    )
+    if (this.isNew) {
+      this.equivaleceService.create(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    } else {
+      this.equivaleceService.patch(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    }
   }
 
   addEquivalence(term: string, equivalence: string): void {

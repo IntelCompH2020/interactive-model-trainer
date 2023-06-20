@@ -2,6 +2,7 @@ services:
   services:
     manageLists:
       volumeConfiguration:
+        wordlists_folder: ${DOCKER_WORKSPACE}\wordlist_docker\wordlists
         temp_folder: ${DOCKER_WORKSPACE}\wordlist_docker\temp
     manageCorpus:
       volumeConfiguration:
@@ -19,6 +20,6 @@ services:
         dc_models_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels-metadata
         dc_models_inner_folder: /data/DCmodels-metadata
         temp_folder: ${DOCKER_WORKSPACE}\training\temp
-        output_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels\{project_name}_classification\output
-        documents_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels\{project_name}_classification\datasets\temp
+        output_folder: ${DOCKER_WORKSPACE}\models_docker\dc-models\{project_name}_classification\output
+        documents_folder: ${DOCKER_WORKSPACE}\models_docker\dc-models\{project_name}_classification\datasets\temp
         zero_shot_folder: ${DOCKER_WORKSPACE}\models_docker\DCmodels-zero-shot

@@ -123,7 +123,7 @@ public class DockerServiceImpl implements DockerService {
         else return List.of("-");
     }
 
-    private List<WordListEntity> applyLookup(List<WordListEntity> data, @NotNull WordListLookup lookup) {
+    private List<WordListEntity> applyWordlistLookup(List<WordListEntity> data, @NotNull WordListLookup lookup) {
         List<WordListEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
@@ -310,6 +310,9 @@ public class DockerServiceImpl implements DockerService {
         if (topicModelLookup.getTrainer() != null && !topicModelLookup.getTrainer().equals("all")) {
             result = result.stream().filter(e -> e.getTrainer().contains(topicModelLookup.getTrainer().trim())).collect(Collectors.toList());
         }
+        if (topicModelLookup.getHierarchyLevel() != null) {
+            result = result.stream().filter(e -> e.getHierarchyLevel().equals(topicModelLookup.getHierarchyLevel())).collect(Collectors.toList());
+        }
         if (lookup.getCreatedAt() != null) {
             result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
                     e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
@@ -416,7 +419,7 @@ public class DockerServiceImpl implements DockerService {
         return result;
     }
 
-    private List<TopicEntity> applyLookup(List<TopicEntity> data, @NotNull TopicLookup lookup) {
+    private List<TopicEntity> applyTopicLookup(List<TopicEntity> data, @NotNull TopicLookup lookup) {
         List<TopicEntity> result = new ArrayList<>(data);
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getLabel().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
@@ -509,7 +512,7 @@ public class DockerServiceImpl implements DockerService {
             data.addAll(cached.getPayload());
         }
 
-        return applyLookup(data, lookup);
+        return applyWordlistLookup(data, lookup);
     }
 
     @Override
@@ -661,11 +664,13 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void createWordList(WordListJson wordList) throws IOException, InterruptedException, ApiException {
+    public void createWordList(WordListJson wordList, boolean isNew) throws IOException, InterruptedException, ApiException {
         //Create temporary input file
         String tmp_file = "generated_" + new SecureRandom().nextInt();
-        wordList.setId(UUID.randomUUID());
-        wordList.setCreator(getUserId());
+        if (isNew) {
+            wordList.setId(UUID.randomUUID());
+            wordList.setCreator(getUserId());
+        }
         String wl = mapper.writeValueAsString(wordList);
         this.createInputFileInTempFolder(tmp_file, wl, DockerService.MANAGE_LISTS);
 
@@ -684,11 +689,13 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void createCorpus(LogicalCorpusJson corpus) throws IOException, InterruptedException, ApiException {
+    public void createCorpus(LogicalCorpusJson corpus, boolean isNew) throws IOException, InterruptedException, ApiException {
         //Create temporary input file
         String tmp_file = "generated_" + new SecureRandom().nextInt();
-        corpus.setId(UUID.randomUUID());
-        corpus.setCreator(getUserId());
+        if (isNew) {
+            corpus.setId(UUID.randomUUID());
+            corpus.setCreator(getUserId());
+        }
         String wl = mapper.writeValueAsString(corpus);
         this.createInputFileInTempFolder(tmp_file, wl, DockerService.MANAGE_CORPUS);
 
@@ -885,7 +892,7 @@ public class DockerServiceImpl implements DockerService {
             data.addAll(cached.getPayload());
         }
 
-        return new ArrayList<>(applyLookup(data, lookup));
+        return new ArrayList<>(applyTopicLookup(data, lookup));
     }
 
     @Override

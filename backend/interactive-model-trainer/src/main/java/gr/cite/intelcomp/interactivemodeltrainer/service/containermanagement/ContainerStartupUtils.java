@@ -8,11 +8,15 @@ import java.io.IOException;
 
 public class ContainerStartupUtils {
 
-    public static void initServices(ApplicationContext applicationContext) throws IOException, ApiException {
+    public static void initServices(ApplicationContext applicationContext) {
         ContainerManagementService service = applicationContext.getBean(ContainerManagementService.class);
-        service.ensureAvailableService(DockerService.MANAGE_LISTS);
-        service.ensureAvailableService(DockerService.MANAGE_CORPUS);
-        service.ensureAvailableService(DockerService.MANAGE_MODELS);
+        try {
+            service.ensureAvailableService(DockerService.MANAGE_LISTS);
+            service.ensureAvailableService(DockerService.MANAGE_CORPUS);
+            service.ensureAvailableService(DockerService.MANAGE_MODELS);
+        } catch (IOException | ApiException e) {
+            e.printStackTrace();
+        }
     }
 
 }

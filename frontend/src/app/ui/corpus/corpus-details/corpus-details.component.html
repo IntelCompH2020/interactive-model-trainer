@@ -1,0 +1,35 @@
+<div mat-dialog-title>
+  <span class="h4">{{'APP.CORPUS-COMPONENT.CORPUS-DETAILS-COMPONENT.TITLE' | translate}}
+    <i class="h5 gray-text">({{name}})</i>
+  </span>
+</div>
+
+<mat-dialog-content>
+  <div class="row">
+    <div *ngIf="isLogicalCorpus" class="col-12 table-container pt-3">
+      <table *ngFor="let dataset of corpus.Dtsets" app-merged-corpus-table [dataset]="dataset"
+        class="table round-table shadow-table text-center">
+      </table>
+    </div>
+    <div *ngIf="!isLogicalCorpus" class="col-12 table-container pt-3">
+      <table class="table round-table shadow-table text-center">
+        <thead class="table-head-gray">
+          <tr>
+            <th>Fields</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr *ngFor="let field of corpus.schema">
+            <td>{{field}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-raised-button color="accent" (click)="close()">{{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

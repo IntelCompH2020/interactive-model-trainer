@@ -2,6 +2,8 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
+import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.LogicalCorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
@@ -41,12 +43,19 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        UserScope userScope = applicationContext.getBean(UserScope.class);
 
         List<LogicalCorpus> models = new ArrayList<>();
 
         if (data == null) return models;
         for (LogicalCorpusEntity d : data) {
             if (CorpusType.LOGICAL != d.getType()) continue;
+            if (Visibility.Private.equals(d.getVisibility())) {
+                if (!userScope.isSet()) continue;
+                if (d.getCreator() != null
+                        && !d.getCreator().equals("-")
+                        && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
+            }
             LogicalCorpus m = new LogicalCorpus();
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._name))) m.setName(d.getName());

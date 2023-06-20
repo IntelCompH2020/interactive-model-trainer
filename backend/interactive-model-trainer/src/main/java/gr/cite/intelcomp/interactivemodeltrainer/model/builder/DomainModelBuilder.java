@@ -2,6 +2,8 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
+import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
@@ -47,9 +49,16 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
         List<DomainModel> models = new ArrayList<>();
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        UserScope userScope = applicationContext.getBean(UserScope.class);
 
         if (data == null) return models;
         for (DomainModelEntity d : data) {
+            if (Visibility.Private.equals(d.getVisibility())) {
+                if (!userScope.isSet()) continue;
+                if (d.getCreator() != null
+                        && !d.getCreator().equals("-")
+                        && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
+            }
 
             if (modelIsTraining(d)) continue;
 

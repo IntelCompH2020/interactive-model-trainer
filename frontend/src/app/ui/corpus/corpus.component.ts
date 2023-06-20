@@ -14,6 +14,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { LogicalCorpusListingComponent } from './logical-corpus-listing/logical-corpus-listing.component';
 import { RawCorpusListingComponent } from './raw-corpus-listing/raw-corpus-listing.component';
 import { DataTableLogicalCorpusValidForFormatPipe } from '@common/formatting/pipes/logical-corpus-valid-for.pipe';
+import { CorpusDetailsComponent } from './corpus-details/corpus-details.component';
 
 @Component({
   selector: 'app-corpus',
@@ -28,10 +29,11 @@ export class CorpusComponent extends BaseComponent implements OnInit {
   CorpusType = CorpusType;
   modelSelectionSubscription: Subscription;
 
-  details: ItemDetail[] = []
+  details: DetailsItem[] = []
 
   private onRefresh: () => void;
   private onEditItem: () => void;
+  private onUpdateItem: () => void;
   private onExportItem: () => void;
 
   constructor(
@@ -50,6 +52,10 @@ export class CorpusComponent extends BaseComponent implements OnInit {
     this.onEditItem?.();
   }
 
+  protected onUpdate(): void {
+    this.onUpdateItem?.();
+  }
+
   protected onExport(): void {
     this.onExportItem?.();
   }
@@ -65,6 +71,7 @@ export class CorpusComponent extends BaseComponent implements OnInit {
     this.details = [];
     this.onRefresh = null;
     this.onEditItem = null;
+    this.onUpdateItem = null;
     this.onExportItem = null;
 
     switch (true) {
@@ -109,6 +116,10 @@ export class CorpusComponent extends BaseComponent implements OnInit {
           castedActiveComponent.edit(this.corpusSelected as LogicalCorpus);
         }
 
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.corpusSelected as LogicalCorpus, true);
+        }
+
         this.onExportItem = () => {
           castedActiveComponent.export(this.corpusSelected as LogicalCorpus);
         }
@@ -118,7 +129,7 @@ export class CorpusComponent extends BaseComponent implements OnInit {
 
   }
 
-  private _buildRawCorpusDetails(corpus: RawCorpus): ItemDetail[] {
+  private _buildRawCorpusDetails(corpus: RawCorpus): DetailsItem[] {
     if (!corpus) return [];
     return [
       {
@@ -131,7 +142,7 @@ export class CorpusComponent extends BaseComponent implements OnInit {
       },
       {
         label: 'APP.CORPUS-COMPONENT.RAW.RECORDS',
-        value: corpus.records || '-'
+        value: corpus.records.toString() || '-'
       },
       {
         label: 'APP.CORPUS-COMPONENT.RAW.SOURCE',
@@ -149,14 +160,29 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         label: 'APP.CORPUS-COMPONENT.VISIBILITY',
         value: corpus.visibility || '-'
       },
-      // {
-      //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
-      //   value: '...',
-      // },
+      {
+        label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
+        value: 'APP.CORPUS-COMPONENT.MORE-DETAILS-SHOW',
+        button: true,
+        action: () => {
+            this.dialog.open(CorpusDetailsComponent,
+              {
+                width: '40rem',
+                maxWidth: "90vw",
+                maxHeight: '90vh',
+                disableClose: true,
+                data: {
+                  corpus,
+                  type: CorpusType.Raw
+                }
+              }
+            );
+        }
+      },
     ];
   }
 
-  private _buildLogicalCorpusDetails(corpus: LogicalCorpus): ItemDetail[] {
+  private _buildLogicalCorpusDetails(corpus: LogicalCorpus): DetailsItem[] {
     if (!corpus) return [];
     return [
       {
@@ -187,10 +213,25 @@ export class CorpusComponent extends BaseComponent implements OnInit {
         label: 'APP.CORPUS-COMPONENT.VISIBILITY',
         value: corpus.visibility || '-'
       },
-      // {
-      //   label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
-      //   value: '...',
-      // },
+      {
+        label: 'APP.CORPUS-COMPONENT.MORE-DETAILS',
+        value: 'APP.CORPUS-COMPONENT.MORE-DETAILS-SHOW',
+        button: true,
+        action: () => {
+            this.dialog.open(CorpusDetailsComponent,
+              {
+                width: '40rem',
+                maxWidth: "90vw",
+                maxHeight: '90vh',
+                disableClose: true,
+                data: {
+                  corpus,
+                  type: CorpusType.Logical
+                }
+              }
+            );
+        }
+      },
     ];
   }
 
@@ -242,12 +283,21 @@ export class CorpusComponent extends BaseComponent implements OnInit {
   }
 }
 
-enum CorpusType {
+export enum CorpusType {
   Raw = 'raw',
   Logical = 'logical'
 }
 
-interface ItemDetail {
+type DetailsItem = SimpleDetailsItem | ButtonDetailsItem;
+
+interface SimpleDetailsItem {
   label: string;
-  value: any;
+  value: string;
+}
+
+interface ButtonDetailsItem {
+  label: string;
+  value: string;
+  button: boolean;
+  action: Function;
 }

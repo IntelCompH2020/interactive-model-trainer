@@ -23,6 +23,7 @@ public class CorpusJson {
     private Visibility visibility;
 
     protected CorpusJson(LogicalCorpus corpus) {
+        this.setId(corpus.getId());
         this.setName(corpus.getName());
         this.setDescription(corpus.getDescription());
         this.setVisibility(corpus.getVisibility());

@@ -43,6 +43,11 @@ export class NewKeywordManuallyComponent implements OnInit {
     return !!(this.formGroup?.get(nameof<Keyword>(x => x.visibility))?.value === WordListVisibility.Private);
   }
 
+  get canPrivate(): boolean {
+    if (this.isNew) return true;
+    else return this.keyword.creator != null && this.keyword.creator != "-"
+  }
+
   currentKeyword = '';
 
   constructor(
@@ -68,11 +73,19 @@ export class NewKeywordManuallyComponent implements OnInit {
       return;
     }
 
-    this.keywordService.create(this.formGroup.value).subscribe(
-      _response => {
-        this.dialogRef.close(true);
-      }
-    )
+    if (this.isNew) {
+      this.keywordService.create(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    } else {
+      this.keywordService.patch(this.formGroup.value).subscribe(
+        _response => {
+          this.dialogRef.close(true);
+        }
+      )
+    }
 
   }
 

@@ -8,20 +8,6 @@ table {
           font-size: .95em;
       }
   }
-
-  // & td {
-  //     & input {
-  //         text-align: center;
-  //         width: 100%;
-  //     }
-
-  //     & select {
-  //         width: 100%;
-  //         background-color: white;
-  //         border: none;
-  //         cursor: pointer;
-  //     }
-  // }
 }
 
 .vertical-table {
@@ -29,6 +15,10 @@ table {
   td {
     border-top: none !important;
   }
+}
+
+.mat-dialog-content {
+  max-height: initial;
 }
 
 // div[mat-dialog-title] {

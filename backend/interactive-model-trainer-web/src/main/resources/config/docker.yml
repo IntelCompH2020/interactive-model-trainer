@@ -32,7 +32,7 @@ docker:
     trainDomainModels:
       image: domainclassification
       volumeConfiguration:
-        volume_binding: ${DOCKER_WORKSPACE}\models_docker\DCmodels:/data/DCmodels,
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\dc-models:/data/dc-models,
           ${DOCKER_WORKSPACE}\models_docker\DCmodels-metadata:/data/DCmodels-metadata,
           ${DOCKER_WORKSPACE}\models_docker\DCmodels-zero-shot:/data/DCmodels-zero-shot,
           ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,

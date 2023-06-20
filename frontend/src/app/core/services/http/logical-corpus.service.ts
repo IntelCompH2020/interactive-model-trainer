@@ -31,6 +31,11 @@ export class LogicalCorpusService {
 		return this.http.post<void>(url, corpus);
 	}
 
+	patch(corpus: LogicalCorpusPersist): Observable<void> {
+		const url = `${this.apiBase}/patch`;
+		return this.http.post<void>(url, corpus);
+	}
+
 	delete(name: string): Observable<void> {
     const url = `${this.apiBase}/delete/${name}`;
     return this.http.delete<void>(url);

@@ -32,9 +32,9 @@ public interface DockerService {
 
     List<? extends ModelEntity> getModel(ModelLookup lookup, String name) throws IOException, ApiException, InterruptedException;
 
-    void createWordList(WordListJson wordList) throws IOException, InterruptedException, ApiException;
+    void createWordList(WordListJson wordList, boolean isNew) throws IOException, InterruptedException, ApiException;
 
-    void createCorpus(LogicalCorpusJson corpus) throws IOException, InterruptedException, ApiException;
+    void createCorpus(LogicalCorpusJson corpus, boolean isNew) throws IOException, InterruptedException, ApiException;
 
     void copyWordList(String name) throws InterruptedException, IOException, ApiException;
 

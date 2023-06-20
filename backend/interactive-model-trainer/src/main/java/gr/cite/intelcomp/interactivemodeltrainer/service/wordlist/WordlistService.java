@@ -23,6 +23,8 @@ public abstract class WordlistService<W extends WordList<?>, L extends Lookup> {
 
     public abstract void create(W word) throws IOException, InterruptedException, ApiException;
 
+    public abstract void patch(W word) throws IOException, InterruptedException, ApiException;
+
     public void copy(String name) throws InterruptedException, IOException, ApiException {
         dockerService.copyWordList(name);
     }

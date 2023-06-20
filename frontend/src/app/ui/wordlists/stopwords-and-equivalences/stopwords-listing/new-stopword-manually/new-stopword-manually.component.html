@@ -62,7 +62,7 @@
 
     <div class="row mt-3">
         <div class="col-auto">
-            <mat-checkbox (change)="onPrivateChange($event)"
+            <mat-checkbox (change)="onPrivateChange($event)" [disabled]="!canPrivate"
                 [checked]="isPrivate">{{'APP.WORD-LIST-COMPONENT.STOPWORDS-LISTING-COMPONENT.NEW-STOPWORD-MANUALLY-DIALOG.PRIVATE'
                 | translate}}</mat-checkbox>
         </div>

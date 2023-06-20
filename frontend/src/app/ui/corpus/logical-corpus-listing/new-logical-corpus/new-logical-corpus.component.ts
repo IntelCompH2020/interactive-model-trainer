@@ -1,12 +1,12 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
-import { MatCheckbox, MatCheckboxChange } from '@angular/material/checkbox';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectChange } from '@angular/material/select';
 import { CorpusVisibility } from '@app/core/enum/corpus-visibility.enum';
 import { IsActive } from '@app/core/enum/is-active.enum';
 import { LogicalCorpus } from '@app/core/model/corpus/logical-corpus.model';
-import { RawCorpus, RawCorpusFieldPersist } from '@app/core/model/corpus/raw-corpus.model';
+import { RawCorpus } from '@app/core/model/corpus/raw-corpus.model';
 import { RawCorpusLookup } from '@app/core/query/raw-corpus.lookup';
 import { RawCorpusService } from '@app/core/services/http/raw-corpus.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -14,6 +14,7 @@ import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { availableFieldTypes, getLogicalCorpusUses, LogicalCorpusEditorModel } from '../logical-corpus-editor.model';
 import { MergeLogicalCorpusComponent } from './merge-logical-corpus/merge-logical-corpus.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-logical-raw-corpus',
@@ -48,6 +49,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<NewLogicalCorpusComponent>,
     private dialog: MatDialog,
+    protected language: TranslateService,
     private rawCorpusService: RawCorpusService
   ) {
     super();

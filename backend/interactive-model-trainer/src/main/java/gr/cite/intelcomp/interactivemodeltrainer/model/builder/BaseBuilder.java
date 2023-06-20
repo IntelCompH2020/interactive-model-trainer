@@ -94,11 +94,29 @@ public abstract class BaseBuilder<M, D> implements Builder {
 	}
 
 	public static String extractUsername(String id, List<UserEntity> users) {
-		if (id == null || users == null || users.isEmpty()) return "-";
-		Optional<UserEntity> found = users.stream().filter(user ->
-				user.getId().equals(UUID.fromString(id)) || user.getSubjectId().equals(id)
-		).findFirst();
-		return found.map(UserEntity::getFirstName).orElse("-");
+		if (id == null || id.equals("-") || users == null || users.isEmpty()) return "-";
+		Optional<UserEntity> found;
+		try {
+			found = users.stream().filter(user ->
+					user.getId().equals(UUID.fromString(id)) || user.getSubjectId().equals(id)
+			).findFirst();
+			return found.map(UserEntity::getFirstName).orElse("-");
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	public static String extractId(String id, List<UserEntity> users) {
+		if (id == null || id.equals("-") || users == null || users.isEmpty()) return "-";
+		Optional<UserEntity> found;
+		try {
+			found = users.stream().filter(user ->
+					user.getId().equals(UUID.fromString(id)) || user.getSubjectId().equals(id)
+			).findFirst();
+			return found.map(UserEntity::getId).orElse(UUID.randomUUID()).toString();
+		} catch (Exception e) {
+			return "-";
+		}
 	}
 
 }

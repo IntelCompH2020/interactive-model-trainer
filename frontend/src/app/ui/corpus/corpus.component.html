@@ -29,6 +29,12 @@
                                     edit
                                 </mat-icon>
                             </button>
+                            <button mat-icon-button [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.UPDATE')"
+                                [disabled]="selectedCorpusType == CorpusType.Raw" (click)="onUpdate()">
+                                <mat-icon>
+                                    update
+                                </mat-icon>
+                            </button>
                             <button mat-icon-button (click)="onDelete()"
                                 [disabled]="selectedCorpusType == CorpusType.Raw"
                                 [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')">
@@ -42,12 +48,18 @@
                         {{'APP.CORPUS-COMPONENT.DETAILS' | translate}}
                     </h5>
 
-                    <div class="row mt-3" *ngFor="let item of details">
+                    <div class="row mt-2 mb-2" *ngFor="let item of details">
                         <div class="col-6">
                             {{item.label | translate}}
                         </div>
-                        <div class="col-6">
+                        <div *ngIf="!item.button" class="col-6">
                             {{item.value}}
+                        </div>
+                        <div *ngIf="item.button" class="col-6">
+                            <button mat-raised-button color="accent"
+                                [disabled]="false" (click)="item.action()">
+                                {{item.value | translate}}
+                            </button>
                         </div>
                     </div>
 

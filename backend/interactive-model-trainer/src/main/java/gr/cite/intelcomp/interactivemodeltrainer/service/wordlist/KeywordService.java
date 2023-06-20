@@ -1,25 +1,33 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.wordlist;
 
+import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Keyword;
 import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.KeywordBuilder;
+import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.WordListLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.data.builder.BuilderFactory;
+import gr.cite.tools.fieldset.BaseFieldSet;
 import io.kubernetes.client.openapi.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class KeywordService extends WordlistService<Keyword, WordListLookup> {
 
+    private final ApplicationContext applicationContext;
+
     @Autowired
-    public KeywordService(BuilderFactory builderFactory, DockerService dockerService) {
+    public KeywordService(BuilderFactory builderFactory, DockerService dockerService, ApplicationContext applicationContext) {
         super(builderFactory, dockerService);
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -42,6 +50,27 @@ public class KeywordService extends WordlistService<Keyword, WordListLookup> {
     @Override
     public void create(Keyword word) throws IOException, InterruptedException, ApiException {
         WordListJson wordList = new WordListJson(word);
-        dockerService.createWordList(wordList);
+        dockerService.createWordList(wordList, true);
+    }
+
+    @Override
+    public void patch(Keyword word) throws IOException, InterruptedException, ApiException {
+        WordListJson wordList = new WordListJson(word);
+        try {
+            WordListLookup wordListLookup = new WordListLookup();
+            wordListLookup.setProject(new BaseFieldSet("id", "creator"));
+            List<Keyword> corpora = getAll(wordListLookup)
+                    .stream()
+                    .filter(c -> word.getId().equals(c.getId()))
+                    .collect(Collectors.toList());
+            String creatorUsername = corpora.get(0).getCreator();
+            if (creatorUsername != null && !creatorUsername.equals("-")) {
+                List<UserEntity> users = applicationContext.getBean(UserQuery.class).usernames(creatorUsername).collect();
+                if (!users.isEmpty()) wordList.setCreator(users.get(0).getId().toString());
+            }
+            dockerService.createWordList(wordList, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

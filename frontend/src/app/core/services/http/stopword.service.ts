@@ -29,6 +29,11 @@ export class StopwordService {
     return this.http.post<void>(url, stopword);
   }
 
+  patch(stopword: Stopword): Observable<void> {
+    const url = `${this.apiBase}/patch`;
+    return this.http.post<void>(url, stopword);
+  }
+
   copy(name: string): Observable<void> {
     const url = `${this.apiBase}/copy/${name}`;
     return this.http.post<void>(url, {});

@@ -14,10 +14,11 @@ import { MergeLogicalCorpusComponent } from './logical-corpus-listing/new-logica
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MergedCorpusTableComponent } from './logical-corpus-listing/new-logical-corpus/merged-corpus-table/merged-corpus-table.component';
-import { NewMergedFieldComponent } from './logical-corpus-listing/new-logical-corpus/new-merged-field/new-merged-field.component';
 import { NewLogicalCorpusFromFileComponent } from './logical-corpus-listing/new-logical-corpus-from-file/new-logical-corpus-from-file.component';
 import { FileModule } from '../file/file.module';
 import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
+import { CorpusPatchComponent } from './corpus-patch/corpus-patch-modal.component';
+import { CorpusDetailsComponent } from './corpus-details/corpus-details.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
     LogicalCorpusListingComponent,
     MergeLogicalCorpusComponent,
     MergedCorpusTableComponent,
-    NewMergedFieldComponent
+    CorpusPatchComponent,
+    CorpusDetailsComponent
   ],
   imports: [
     CommonModule,

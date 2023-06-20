@@ -1,27 +1,49 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.validation;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
+import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
+import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
+import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.tools.logging.LoggerService;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 @Component
 public class ValidationUtils {
 
+    private final ContainerServicesProperties containerServicesProperties;
+
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ValidationUtils.class));
 
-    public static void tapTopicModelParameterValidator() {
+    @Autowired
+    public ValidationUtils(ContainerServicesProperties containerServicesProperties) {
+        this.containerServicesProperties = containerServicesProperties;
+    }
+
+    public void tapTopicModelParameterValidator() {
         try {
             Class<?> clazz = ClassLoader.getSystemClassLoader()
                     .loadClass("gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters");
-            for (Annotation annotation :  clazz.getAnnotations()) {
+            for (Annotation annotation : clazz.getAnnotations()) {
                 if (annotation.annotationType().getSimpleName().equals("ValidTrainingParameterList")) {
                     ValidTrainingParameter.ValidTrainingParameterList validatorWrapper = (ValidTrainingParameter.ValidTrainingParameterList) annotation;
                     logger.trace("-------------------------------------------------------------");
                     logger.trace("Validation set for the following parameters (topic modeling):");
                     logger.trace("-------------------------------------------------------------");
-                    for (ValidTrainingParameter inner: validatorWrapper.value()) {
+                    for (ValidTrainingParameter inner : validatorWrapper.value()) {
                         logger.trace(inner.parameter());
                     }
                     logger.trace("-------------------------------------------------------------");
@@ -30,6 +52,94 @@ public class ValidationUtils {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void validateWordlists() {
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                String wordlistsFolder = containerServicesProperties.getWordlistService().getWordlistsFolder();
+                Collection<File> lists = FileUtils.listFiles(new File(wordlistsFolder), new String[]{"json"}, false);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                for (File list : lists) {
+                    String json = null;
+                    try {
+                        json = FileUtils.readFileToString(list, Charset.defaultCharset());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    WordListJson parsed = gson.fromJson(json, WordListJson.class);
+                    boolean update = false;
+                    if (parsed.getId() == null) {
+                        parsed.setId(UUID.randomUUID());
+                        update = true;
+                    }
+                    if (parsed.getVisibility() == null || parsed.getCreator() == null || parsed.getCreator().equals("-")) {
+                        if (Visibility.Public.equals(parsed.getVisibility())) continue;
+                        parsed.setVisibility(Visibility.Public);
+                        update = true;
+                    }
+                    String fileName = list.getName().substring(0, list.getName().lastIndexOf("."));
+                    if (parsed.getName() != null && !parsed.getName().equals(fileName)) {
+                        parsed.setName(fileName);
+                        update = true;
+                    }
+                    if (update) {
+                        try {
+                            FileUtils.writeStringToFile(list, gson.toJson(parsed), Charset.defaultCharset());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                logger.info("Wordlists validated");
+            }
+        }, 0, 1000 * 60 * 30);
+    }
+
+    public void validateLogicalCorpora() {
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                String datasetsFolder = containerServicesProperties.getCorpusService().getDatasetsFolder();
+                Collection<File> datasets = FileUtils.listFiles(new File(datasetsFolder), new String[]{"json"}, false);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                for (File dataset : datasets) {
+                    String json = null;
+                    try {
+                        json = FileUtils.readFileToString(dataset, Charset.defaultCharset());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    LogicalCorpusJson parsed = gson.fromJson(json, LogicalCorpusJson.class);
+                    boolean update = false;
+                    if (parsed.getId() == null) {
+                        parsed.setId(UUID.randomUUID());
+                        update = true;
+                    }
+                    if (parsed.getVisibility() == null || parsed.getCreator() == null || parsed.getCreator().equals("-")) {
+                        if (Visibility.Public.equals(parsed.getVisibility())) continue;
+                        parsed.setVisibility(Visibility.Public);
+                        update = true;
+                    }
+                    String fileName = dataset.getName().substring(0, dataset.getName().lastIndexOf("."));
+                    if (parsed.getName() != null && !parsed.getName().equals(fileName)) {
+                        parsed.setName(fileName);
+                        update = true;
+                    }
+                    if (update) {
+                        try {
+                            FileUtils.writeStringToFile(dataset, gson.toJson(parsed), Charset.defaultCharset());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                logger.info("Logical corpora validated");
+            }
+        }, 0, 1000 * 60 * 30);
     }
 
 }

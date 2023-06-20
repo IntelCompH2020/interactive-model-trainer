@@ -1,6 +1,5 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.intelcomp.interactivemodeltrainer.model.Equivalence;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.WordListLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.wordlist.EquivalenceService;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseController.extractQueryResultWithCount;
 
@@ -25,7 +23,6 @@ import static gr.cite.intelcomp.interactivemodeltrainer.web.controllers.BaseCont
 public class EquivalenceController {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(EquivalenceController.class));
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final EquivalenceService equivalenceService;
 
@@ -50,6 +47,12 @@ public class EquivalenceController {
     @Transactional
     public void Create(@Valid @RequestBody Equivalence equivalence) throws InterruptedException, IOException, ApiException {
         equivalenceService.create(equivalence);
+    }
+
+    @PostMapping("patch")
+    @Transactional
+    public void Patch(@Valid @RequestBody Equivalence equivalence) throws InterruptedException, IOException, ApiException {
+        equivalenceService.patch(equivalence);
     }
 
     @PostMapping("copy/{name}")

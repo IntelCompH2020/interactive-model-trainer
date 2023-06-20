@@ -4,6 +4,7 @@ import { HomeComponent } from '@app/ui/home/home.component';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { OverviewCardComponent } from './overview-card/overview-card.component';
 import { HowToCardComponent } from './how-to-card/how-to-card.component';
+import { TopicModelService } from '@app/core/services/http/topic-model.service';
 @NgModule({
 	imports: [
 		CommonUiModule,
@@ -11,8 +12,11 @@ import { HowToCardComponent } from './how-to-card/how-to-card.component';
 	],
 	declarations: [
 		HomeComponent,
-  OverviewCardComponent,
-  HowToCardComponent,
+		OverviewCardComponent,
+		HowToCardComponent,
+	],
+	providers: [
+		TopicModelService
 	]
 })
 export class HomeModule { }

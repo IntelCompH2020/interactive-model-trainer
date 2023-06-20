@@ -3,9 +3,9 @@
         <img src="../../../assets/images/intelcomp.svg" class="img img-fluid" alt="Intelcomp Logo">
     </div>
     <div class="d-none d-md-inline-block col-2"></div>
-    
+
     <div class="col">
-        
+
         <img src="../../../assets/images/european-commision-logo.svg" class="img img-fluid" alt="Intelcomp Logo">
     </div>
     <div class="d-none d-md-inline-block col-2"></div>
@@ -26,49 +26,45 @@
 
         <div class="row">
 
-            <app-overview-card 
-                class="col-12 cursor-pointer"
-                routerLink="/corpus"
-                [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
-                matIconName="file_copy"
-                [description]="'APP.HOME-COMPONENT.CORPUS-DESCRIPTION' | translate"
-                >
+            <app-overview-card class="col-12 cursor-pointer" routerLink="/corpus"
+                [title]="'APP.HOME-COMPONENT.CORPUS' | translate" matIconName="file_copy"
+                [description]="'APP.HOME-COMPONENT.CORPUS-DESCRIPTION' | translate">
             </app-overview-card>
 
-            <app-overview-card 
-                class="col-12 cursor-pointer"
-                routerLink="/models"
-                [title]="'APP.HOME-COMPONENT.MODELS' | translate"
-                iconText="TM"
-                [description]="'APP.HOME-COMPONENT.MODELS-DESCRIPTION' | translate"
-                >
+            <app-overview-card class="col-12 cursor-pointer" routerLink="/models"
+                [title]="'APP.HOME-COMPONENT.MODELS' | translate" iconText="TM"
+                [description]="'APP.HOME-COMPONENT.MODELS-DESCRIPTION' | translate">
             </app-overview-card>
-            
-            <app-overview-card 
-                class="col-12 cursor-pointer"
-                routerLink="/wordlists"
-                [title]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES' | translate"
-                matIconName="playlist_add"
-                [description]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES-DESCRIPTION' | translate"
-                >
+
+            <app-overview-card class="col-12 cursor-pointer" routerLink="/wordlists"
+                [title]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES' | translate" matIconName="playlist_add"
+                [description]="'APP.HOME-COMPONENT.STOPWORDS-EQUIVALENCES-DESCRIPTION' | translate">
             </app-overview-card>
         </div>
     </section>
-    <section >
+    <section>
         <h3>
             {{'APP.HOME-COMPONENT.RECENT' | translate}}
         </h3>
 
-        <section class="row">
+        <section class="row text-center" *ngIf="modelsLoading">
+            <mat-spinner color="accent" diameter="20"></mat-spinner>
+        </section>
+        <section class="row" *ngIf="!recentItems.length">
+            <p class="no-data text-muted">
+                No data to display
+            </p>
+        </section>
+        <section class="row" *ngIf="recentItems.length">
             <div class="col-12">
                 <div class="row recent-item pt-3 pb-3" *ngFor="let item of recentItems">
                     <div class="col-6">
                         <small>
-                            <a [href]="item.href">{{item.name}}</a>
+                            <a [routerLink]="item.href">{{item.name}}</a>
                         </small>
                     </div>
                     <div class="col text-right">
-                        <small class="text-muted">
+                        <small class="">
                             {{item.location}}
                         </small>
                     </div>
@@ -76,33 +72,24 @@
             </div>
         </section>
     </section>
-    <section >
+    <section>
         <h3>
             {{'APP.HOME-COMPONENT.HOW-TO' | translate}}
         </h3>
         <div class="row m-0">
 
-            <app-how-to-card
-                class="w-100"
-                [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-CORPUS-DESCRIPTION' | translate"
-            >
+            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-CORPUS-DESCRIPTION' | translate">
             </app-how-to-card>
 
-            <app-how-to-card
-                class="w-100"
-                [title]="'APP.HOME-COMPONENT.MODELS' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-MODELS-DESCRIPTION' | translate"
-            >
+            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.MODELS' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-MODELS-DESCRIPTION' | translate">
             </app-how-to-card>
 
-            <app-how-to-card
-                class="w-100"
-                [title]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST-DESCRIPTION' | translate"
-            >
+            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST' | translate"
+                [description]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST-DESCRIPTION' | translate">
             </app-how-to-card>
-            
-        </div> 
+
+        </div>
     </section>
 </section>
