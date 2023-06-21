@@ -1,18 +1,29 @@
 # Base image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
-# Install python
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get update && apt-get install -y \
-    python3.8 \
-    python3-distutils \
-    python3-pip \
-    python3-apt
+# Set noninteractive mode
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt install python-is-python3
+# Install system dependencies
+RUN apt-get update && \
+apt-get upgrade -y && \
+apt-get install -y --no-install-recommends tzdata \
+python3.10 \
+python3-distutils \
+python3-pip \
+python3-apt \
+build-essential \
+gcc \
+python3-dev \
+python-is-python3
 
-RUN pip install dask==2022.7.1 gensim==4.2.0 matplotlib==3.5.2 nltk==3.7 numpy==1.23.1 pandas==1.4.3 pyarrow==8.0.0 pyLDAvis==3.3.1 pyspark==3.3.0 scikit_learn==1.1.3 scipy==1.8.1 sentence_transformers==2.2.2 torch==1.12.0 tqdm==4.64.0 transformers==4.21.0
+# Clean up the package cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip3 install --upgrade pip setuptools wheel
+COPY requirements.txt requirements.txt
+RUN python3 -m pip install -r requirements.txt 
 
 ENV TZ=Europe/Athens
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
