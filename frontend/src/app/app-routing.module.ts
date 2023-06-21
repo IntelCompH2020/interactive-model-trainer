@@ -8,22 +8,21 @@ const appRoutes: Routes = [
 	{ path: '', redirectTo: 'home', pathMatch: 'full' },
 	{
 		path: 'home',
-		canLoad: [AuthGuard],
 		loadChildren: () => import('@app/ui/home/home.module').then(m => m.HomeModule)
 	},
 	{
 		path: 'corpus',
-		canLoad: [AuthGuard],
+		canActivate: [AuthGuard],
 		loadChildren: () => import('@app/ui/corpus/corpus.module').then(m => m.CorpusModule)
 	},
 	{
 		path: 'models',
-		canLoad: [AuthGuard],
+		canActivate: [AuthGuard],
 		loadChildren: () => import('@app/ui/models/models.module').then(m => m.ModelsModule)
 	},
 	{
 		path: 'wordlists',
-		canLoad: [AuthGuard],
+		canActivate: [AuthGuard],
 		loadChildren: () => import('@app/ui/wordlists/wordlists.module').then(m => m.WordListsModule)
 	},
 	{
@@ -32,7 +31,7 @@ const appRoutes: Routes = [
 	},
 	{
 		path: 'notifications',
-		canLoad: [AuthGuard],
+		canActivate: [AuthGuard],
 		data: {
 			authContext: {
 				permissions: [AppPermission.ViewNotificationPage]
@@ -42,7 +41,7 @@ const appRoutes: Routes = [
 	},
 	{
 		path: 'inapp-notifications',
-		canLoad: [AuthGuard],
+		canActivate: [AuthGuard],
 		data: {
 			authContext: {
 				permissions: [AppPermission.ViewInAppNotificationPage]

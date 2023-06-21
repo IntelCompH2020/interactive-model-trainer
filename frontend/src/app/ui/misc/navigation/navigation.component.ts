@@ -80,6 +80,10 @@ export class NavigationComponent extends BaseComponent implements OnInit {
 		}
 	}
 
+	public login(): void {
+		this.router.navigate(['/login']);
+	}
+
 	public logout(): void {
 		this.router.navigate(['/logout']);
 	}

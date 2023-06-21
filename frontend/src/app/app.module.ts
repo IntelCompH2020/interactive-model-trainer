@@ -27,10 +27,7 @@ import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { TenantChooseDialogModule } from './ui/tenant/choose-dialog/tenant-choose-dialog.module';
 import { FooterComponent } from './ui/footer/footer.component';
 import { TrainingProgressModelDialogModule } from '@common/modules/training-model-progress/training-model-dialog.module';
-import { InterceptorType } from '@common/http/interceptors/interceptor-type';
-import { BaseHttpParams } from '@common/http/base-http-params';
 import { AuthService } from './core/services/ui/auth.service';
-import {from} from 'rxjs';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -39,33 +36,34 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export function InstallationConfigurationFactory(appConfig: InstallationConfigurationService, keycloak: KeycloakService, baseHttpServcie: BaseHttpService, authService: AuthService) {
 	return () => appConfig.loadInstallationConfiguration().then(x => keycloak.init({
-      config: {
-        url: appConfig.idpServiceAddress,
-				realm: appConfig.authRealm,
-        clientId: appConfig.authClientId,
-      },
-      initOptions: {
-        onLoad: 'check-sso',
-        flow: appConfig.authFlow,
-				checkLoginIframe: false
-      },
-	  shouldAddToken:() => false
-    }).then((response) => {
-		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [
-				// InterceptorType.AuthToken,
-				InterceptorType.TenantHeaderInterceptor,
-				InterceptorType.JSONContentType,
-				InterceptorType.Locale,
-				InterceptorType.ProgressIndication,
-				InterceptorType.RequestTiming,
-				InterceptorType.UnauthorizedResponse,
-				InterceptorType.ErrorHandlerInterceptor
-			]
-		};
-		const tokenPromise = keycloak.getToken();
-		return authService.prepareAuthRequest(from(tokenPromise), {params}).toPromise().catch(error => authService.onAuthenticateError(error));
+		config: {
+			url: appConfig.idpServiceAddress,
+			realm: appConfig.authRealm,
+			clientId: appConfig.authClientId,
+		},
+		initOptions: {
+			onLoad: 'check-sso',
+			flow: appConfig.authFlow,
+			checkLoginIframe: false,
+		},
+		bearerExcludedUrls: ['/', '/home'],
+		shouldAddToken: () => false
+	}).then((response) => {
+		// const params = new BaseHttpParams();
+		// params.interceptorContext = {
+		// 	excludedInterceptors: [
+		// 		// InterceptorType.AuthToken,
+		// 		InterceptorType.TenantHeaderInterceptor,
+		// 		InterceptorType.JSONContentType,
+		// 		InterceptorType.Locale,
+		// 		InterceptorType.ProgressIndication,
+		// 		InterceptorType.RequestTiming,
+		// 		InterceptorType.UnauthorizedResponse,
+		// 		InterceptorType.ErrorHandlerInterceptor
+		// 	]
+		// };
+		// const tokenPromise = keycloak.getToken();
+		// return authService.prepareAuthRequest(from(tokenPromise), { params }).toPromise().catch(error => authService.onAuthenticateError(error));
 	}));
 }
 
@@ -107,7 +105,7 @@ export function InstallationConfigurationFactory(appConfig: InstallationConfigur
 	],
 	declarations: [
 		AppComponent,
-  		FooterComponent
+		FooterComponent
 	],
 	providers: [
 		InstallationConfigurationService,

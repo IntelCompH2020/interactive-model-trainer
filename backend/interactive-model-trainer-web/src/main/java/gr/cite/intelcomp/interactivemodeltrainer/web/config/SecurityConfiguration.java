@@ -54,6 +54,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.addFilterBefore(apiKeyFilter, AbstractPreAuthenticatedProcessingFilter.class)
 				.authorizeRequests()
 				.antMatchers(buildAntPatterns(webSecurityProperties.getAllowedEndpoints())).anonymous()
+				.antMatchers("/api/topic-model/all").permitAll()
 				.antMatchers("/api/topic-model/*/pyLDAvis.html").anonymous()
 				.antMatchers("/api/topic-model/*/d3.js").anonymous()
 				.antMatchers("/api/topic-model/*/ldavis.v3.0.0.js").anonymous()

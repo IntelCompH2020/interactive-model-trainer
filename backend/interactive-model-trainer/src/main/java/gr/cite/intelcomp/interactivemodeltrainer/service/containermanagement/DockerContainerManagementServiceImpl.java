@@ -23,7 +23,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.JobStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.DockerProperties;
-import gr.cite.intelcomp.interactivemodeltrainer.data.ExecutionEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItemFull;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskResponseFull;
@@ -112,7 +111,7 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
             FileUtils.write(file, jsonHandlingService.toJson(cacheToWrite), Charset.defaultCharset());
         } catch (IOException e) {
             logger.error("Unable to dump current user tasks to file.");
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -196,12 +195,12 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
         ToStringConsumer result = new ToStringConsumer();
         callback.addConsumer(OutputFrame.OutputType.STDOUT, result);
 
-        ExecutionEntity executionEntity = this.initializeExecution(type, String.join(" ", command));
+//        ExecutionEntity executionEntity = this.initializeExecution(type, String.join(" ", command));
         this.dockerClient.execStartCmd(execCreate.getId()).withDetach(false)
 //                .withStdIn(new ByteArrayInputStream("test".getBytes(Charset.defaultCharset())))
                 .exec(callback).awaitCompletion();
         String collectedResult = result.toUtf8String();
-        this.finishAndUpdateExecution(executionEntity, collectedResult);
+//        this.finishAndUpdateExecution(executionEntity, collectedResult);
         logger.debug(collectedResult);
         return collectedResult;
     }

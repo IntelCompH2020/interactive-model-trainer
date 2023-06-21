@@ -102,7 +102,9 @@ public class DockerServiceImpl implements DockerService {
     }
 
     private String getUserId() {
-        return this.userScope.getUserIdSafe().toString();
+        UUID user = this.userScope.getUserIdSafe();
+        if (user != null) return user.toString();
+        else return "-";
     }
 
     private @NotNull @Unmodifiable List<String> getUserIdsFromUsername(String username) {
@@ -129,12 +131,15 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
         }
+        if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+        }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
             result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
                     .collect(Collectors.toList());
         }
-        if (lookup.getMine() != null && lookup.getMine()) {
+        if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
             result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
                     .collect(Collectors.toList());
@@ -177,7 +182,7 @@ public class DockerServiceImpl implements DockerService {
             result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
                     .collect(Collectors.toList());
         }
-        if (lookup.getMine() != null && lookup.getMine()) {
+        if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
             result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
                     .collect(Collectors.toList());
@@ -234,12 +239,15 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
         }
+        if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+        }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
             result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
                     .collect(Collectors.toList());
         }
-        if (lookup.getMine() != null && lookup.getMine()) {
+        if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
             result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
                     .collect(Collectors.toList());
@@ -296,12 +304,15 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
         }
+        if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+        }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
             result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
                     .collect(Collectors.toList());
         }
-        if (lookup.getMine() != null && lookup.getMine()) {
+        if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
             result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
                     .collect(Collectors.toList());
@@ -362,12 +373,15 @@ public class DockerServiceImpl implements DockerService {
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
         }
+        if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+        }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
             result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
                     .collect(Collectors.toList());
         }
-        if (lookup.getMine() != null && lookup.getMine()) {
+        if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
             result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
                     .collect(Collectors.toList());

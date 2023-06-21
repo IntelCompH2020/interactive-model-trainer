@@ -8,8 +8,13 @@
     grid-template-columns: repeat(3, 1fr);
 }
 
+@media screen and (max-width: 1200px) {
+    .actions-grid{
+        grid-template-columns: 1fr 1fr;
+    }   
+}
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 960px) {
     .actions-grid{
         grid-template-columns: 1fr;
     }   

@@ -59,7 +59,7 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 	}
 
 	loadUser(): void {
-		this.authService.prepareAuthRequest(from(this.keycloakService.getToken()), {}).pipe(takeUntil(this._destroyed)).subscribe(() => {}, (error) => this.authService.onAuthenticateError(error));
+		if (this.authService.isLoggedIn()) this.authService.prepareAuthRequest(from(this.keycloakService.getToken()), {}).pipe(takeUntil(this._destroyed)).subscribe(() => {}, (error) => this.authService.onAuthenticateError(error));
 	}
 
 	isMac(): boolean {

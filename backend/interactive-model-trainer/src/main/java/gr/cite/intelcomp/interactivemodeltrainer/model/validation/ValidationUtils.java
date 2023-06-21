@@ -35,8 +35,7 @@ public class ValidationUtils {
 
     public void tapTopicModelParameterValidator() {
         try {
-            Class<?> clazz = ClassLoader.getSystemClassLoader()
-                    .loadClass("gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters");
+            Class<?> clazz = Class.forName("gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters");
             for (Annotation annotation : clazz.getAnnotations()) {
                 if (annotation.annotationType().getSimpleName().equals("ValidTrainingParameterList")) {
                     ValidTrainingParameter.ValidTrainingParameterList validatorWrapper = (ValidTrainingParameter.ValidTrainingParameterList) annotation;
@@ -67,7 +66,7 @@ public class ValidationUtils {
                     try {
                         json = FileUtils.readFileToString(list, Charset.defaultCharset());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error(e.getMessage(), e);
                     }
                     WordListJson parsed = gson.fromJson(json, WordListJson.class);
                     boolean update = false;
@@ -89,7 +88,7 @@ public class ValidationUtils {
                         try {
                             FileUtils.writeStringToFile(list, gson.toJson(parsed), Charset.defaultCharset());
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.error(e.getMessage(), e);
                         }
                     }
                 }
@@ -111,7 +110,7 @@ public class ValidationUtils {
                     try {
                         json = FileUtils.readFileToString(dataset, Charset.defaultCharset());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error(e.getMessage(), e);
                     }
                     LogicalCorpusJson parsed = gson.fromJson(json, LogicalCorpusJson.class);
                     boolean update = false;
@@ -133,7 +132,7 @@ public class ValidationUtils {
                         try {
                             FileUtils.writeStringToFile(dataset, gson.toJson(parsed), Charset.defaultCharset());
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.error(e.getMessage(), e);
                         }
                     }
                 }

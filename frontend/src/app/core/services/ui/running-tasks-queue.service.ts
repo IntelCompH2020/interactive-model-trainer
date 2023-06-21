@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { RunningTasksService } from '../http/running-tasks.service';
+import { KeycloakService } from 'keycloak-angular';
 
 @Injectable({
     providedIn: 'root',
@@ -52,6 +53,7 @@ export class RunningTasksQueueService {
 
     constructor(
         private service: RunningTasksService,
+        private keycloakService: KeycloakService
     ) {
         this.initTasksUpdateInterval(RunningTaskType.training, 10000);
         this.initTasksUpdateInterval(RunningTaskType.curating, 8000);
@@ -64,7 +66,9 @@ export class RunningTasksQueueService {
         }, interval);
     }
 
-    public loadRunningTasks(type: RunningTaskType): void {
+    public async loadRunningTasks(type: RunningTaskType): Promise<void> {
+        const loggerIn = await this.keycloakService.isLoggedIn();
+        if (!loggerIn) return;
         this.service.getRunningTasks(type).subscribe((response) => {
             if (RunningTaskType.training === type) {
                 this._updateTrainingItems(response.items);

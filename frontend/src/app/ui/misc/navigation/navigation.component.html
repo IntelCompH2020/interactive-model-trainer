@@ -6,21 +6,21 @@
 				<li class="navigation-group-item cursor-pointer" routerLink="/home" routerLinkActive="background-gray">
 					{{'APP.NAVIGATION.HOME' | translate}}
 				</li>
-				<li class="navigation-group-item" routerLinkActive="background-gray">
+				<li class="navigation-group-item" *ngIf="isAuthenticated()" routerLinkActive="background-gray">
 					{{'APP.NAVIGATION.CORPUS' | translate}}
 					<ul class="sub-navigation">
 						<li routerLink="/corpus/raw" routerLinkActive="background-gray">{{'APP.NAVIGATION.RAW-CORPUS' | translate}}</li>
 						<li routerLink="/corpus/logical" routerLinkActive="background-gray">{{'APP.NAVIGATION.LOGICAL-CORPUS' | translate}}</li>
 					</ul>
 				</li>
-				<li class="navigation-group-item" routerLinkActive="background-gray">
+				<li class="navigation-group-item" *ngIf="isAuthenticated()" routerLinkActive="background-gray">
 					{{'APP.NAVIGATION.MODELS' | translate}}
 					<ul class="sub-navigation">
 						<li routerLink="/models/domain" routerLinkActive="background-gray">{{'APP.NAVIGATION.DOMAIN-MODELS' | translate}}</li>
 						<li routerLink="/models/topic" routerLinkActive="background-gray">{{'APP.NAVIGATION.TOPIC-MODELS' | translate}}</li>
 					</ul>
 				</li>
-				<li class="navigation-group-item" routerLinkActive="background-gray">
+				<li class="navigation-group-item" *ngIf="isAuthenticated()" routerLinkActive="background-gray">
 					{{'APP.NAVIGATION.WORD-LISTS' | translate}}
 					<ul class="sub-navigation">
 						<li routerLink="/wordlists/keywords" routerLinkActive="background-gray">
@@ -114,7 +114,7 @@
 		</div> -->
 		<!-- <a *ngIf="authService.hasPermission(authService.permissionEnum.ViewNotificationEventRulePage)" mat-menu-item routerLink="/notification-event-rules">{{'APP.NAVIGATION.NOTIFICATION-EVENT-RULES' | translate}}</a> -->
 	<div class="col-auto">
-		<mat-form-field class="search-input pb-0" appearance="outline">
+		<mat-form-field *ngIf="isAuthenticated()" class="search-input pb-0" appearance="outline">
 			<input type="text" [placeholder]="'APP.NAVIGATION.SEARCH' | translate" matInput >
 		</mat-form-field>
 	</div>
@@ -204,13 +204,18 @@
 				{{this.getPrincipalName()}}
 			</span>
 		</button>
-		<mat-menu #menu="matMenu">
+		<mat-menu #menu="matMenu"> 
 			<!-- <button mat-menu-item *ngIf="authService.hasPermission(authService.permissionEnum.ViewUserProfilePage)"
 			routerLink="/user-profile" [queryParams]="getUserProfileQueryParams()"><mat-icon>person</mat-icon>{{'APP.NAVIGATION.VIEW-PROFILE' | translate}}</button> -->
 			<button mat-menu-item><mat-icon>settings</mat-icon>{{'APP.NAVIGATION.SETTINGS' | translate}}</button>
 			<button mat-menu-item><mat-icon>message</mat-icon>{{'APP.NAVIGATION.NOTIFICATIONS' | translate}}</button>
 			<button mat-menu-item (click)="logout()"><mat-icon>exit_to_app</mat-icon>{{'APP.NAVIGATION.LOGOUT' | translate}}</button>
 		</mat-menu>
+	</div>
+	<div *ngIf="!isAuthenticated()" class="col-auto">
+		<button mat-raised-button color="accent" class="rounded-button" (click)="login()">
+			Login
+		</button>
 	</div>
 	<div *ngIf="progressIndication" class="progress-bar" style="z-index: -1;">
 		<mat-progress-bar color="accent" mode="indeterminate"></mat-progress-bar>

@@ -11,7 +11,9 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.CorpusLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
+import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @Service
 public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLookup> {
 
+    private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(LogicalCorpusService.class));
     private final ApplicationContext applicationContext;
 
     @Autowired
@@ -73,7 +76,7 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
             }
             dockerService.createCorpus(corpus, false);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 }

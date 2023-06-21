@@ -4,7 +4,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.JobStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.*;
-import gr.cite.intelcomp.interactivemodeltrainer.data.ExecutionEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.cache.KubernetesDeploymentByLabelCacheService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.cache.KubernetesPodByLabelCacheService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ContainerKey;
@@ -227,8 +226,7 @@ public class KubernetesContainerManagementServiceImpl extends ContainerManagemen
             CoreV1Api api = new CoreV1Api();
             pod = api.readNamespacedPod(podName, this.kubernetesProperties.getNamespace(), null);
         } catch (ApiException e) {
-            e.printStackTrace();
-            logger.warn(e.getLocalizedMessage());
+            logger.warn(e.getMessage(), e);
             throw e;
         }
         return pod;
@@ -252,8 +250,7 @@ public class KubernetesContainerManagementServiceImpl extends ContainerManagemen
             CoreV1Api api = new CoreV1Api();
             api.deleteNamespacedPod(jobId, this.kubernetesProperties.getNamespace(), null, null, null, null, null, new V1DeleteOptions());
         } catch (ApiException e) {
-            e.printStackTrace();
-            logger.warn(e.getLocalizedMessage());
+            logger.warn(e.getMessage(), e);
             throw e;
         }
     }
@@ -262,7 +259,7 @@ public class KubernetesContainerManagementServiceImpl extends ContainerManagemen
     public String execCommand(CommandType type, List<String> command, ContainerKey executionKey) throws InterruptedException, ApiException, IOException {
         logger.debug("Executing docker command -> {}", command.stream().reduce("", (result, element) -> result + " " + element).trim());
         
-        ExecutionEntity executionEntity = this.initializeExecution(type, String.join(" ", command));
+//        ExecutionEntity executionEntity = this.initializeExecution(type, String.join(" ", command));
         KubernetesContainerKeyImpl kubernetesExecutionKey = (KubernetesContainerKeyImpl) executionKey;
         try {
             Exec exec = new Exec();
@@ -279,17 +276,14 @@ public class KubernetesContainerManagementServiceImpl extends ContainerManagemen
             process.waitFor();
 
             String collectedResult = processOutput.toString().trim();
-            this.finishAndUpdateExecution(executionEntity, collectedResult);
+//            this.finishAndUpdateExecution(executionEntity, collectedResult);
             logger.debug(collectedResult);
             return collectedResult;
-        } catch (ApiException ex){
-            this.kubernetesPodByLabelCacheService.evict(this.kubernetesPodByLabelCacheService.buildKey(this.kubernetesProperties.getNamespace(), kubernetesExecutionKey.getPodLabelSelector()));
-            throw  ex;
-        } catch (IOException ex){
+        } catch (ApiException | IOException ex){
             this.kubernetesPodByLabelCacheService.evict(this.kubernetesPodByLabelCacheService.buildKey(this.kubernetesProperties.getNamespace(), kubernetesExecutionKey.getPodLabelSelector()));
             throw  ex;
         }
-        
+
     }
 
     @Override
