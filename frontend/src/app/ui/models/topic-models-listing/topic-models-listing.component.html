@@ -48,8 +48,8 @@
 </div>
 
 <app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
-    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [countOverride]="countOverride"
-    [defaultSort]="defaultSort" [externalSorting]="true" [limit]="10" (pageLoad)="alterPage($event)"
+    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="count" [limit]="limit"
+    [countOverride]="countOverride" [defaultSort]="defaultSort" [externalSorting]="true" (pageLoad)="alterPage($event)"
     [treeFromRelation]="'TrDtSet'" [treeToRelation]="'name'" (treeAction)="onTreeAction($event)"
     (columnSort)="onColumnSort($event)">
 </app-listing>

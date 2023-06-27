@@ -71,12 +71,21 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     } else return false;
   }
 
+  get limit(): number {
+    return Math.max(this.gridRows.length, 10);
+  }
+
+  get count(): number {
+    return this.limit * this.pagesCount;
+  }
+
   selectedModel: BehaviorSubject<TopicModel> = new BehaviorSubject(undefined);
   topicLookup: TopicLookup = new TopicLookup();
 
   SelectionType = SelectionType;
 
   countOverride: number = 0;
+  expandedRowsCount: number = 0;
 
   defaultSort = ["-creation_date"];
 
@@ -102,6 +111,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
         nameof<TopicModel>(x => x.creator),
         nameof<TopicModel>(x => x.location),
         nameof<TopicModel>(x => x.type),
+        nameof<TopicModel>(x => x.hierarchyLevel),
         nameof<TopicModel>(x => x.visibility),
         nameof<TopicModel>(x => x.creation_date),
         nameof<TopicModel>(x => x.TrDtSet)
@@ -240,6 +250,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this.onTopicSelect.emit(null);
     this.topicLookup = new TopicLookup();
     this.selectedModel.next(undefined);
+    this.expandedRowsCount = 0;
   }
 
   public refresh(callback?: () => void): void {
@@ -572,7 +583,11 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}
 
-  onTreeAction(_event: any) { }
+  onTreeAction(_event: any) { 
+    const rows = this.gridRows.filter(i => i.hierarchyLevel > 0 && i.TrDtSet === _event.row.name);
+    if (_event.row.treeStatus === "expanded") this.expandedRowsCount += rows.length;
+    else this.expandedRowsCount -= rows.length;
+  }
 
   onTopicSelected(topic: Topic) {
     this._topicSelected = topic;

@@ -34,7 +34,7 @@ public class DomainModelService extends ModelService<DomainModel, DomainModelLoo
     @SuppressWarnings("unchecked")
     public List<DomainModel> getAll(DomainModelLookup lookup) throws IOException, InterruptedException, ApiException {
         lookup.setModelType(ModelType.DOMAIN);
-        List<DomainModelEntity> data = (List<DomainModelEntity>) dockerService.listModels(lookup);
+        List<DomainModelEntity> data = (List<DomainModelEntity>) dockerService.listModels(lookup, null);
         if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
             return builderFactory.builder(DomainModelBuilder.class).build(lookup.getProject(), data);
         }

@@ -3,6 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.service.docker;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.data.CorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
@@ -28,7 +29,7 @@ public interface DockerService {
 
     List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException;
 
-    List<? extends ModelEntity> listModels(ModelLookup lookup) throws InterruptedException, IOException, ApiException;
+    List<? extends ModelEntity> listModels(ModelLookup lookup, List<UserEntity> users) throws InterruptedException, IOException, ApiException;
 
     List<? extends ModelEntity> getModel(ModelLookup lookup, String name) throws IOException, ApiException, InterruptedException;
 

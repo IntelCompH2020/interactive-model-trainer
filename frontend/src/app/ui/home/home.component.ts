@@ -32,7 +32,8 @@ export class HomeComponent extends BaseComponent implements OnInit {
 		lookup.project = {
 			fields: [
 				nameof<TopicModel>(x => x.name),
-				nameof<TopicModel>(x => x.location)
+				nameof<TopicModel>(x => x.location),
+				nameof<TopicModel>(x => x.hierarchyLevel)
 			]
 		};
 		lookup.hierarchyLevel = 0;

@@ -82,12 +82,12 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         try {
             removeEvent(eventData.getPreviousCheckingEvent(), entityManager);
 
-            logger.debug("Checking and updating running tasks");
+            logger.trace("Checking and updating running tasks");
             TrainingTaskRequestQuery trainingTaskRequestQuery = applicationContext.getBean(TrainingTaskRequestQuery.class);
             List<TrainingTaskRequestEntity> runningTrainRequests = trainingTaskRequestQuery
                     .status(TrainingTaskRequestStatus.PENDING)
                     .collect();
-            logger.debug("Currently running tasks count -> {}", runningTrainRequests.size());
+            logger.trace("Currently running tasks count -> {}", runningTrainRequests.size());
 
             CheckTasksConsistencyHandler checkTasksConsistencyHandler = applicationContext.getBean(CheckTasksConsistencyHandler.class);
             Boolean isConsistent = (checkTasksConsistencyHandler.isConsistent(new CheckTasksConsistencyPredicates()));

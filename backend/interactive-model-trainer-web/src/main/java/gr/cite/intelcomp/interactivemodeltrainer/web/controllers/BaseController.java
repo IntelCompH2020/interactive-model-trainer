@@ -55,10 +55,11 @@ public class BaseController {
     public static <T, L extends Lookup> QueryResult<T> extractQueryResultWithCountWhen(Function<L, List<T>> service, L lookup, Function<T, Boolean> when) {
         List<T> result = service.apply(lookup);
         lookup.setPage(null);
-        long count = service.apply(lookup).size();
+        List<T> all = service.apply(lookup);
+        long count = all.size();
         if (when == null) return new QueryResult<>(result, count);
         long countOverride = count;
-        for (T item : result) {
+        for (T item : all) {
             if (!when.apply(item)) countOverride--;
         }
         return new QueryResult<>(result, count, countOverride);

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.*;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
+import gr.cite.intelcomp.interactivemodeltrainer.common.enums.*;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.*;
@@ -46,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
+import static gr.cite.intelcomp.interactivemodeltrainer.model.builder.BaseBuilder.extractId;
 
 @Service
 public class DockerServiceImpl implements DockerService {
@@ -62,7 +60,7 @@ public class DockerServiceImpl implements DockerService {
     private final UserScope userScope;
 
     @Autowired
-    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ObjectMapper mapper, ContainerManagementService dockerExecutionService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary, CheckTasksSchedulerEventConfig checkTasksSchedulerEventConfig, ApplicationContext applicationContext, UserScope userScope) {
+    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ObjectMapper mapper, ContainerManagementService dockerExecutionService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary, CheckTasksSchedulerEventConfig checkTasksSchedulerEventConfig, ApplicationContext applicationContext) {
         this.jsonHandlingService = jsonHandlingService;
         this.containerServicesProperties = containerServicesProperties;
         this.mapper = mapper;
@@ -71,7 +69,7 @@ public class DockerServiceImpl implements DockerService {
         this.cacheLibrary = cacheLibrary;
         this.checkTasksSchedulerEventConfig = checkTasksSchedulerEventConfig;
         this.applicationContext = applicationContext;
-        this.userScope = userScope;
+        this.userScope = applicationContext.getBean(UserScope.class);
         this.mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS"));
     }
 
@@ -298,8 +296,19 @@ public class DockerServiceImpl implements DockerService {
         return result;
     }
 
-    private List<TopicModelEntity> applyTopicModelLookup(List<TopicModelEntity> data, @NotNull ModelLookup lookup) {
+    private List<TopicModelEntity> applyTopicModelLookup(List<TopicModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
         List<TopicModelEntity> result = new ArrayList<>(data);
+
+        result = result.stream().filter(entity -> {
+            if (Visibility.Public.equals(entity.getVisibility())) return true;
+            else {
+                if (!userScope.isSet()) return false;
+                else return entity.getCreator() != null
+                        && !entity.getCreator().equals("-")
+                        && extractId(entity.getCreator(), users).equals(userScope.getUserIdSafe().toString());
+            }
+        }).collect(Collectors.toList());
+
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
@@ -362,7 +371,17 @@ public class DockerServiceImpl implements DockerService {
         }
 
         if (lookup.getPage() != null) {
-            result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
+            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).collect(Collectors.toList());
+            List<TopicModelEntity> collectedSubmodels = result.stream().filter(entity -> entity.getHierarchyLevel() > 0).collect(Collectors.toList());
+            collectedModels = collectedModels.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), collectedModels.size()));
+            for (TopicModelEntity submodel : collectedSubmodels) {
+                String corpus = submodel.getCorpus()
+                        .replaceAll("^(.*)/", "")
+                        .replace("Subcorpus created from ", "")
+                        .replace(".json", "");
+                if (collectedModels.stream().anyMatch(entity -> entity.getName().equals(corpus))) collectedModels.add(submodel);
+            }
+            return collectedModels;
         }
         return result;
     }
@@ -581,7 +600,7 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public List<? extends ModelEntity> listModels(ModelLookup lookup) throws InterruptedException, IOException, ApiException {
+    public List<? extends ModelEntity> listModels(ModelLookup lookup, List<UserEntity> users) throws InterruptedException, IOException, ApiException {
         List<ModelEntity> result = new ArrayList<>();
 
         if (ModelType.DOMAIN.equals(lookup.getModelType())) {
@@ -631,7 +650,7 @@ public class DockerServiceImpl implements DockerService {
             } else {
                 data.addAll(cached.getPayload());
             }
-            result.addAll(applyTopicModelLookup(data, lookup));
+            result.addAll(applyTopicModelLookup(data, lookup, users));
         } else {
             logger.error("ModelType not defined");
             return result;

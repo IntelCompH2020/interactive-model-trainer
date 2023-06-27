@@ -51,7 +51,7 @@ public class ModelEntity {
 
     @Column(name = "hierarchy_level", nullable = false)
     private Integer hierarchyLevel;
-    public static final String _hierarchy_level = "hierarchy_level";
+    public static final String _hierarchy_level = "hierarchyLevel";
 
     public UUID getId() {
         return id;

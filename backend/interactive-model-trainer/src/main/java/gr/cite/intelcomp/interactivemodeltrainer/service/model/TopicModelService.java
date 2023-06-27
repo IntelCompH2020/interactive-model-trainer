@@ -6,12 +6,14 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.TopicBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.TopicModelBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.Topic;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
+import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.ModelLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.TopicModelLookup;
@@ -21,6 +23,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import io.kubernetes.client.openapi.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -35,32 +38,35 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     private final ContainerServicesProperties containerServicesProperties;
     private final TopicModelingParametersService topicModelingParametersService;
     private final CacheLibrary cacheLibrary;
+    private final ApplicationContext applicationContext;
 
     @Autowired
-    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties, TopicModelingParametersService topicModelingParametersService, CacheLibrary cacheLibrary) {
+    protected TopicModelService(BuilderFactory builderFactory, DockerService dockerService, ContainerServicesProperties containerServicesProperties, TopicModelingParametersService topicModelingParametersService, CacheLibrary cacheLibrary, ApplicationContext applicationContext) {
         super(builderFactory, dockerService);
         this.containerServicesProperties = containerServicesProperties;
         this.topicModelingParametersService = topicModelingParametersService;
         this.cacheLibrary = cacheLibrary;
+        this.applicationContext = applicationContext;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<TopicModel> getAll(TopicModelLookup lookup) throws IOException, InterruptedException, ApiException {
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         lookup.setModelType(ModelType.TOPIC);
-        List<TopicModelEntity> data = (List<TopicModelEntity>) dockerService.listModels(lookup);
+        List<TopicModelEntity> data = (List<TopicModelEntity>) dockerService.listModels(lookup, users);
         if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
-            return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data);
+            return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data, users);
         }
         String orderItem = lookup.getOrder().getItems().get(0);
         if (orderItem.endsWith("creator")) {
             if (orderItem.startsWith("-")) {
-                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data, users);
             } else {
-                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+                return builderFactory.builder(TopicModelBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data, users);
             }
         }
-        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data);
+        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data, users);
     }
 
     public void patch(String name, String description, String visibility) {

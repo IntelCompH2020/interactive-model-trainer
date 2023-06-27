@@ -92,7 +92,7 @@ public class ValidationUtils {
                         }
                     }
                 }
-                logger.info("Wordlists validated");
+                logger.trace("Wordlists validated");
             }
         }, 0, 1000 * 60 * 30);
     }
@@ -136,7 +136,7 @@ public class ValidationUtils {
                         }
                     }
                 }
-                logger.info("Logical corpora validated");
+                logger.trace("Logical corpora validated");
             }
         }, 0, 1000 * 60 * 30);
     }

@@ -258,6 +258,7 @@
 			"CORPUS": "Corpus",
 			"TYPE": "Type",
 			"LOCATION": "Location",
+			"HIERARCHY-LEVEL": "Hierarchy Level",
 			"VISIBILITY": "Access",
 			"MORE-DETAILS": "More Details",
 			"MORE-DETAILS-SHOW": "Show training parameters",

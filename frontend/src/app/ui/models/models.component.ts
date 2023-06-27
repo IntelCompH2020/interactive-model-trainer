@@ -510,6 +510,10 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         value: model.TrDtSet || "-"
       },
       {
+        label: 'APP.MODELS-COMPONENT.HIERARCHY-LEVEL',
+        value: model.hierarchyLevel?.toString() || "-"
+      },
+      {
         label: 'APP.MODELS-COMPONENT.VISIBILITY',
         value: model.visibility || "-"
       },
@@ -638,7 +642,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
       },
       {
         label: 'APP.MODELS-COMPONENT.DOCUMENT.LABEL',
-        value: document.label.toString() || "-"
+        value: document.label?.toString() || "-"
       }
     ];
   }

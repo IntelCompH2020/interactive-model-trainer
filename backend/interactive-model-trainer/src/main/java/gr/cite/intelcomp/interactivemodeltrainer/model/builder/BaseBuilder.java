@@ -38,6 +38,10 @@ public abstract class BaseBuilder<M, D> implements Builder {
 
 	public abstract List<M> build(FieldSet directives, List<D> data) throws MyApplicationException;
 
+	public List<M> build(FieldSet directives, List<D> data, List<UserEntity> users) throws MyApplicationException {
+		return null;
+	}
+
 	public <K> Map<K, M> asForeignKey(QueryBase<D> query, FieldSet directives, Function<M, K> keySelector) throws MyApplicationException {
 		this.logger.trace("Building references from query");
 		List<D> data = query.collectAs(directives);
