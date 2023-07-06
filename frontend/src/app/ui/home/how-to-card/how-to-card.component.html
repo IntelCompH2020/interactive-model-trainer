@@ -1,8 +1,22 @@
-<div class="col-12 p-0 pl-1 pr-1 how-to-item">
-    <h5 class="mb-0">{{title}}</h5>
-    <p class="mb-0">
-        <small class="text-muted">
-            {{description}}
-        </small>
-    </p>
+<div class="col-12 p-0 how-to-item">
+    <div class="how-to-item-header p-2">
+        <h5 class="mb-0">{{title | translate}}</h5>
+        <p class="mb-0">
+            <small class="text-muted">
+                {{subtitle | translate}}
+            </small>
+        </p>
+        <button class="expand m-2" mat-mini-fab (click)="expand()">
+            <mat-icon *ngIf="expanded">keyboard_arrow_up</mat-icon>
+            <mat-icon *ngIf="!expanded">keyboard_arrow_down</mat-icon>
+        </button>
+    </div>
+    <mat-list *ngIf="expanded">
+        <ng-container *ngFor="let guide of guides">
+            <div class="item-divider"></div>
+            <mat-list-item (click)="showGuide(guide.label, guide.source)">
+                {{guide.label}}
+            </mat-list-item>
+        </ng-container>
+    </mat-list>
 </div>

@@ -1,18 +1,18 @@
 package gr.cite.intelcomp.interactivemodeltrainer.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 import java.util.List;
 import java.util.Map;
 
 @ConfigurationProperties(prefix = "training-parameters")
-@ConstructorBinding
 public class TrainingParametersProperties {
 
     private final Map<String, ParameterConfiguration> paramsCatalog;
     private final Map<String, List<String>> paramsByTrainer;
 
+    @ConstructorBinding
     public TrainingParametersProperties(Map<String, ParameterConfiguration> paramsCatalog, Map<String, List<String>> paramsByTrainer) {
         this.paramsCatalog = paramsCatalog;
         this.paramsByTrainer = paramsByTrainer;
@@ -26,7 +26,6 @@ public class TrainingParametersProperties {
         return paramsByTrainer;
     }
 
-    @ConstructorBinding
     public static class ParameterConfiguration {
         final String name;
         final ParameterType type;
@@ -35,6 +34,7 @@ public class TrainingParametersProperties {
         final Double min, max;
         final List<Object> options;
 
+        @ConstructorBinding
         public ParameterConfiguration(String name, ParameterType type, Object defaultValue, Boolean select, Double min, Double max, List<Object> options) {
             this.name = name;
             this.type = type;

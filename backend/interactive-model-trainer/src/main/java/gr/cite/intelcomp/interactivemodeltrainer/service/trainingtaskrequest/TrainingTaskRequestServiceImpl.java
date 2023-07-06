@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -663,22 +663,22 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         logger.debug("There is a request for task cancellation with id {}", task);
         try {
             dockerExecutionService.deleteJob(task.toString());
-            UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-            if (cache != null && cache.getPayload() != null) {
-                cache.getPayload().stream()
-                        .filter(i -> i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
-                        .findFirst()
-                        .ifPresent(item -> {
-                            if (RunningTaskType.training.equals(item.getType())) {
-                                cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
-                                cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
-                            }
-                            cache.getPayload().remove(item);
-                        });
-                cacheLibrary.update(cache);
-            }
         } catch (ApiException e) {
             logger.error("Could not cancel task. There is no container present with id {}", task);
+        }
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+        if (cache != null && cache.getPayload() != null) {
+            cache.getPayload().stream()
+                    .filter(i -> i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
+                    .findFirst()
+                    .ifPresent(item -> {
+                        if (RunningTaskType.training.equals(item.getType())) {
+                            cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
+                            cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
+                        }
+                        cache.getPayload().remove(item);
+                    });
+            cacheLibrary.update(cache);
         }
     }
 

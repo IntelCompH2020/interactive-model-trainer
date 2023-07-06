@@ -1,2 +1,4 @@
 logging:
   config: classpath:logging/logback-dev.xml
+audit:
+  enable: false

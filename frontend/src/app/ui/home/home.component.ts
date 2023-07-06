@@ -6,13 +6,13 @@ import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
+import { HowToConfig } from './how-to-card/how-to-card.component';
 @Component({
 	selector: 'app-home',
 	templateUrl: './home.component.html',
 	styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent extends BaseComponent implements OnInit {
-
 
 	recentItems: RecentItem[] = [];
 	modelsLoading: boolean = true;
@@ -48,6 +48,54 @@ export class HomeComponent extends BaseComponent implements OnInit {
 				}
 			})
 		});
+	}
+
+	wordlistsConfig: HowToConfig = {
+		title: "APP.HOME-COMPONENT.HOW-TO-WORD-LIST",
+		subtitle: "APP.HOME-COMPONENT.HOW-TO-WORD-LIST-DESCRIPTION",
+		expanded: false,
+		guides: [
+			{
+				label: "Stopwords and equivalences",
+				source: "stopwords-equivalences-guide.md"
+			},
+			{
+				label: "Keywords",
+				source: "keywords-guide.md"
+			}
+		]
+	}
+
+	corporaConfig: HowToConfig = {
+		title: "APP.HOME-COMPONENT.CORPUS",
+		subtitle: "APP.HOME-COMPONENT.HOW-TO-CORPUS-DESCRIPTION",
+		expanded: false,
+		guides: [
+			{
+				label: "Raw corpora",
+				source: "raw-corpora-guide.md"
+			},
+			{
+				label: "Logical corpora",
+				source: "logical-corpora-guide.md"
+			}
+		]
+	}
+
+	modelsConfig: HowToConfig = {
+		title: "APP.HOME-COMPONENT.MODELS",
+		subtitle: "APP.HOME-COMPONENT.HOW-TO-MODELS-DESCRIPTION",
+		expanded: false,
+		guides: [
+			{
+				label: "Domain models",
+				source: "domain-models-guide.md"
+			},
+			{
+				label: "Topic models",
+				source: "topic-models-guide.md"
+			}
+		]
 	}
 
 }

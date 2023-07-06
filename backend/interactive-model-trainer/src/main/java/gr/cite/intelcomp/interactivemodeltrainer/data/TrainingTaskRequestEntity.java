@@ -3,7 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.IsActive;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 

@@ -1,7 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage;
 
 import javax.management.InvalidApplicationException;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.util.UUID;
 
 public interface ScheduledEventManageService {

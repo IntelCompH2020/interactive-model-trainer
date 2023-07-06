@@ -3,7 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;

@@ -90,7 +90,7 @@
 		"HOME-COMPONENT": {
 			"START": "Start",
 			"START-OVERVIEW": "Here is an overview of Intelcomp's Model Trainer",
-			"CORPUS": "Corpus",
+			"CORPUS": "Corpora",
 			"CORPUS-DESCRIPTION": "Use this space to select a corpus from the Data Lake to be used with the training of a model. You can also create a new corpus by merging other available ones or select a subcorpus based on a category.",
 			"MODELS": "Models",
 			"MODELS-DESCRIPTION": "Use this space to select a model to work with create a new model, curate a model or manage the available models.",
@@ -99,9 +99,9 @@
 			"RECENT": "Recent",
 			"HOW-TO": "How to",
 			"HOW-TO-CORPUS-DESCRIPTION": "Create a new corpus or combine them",
-			"HOW-TO-MODELS-DESCRIPTION": "Create and train a model",
-			"HOW-TO-WORD-LIST": "Word List",
-			"HOW-TO-WORD-LIST-DESCRIPTION": "Manage your list of items"
+			"HOW-TO-MODELS-DESCRIPTION": "Create and train models",
+			"HOW-TO-WORD-LIST": "Word Lists",
+			"HOW-TO-WORD-LIST-DESCRIPTION": "Manage your list of words"
 		},
 		"RENAME-DIALOG": {
 			"TITLE": "Rename item",

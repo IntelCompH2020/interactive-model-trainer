@@ -2,7 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.Column;
+import jakarta.persistence.Column;
 
 public class TopicModelEntity extends ModelEntity{
 

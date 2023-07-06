@@ -4,7 +4,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 

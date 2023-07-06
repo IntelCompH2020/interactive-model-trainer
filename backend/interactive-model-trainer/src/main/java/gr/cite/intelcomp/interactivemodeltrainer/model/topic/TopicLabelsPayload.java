@@ -1,6 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.topic;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 
 public class TopicLabelsPayload {

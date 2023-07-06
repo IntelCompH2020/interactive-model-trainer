@@ -2,7 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 public class Corpus {

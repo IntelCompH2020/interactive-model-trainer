@@ -1,14 +1,14 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "event-scheduler")
 public class EventSchedulerProperties {
 
 	private final Task task;
 
+	@ConstructorBinding
 	public EventSchedulerProperties(Task task) {
 		this.task = task;
 	}

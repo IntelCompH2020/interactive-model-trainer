@@ -1,15 +1,15 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "event-scheduler.events.check-tasks")
 public class CheckTasksSchedulerEventProperties {
 
     private final Long checkIntervalInSeconds;
     private final CacheOptions cacheOptions;
 
+    @ConstructorBinding
     public CheckTasksSchedulerEventProperties(Long checkIntervalInSeconds, CacheOptions cacheOptions) {
         this.checkIntervalInSeconds = checkIntervalInSeconds;
         this.cacheOptions = cacheOptions;

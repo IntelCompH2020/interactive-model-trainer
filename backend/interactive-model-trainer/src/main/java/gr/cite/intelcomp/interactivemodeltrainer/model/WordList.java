@@ -2,7 +2,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;

@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidByHierarchical;
 import gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 
 @ValidTrainingParameters()

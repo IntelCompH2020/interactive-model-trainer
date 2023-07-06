@@ -1,0 +1,21 @@
+<div mat-dialog-title>
+  <span class="h5">{{title}}</span>
+</div>
+
+<mat-dialog-content>
+  <div class="row pt-2">
+    <div class="col-12">
+      <p *ngIf="loading" class="text-center">
+        <mat-spinner color="accent" diameter="40"></mat-spinner>
+      </p>
+      <markdown *ngIf="!loading" [data]="markdown"></markdown>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="col-auto">
+    <button mat-button (click)="close()">
+      {{'APP.COMMONS.OK' | translate}}</button>
+  </div>
+</mat-dialog-actions>

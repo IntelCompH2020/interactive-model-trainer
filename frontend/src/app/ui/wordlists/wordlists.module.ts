@@ -21,6 +21,7 @@ import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { WordlistDetailsComponent } from './wordlist-details/wordlist-details.component';
 import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
 import { MergeWordlistsDialogComponent } from './merge-wordlists-dialog/merge-wordlists-dialog.component';
+import { MarkdownDialogModule } from '../markdown-dialog/markdown-dialog.module';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,8 @@ import { MergeWordlistsDialogComponent } from './merge-wordlists-dialog/merge-wo
     CommonUiModule,
     WordListsRoutingModule,
     CommonFormsModule,
-    RenameDialogModule
+    RenameDialogModule,
+    MarkdownDialogModule
   ],
   providers:[
     KeywordService,

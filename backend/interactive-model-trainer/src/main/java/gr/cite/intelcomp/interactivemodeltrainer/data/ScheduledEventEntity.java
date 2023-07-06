@@ -4,7 +4,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.IsActive;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 

@@ -28,6 +28,7 @@ import { TenantChooseDialogModule } from './ui/tenant/choose-dialog/tenant-choos
 import { FooterComponent } from './ui/footer/footer.component';
 import { TrainingProgressModelDialogModule } from '@common/modules/training-model-progress/training-model-dialog.module';
 import { AuthService } from './core/services/ui/auth.service';
+import { MarkdownModule } from 'ngx-markdown';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -100,6 +101,7 @@ export function InstallationConfigurationFactory(appConfig: InstallationConfigur
 		UiNotificationModule,
 		NavigationModule,
 		TenantChooseDialogModule,
+		MarkdownModule.forRoot(),
 
 		OAuthModule.forRoot()
 	],

@@ -10,25 +10,29 @@ import gr.cite.commons.web.authz.policy.resolver.AuthorizationPolicyResolverStra
 import gr.cite.commons.web.oidc.configuration.WebSecurityProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.authorization.OwnedAuthorizationRequirement;
 import gr.cite.intelcomp.interactivemodeltrainer.authorization.OwnedResource;
+import jakarta.servlet.FilterChain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
-import javax.servlet.Filter;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration {
 
 	private final WebSecurityProperties webSecurityProperties;
 	private final AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
@@ -43,30 +47,27 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		this.apiKeyFilter = apiKeyFilter;
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-				.csrf().disable()
-				.cors()
-				.and()
-				.headers().frameOptions().disable()
-				.and()
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		HttpSecurity tempHttp = http
+				.csrf(AbstractHttpConfigurer::disable)
+				.cors(httpSecurityCorsConfigurer -> {})
+				.headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
 				.addFilterBefore(apiKeyFilter, AbstractPreAuthenticatedProcessingFilter.class)
-				.authorizeRequests()
-				.antMatchers(buildAntPatterns(webSecurityProperties.getAllowedEndpoints())).anonymous()
-				.antMatchers("/api/topic-model/all").permitAll()
-				.antMatchers("/api/topic-model/*/pyLDAvis.html").anonymous()
-				.antMatchers("/api/topic-model/*/d3.js").anonymous()
-				.antMatchers("/api/topic-model/*/ldavis.v3.0.0.js").anonymous()
-				.antMatchers("/api/topic-model/*/*/pyLDAvis.html").anonymous()
-				.antMatchers("/api/topic-model/*/*/d3.js").anonymous()
-				.antMatchers("/api/topic-model/*/*/ldavis.v3.0.0.js").anonymous()
-				.antMatchers("/api/tasks/*/pu-scores/**").anonymous()
-				.antMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated()
-				.and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
-				.and()
+				.authorizeHttpRequests(authRequest ->
+						authRequest.requestMatchers(buildAntPatterns(webSecurityProperties.getAllowedEndpoints())).anonymous()
+								.requestMatchers("/api/topic-model/all").permitAll()
+								.requestMatchers("/api/topic-model/*/pyLDAvis.html").anonymous()
+								.requestMatchers("/api/topic-model/*/d3.js").anonymous()
+								.requestMatchers("/api/topic-model/*/ldavis.v3.0.0.js").anonymous()
+								.requestMatchers("/api/topic-model/*/*/pyLDAvis.html").anonymous()
+								.requestMatchers("/api/topic-model/*/*/d3.js").anonymous()
+								.requestMatchers("/api/topic-model/*/*/ldavis.v3.0.0.js").anonymous()
+								.requestMatchers("/api/tasks/*/pu-scores/**").anonymous()
+								.requestMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated())
+				.sessionManagement( sessionManagementConfigurer-> sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
 				.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+		return tempHttp.build();
 	}
 
 	@Bean

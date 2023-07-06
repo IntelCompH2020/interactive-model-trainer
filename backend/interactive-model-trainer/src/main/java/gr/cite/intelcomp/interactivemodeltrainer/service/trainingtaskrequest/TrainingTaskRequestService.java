@@ -16,7 +16,7 @@ import gr.cite.tools.exception.MyValidationException;
 import io.kubernetes.client.openapi.ApiException;
 
 import javax.management.InvalidApplicationException;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;

@@ -1,18 +1,41 @@
-.how-to-item{
+.how-to-item {
     border: 1px solid black;
     overflow: hidden;
     z-index: 1;
     margin-top: .4rem;
-    &::before{
-        content: '';
-        position: absolute;
-        background-color: #428bca;
-        height: 90%;
-        aspect-ratio: 1;
-        top: 0;
-        transform-origin: center;
-        transform: translateX(50%) translateY(100%) rotate(45deg);
-        right: 0;
-        border: 1px solid black;
+    // &::before{
+    //     content: '';
+    //     position: absolute;
+    //     background-color: #428bca;
+    //     height: 90%;
+    //     aspect-ratio: 1;
+    //     top: 0;
+    //     transform-origin: center;
+    //     transform: translateX(50%) translateY(100%) rotate(45deg);
+    //     right: 0;
+    //     border: 1px solid black;
+    // }
+
+    mat-list-item {
+        cursor: pointer;
+
+        &:hover {
+            background: lightblue;
+        }
     }
+}
+
+.how-to-item-header {
+    position: relative;
+
+    .expand {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+    }
+}
+
+.item-divider {
+    border-bottom: 1px solid black;
 }

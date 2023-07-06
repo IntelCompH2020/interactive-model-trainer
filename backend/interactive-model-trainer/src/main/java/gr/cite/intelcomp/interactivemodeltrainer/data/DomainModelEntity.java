@@ -1,6 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.data;
 
-import javax.persistence.Column;
+import jakarta.persistence.Column;
 
 public class DomainModelEntity extends ModelEntity{
 

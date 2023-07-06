@@ -8,9 +8,9 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.Scheduled
 import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import org.springframework.context.ApplicationContext;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import java.time.Instant;
 import java.util.UUID;
 

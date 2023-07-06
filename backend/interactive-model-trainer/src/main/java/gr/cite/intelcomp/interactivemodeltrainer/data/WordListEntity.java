@@ -3,7 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.WordlistType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

@@ -81,11 +81,12 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
 
     @SuppressWarnings("unchecked")
     public List<TopicModel> getModel(String name) throws IOException, InterruptedException, ApiException {
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         ModelLookup lookup = new ModelLookup();
         lookup.setModelType(ModelType.TOPIC);
         lookup.setProject(new BaseFieldSet("name", "type", "params"));
         List<? extends ModelEntity> data = dockerService.getModel(lookup, name);
-        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data);
+        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data, users);
     }
 
     public List<Topic> getAllTopics(String name, TopicLookup lookup) throws IOException, InterruptedException, ApiException {

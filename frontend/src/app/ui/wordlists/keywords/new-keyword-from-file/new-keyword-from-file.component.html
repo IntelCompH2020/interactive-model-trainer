@@ -9,7 +9,7 @@
                 <mat-label>{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-FROM-FILE-DIALOG.NAME'
                     | translate}}</mat-label>
                 <input type="text" matInput [value]="formGroup.get('name').value" readonly
-                [placeholder]="'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-FROM-FILE-DIALOG.NAME-PLACEHOLDER' | translate">
+                    [placeholder]="'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-FROM-FILE-DIALOG.NAME-PLACEHOLDER' | translate">
             </mat-form-field>
         </div>
     </div>
@@ -43,12 +43,18 @@
 
     <div class="row align-items-center mt-3 mb-3">
         <div class="col-2">
-            <button mat-stroked-button
+            <button mat-stroked-button class="w-100"
                 (click)="fileInput.click()">{{'APP.WORD-LIST-COMPONENT.KEYWORDS-LISTING-COMPONENT.NEW-KEYWORD-FROM-FILE-DIALOG.LOAD-FILE'
                 | translate}}</button>
         </div>
-        <input #fileInput type="file" hidden accept="application/json, text/plain" (change)="onFileSelected($event.target.files)">
-        <div class="col-10">
+        <input #fileInput type="file" hidden accept="application/json, text/plain"
+            (change)="onFileSelected($event.target.files)">
+        <div class="col-1">
+            <button mat-icon-button color="accent" (click)="showInfo()" matTooltip="Help">
+                <mat-icon>info</mat-icon>
+            </button>
+        </div>
+        <div class="col-9">
             <mat-form-field appearance="outline" class="padding-margin-none w-100">
                 <input type="text" matInput [value]="file?.name ? '/data/wordlists/' + file?.name : ''" readonly>
             </mat-form-field>

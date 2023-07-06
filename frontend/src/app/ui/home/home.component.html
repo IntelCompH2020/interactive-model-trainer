@@ -76,16 +76,13 @@
         </h3>
         <div class="row m-0">
 
-            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.CORPUS' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-CORPUS-DESCRIPTION' | translate">
+            <app-how-to-card class="w-100" [config]="corporaConfig">
             </app-how-to-card>
 
-            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.MODELS' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-MODELS-DESCRIPTION' | translate">
+            <app-how-to-card class="w-100" [config]="modelsConfig">
             </app-how-to-card>
 
-            <app-how-to-card class="w-100" [title]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST' | translate"
-                [description]="'APP.HOME-COMPONENT.HOW-TO-WORD-LIST-DESCRIPTION' | translate">
+            <app-how-to-card class="w-100" [config]="wordlistsConfig">
             </app-how-to-card>
 
         </div>

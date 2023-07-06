@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { MatDialogRef} from '@angular/material/dialog';
+import { MatDialog, MatDialogRef} from '@angular/material/dialog';
 import { WordListVisibility } from '@app/core/enum/wordlist-visibility.enum';
 import { Keyword } from '@app/core/model/keyword/keyword.model';
 import { KeywordService } from '@app/core/services/http/keyword.service';
+import { MarkdownDialogComponent } from '@app/ui/markdown-dialog/markdown-dialog.component';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
@@ -34,7 +35,8 @@ export class NewKeywordFromFileComponent implements OnInit {
   constructor(
    private dialogRef: MatDialogRef<NewKeywordFromFileComponent>,
    private formBuilder: FormBuilder,
-   private keywordService: KeywordService
+   private keywordService: KeywordService,
+   protected dialog: MatDialog,
   ) { 
     this.formGroup = this.formBuilder.group({
       name: ['', Validators.required],
@@ -80,6 +82,18 @@ export class NewKeywordFromFileComponent implements OnInit {
   private updateWordlist(): void {
     let content = JSON.parse(this.file.contents);
     this.wordlist = content["wordlist"] || [];
+  }
+
+  showInfo(): void {
+    this.dialog.open(MarkdownDialogComponent, {
+      width: "50rem",
+      maxWidth: "90vw",
+      disableClose: true,
+      data: {
+        title: "Help - Wordlists imported file format",
+        markdownSource: "/assets/guides/wordlist-format.md"
+      }
+    })
   }
   
   submit(): void{

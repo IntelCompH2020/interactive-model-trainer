@@ -1,7 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.topic;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 public class TopicSimilarityPayload {
 

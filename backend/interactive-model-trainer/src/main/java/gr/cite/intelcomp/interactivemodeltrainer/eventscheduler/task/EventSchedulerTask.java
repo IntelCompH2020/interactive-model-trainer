@@ -16,9 +16,9 @@ import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.Executors;

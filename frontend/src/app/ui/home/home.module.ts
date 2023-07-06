@@ -5,10 +5,12 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { OverviewCardComponent } from './overview-card/overview-card.component';
 import { HowToCardComponent } from './how-to-card/how-to-card.component';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
+import { MarkdownDialogModule } from '../markdown-dialog/markdown-dialog.module';
 @NgModule({
 	imports: [
 		CommonUiModule,
-		HomeRoutingModule
+		HomeRoutingModule,
+		MarkdownDialogModule
 	],
 	declarations: [
 		HomeComponent,
