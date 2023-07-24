@@ -549,7 +549,7 @@
 					},
 					"PARAMETERS-TOOLTIPS": {
 						"METHOD": "Selection method: 'embedding' or 'count'",
-						"WEIGHTING-FACTOR": "Weighting factor for the title components. Keyword matches with title words are weighted by this factor",
+						"WEIGHTING-FACTOR": "Weighting factor for the title components. Keywords in the title are weighted by this factor",
 						"NUMBER-OF-ELEMENTS": "Maximum number of elements in the output list. The default is a huge number that, in practice, means there is no limit",
 						"MINIMUM-SCORE": "Minimum score. Only elements strictly above s_min are selected",
 						"MODEL-NAME": "Name of the SBERT model. Available pretrained models can be found in https://www.sbert.net/docs/pretrained_models.html"

@@ -40,7 +40,7 @@ export function byKeywordsParams(advanced: boolean, type: string): ModelParam[] 
       realName: 'n_max',
       displayName: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS.NUMBER-OF-ELEMENTS',
       type: 'number',
-      default: 2000,
+      default: 10000,
       tooltip: 'APP.MODELS-COMPONENT.DOMAIN-MODELS-LISTING-COMPONENT.NEW-DOMAIN-MODEL-FROM-KEYWORDS-LIST-DIALOG.PARAMETERS-TOOLTIPS.NUMBER-OF-ELEMENTS',
       validation: {
         min: 1,
