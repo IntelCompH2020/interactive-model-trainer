@@ -756,6 +756,7 @@ public class DockerServiceImpl implements DockerService {
         Map<String, RawCorpusJson> existingCorpora = jsonHandlingService.fromJson(Map.class, content);
         existingCorpora.put(generatedName, new RawCorpusJson(corpus));
         Files.writeString(datasetMetaPath, jsonHandlingService.toJson(existingCorpora), Charset.defaultCharset());
+        cacheLibrary.setDirtyByKey(RawCorpusCachedEntity.CODE);
     }
 
     @Override
@@ -825,6 +826,18 @@ public class DockerServiceImpl implements DockerService {
 
         checkResult(result);
         cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
+    }
+
+    @Override
+    public void renameRawCorpus(String oldName, String newName, String source) throws IOException {
+        Path datasetMetaPath = Path.of(this.containerServicesProperties.getCorpusService().getParquetFolder(), "datasetMeta.json");
+        String content = Files.readString(datasetMetaPath, Charset.defaultCharset());
+        Map<String, Map<String, Object>> existingCorpora = jsonHandlingService.fromJson(Map.class, content);
+        existingCorpora.forEach((key, value) -> {
+            if (value.get("name").equals(oldName) && value.get("source").equals(source)) value.put("name", newName);
+        });
+        Files.writeString(datasetMetaPath, jsonHandlingService.toJson(existingCorpora), Charset.defaultCharset());
+        cacheLibrary.setDirtyByKey(RawCorpusCachedEntity.CODE);
     }
 
     @Override

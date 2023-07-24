@@ -217,7 +217,7 @@
 					"MERGE": "Save"
 				},
 				"RENAME-DIALOG": {
-					"TITLE": "Rename logical corpus"
+					"TITLE": "Rename corpus"
 				}
 			},
 			"CORPUS-DETAILS-COMPONENT": {

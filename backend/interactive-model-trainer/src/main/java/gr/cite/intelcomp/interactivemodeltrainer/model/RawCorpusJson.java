@@ -3,6 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import java.util.Date;
 import java.util.List;
 
+
 public class RawCorpusJson extends CorpusJson{
 
     public static final String _download_date = "download_date";

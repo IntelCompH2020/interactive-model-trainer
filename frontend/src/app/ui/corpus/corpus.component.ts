@@ -91,6 +91,14 @@ export class CorpusComponent extends BaseComponent implements OnInit {
           castedActiveComponent.refresh();
         }
 
+        this.onEditItem = () => {
+          castedActiveComponent.edit(this.corpusSelected as RawCorpus);
+        }
+
+        this.onUpdateItem = () => {
+          castedActiveComponent.edit(this.corpusSelected as RawCorpus, true);
+        }
+
         this.onExportItem = () => {
           castedActiveComponent.export(this.corpusSelected as RawCorpus);
         }

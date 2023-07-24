@@ -41,7 +41,6 @@ public class RawCorpusBuilder extends BaseBuilder<RawCorpus, RawCorpusEntity> {
         for (RawCorpusEntity d : data) {
             if (CorpusType.RAW != d.getType()) continue;
             RawCorpus m = new RawCorpus();
-            if (fields.hasField(this.asIndexer(RawCorpusJson._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(RawCorpusJson._name))) m.setName(d.getName());
             if (fields.hasField(this.asIndexer(RawCorpusJson._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(RawCorpusJson._visibility))) m.setVisibility(d.getVisibility());

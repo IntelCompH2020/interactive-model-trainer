@@ -19,6 +19,7 @@ import { FileModule } from '../file/file.module';
 import { RenameDialogModule } from '../rename-dialog/rename-dialog.module';
 import { CorpusPatchComponent } from './corpus-patch/corpus-patch-modal.component';
 import { CorpusDetailsComponent } from './corpus-details/corpus-details.component';
+import { RawCorpusPatchComponent } from './raw-corpus-patch/raw-corpus-patch-modal.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { CorpusDetailsComponent } from './corpus-details/corpus-details.componen
     LogicalCorpusListingComponent,
     MergeLogicalCorpusComponent,
     MergedCorpusTableComponent,
+    RawCorpusPatchComponent,
     CorpusPatchComponent,
     CorpusDetailsComponent
   ],

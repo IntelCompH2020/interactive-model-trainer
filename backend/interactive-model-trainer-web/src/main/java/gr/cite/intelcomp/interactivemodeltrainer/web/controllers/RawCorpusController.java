@@ -1,18 +1,18 @@
 package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 
+import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpus;
 import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpus;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.CorpusLookup;
 import gr.cite.intelcomp.interactivemodeltrainer.service.corpus.RawCorpusService;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.QueryResult;
+import gr.cite.intelcomp.interactivemodeltrainer.web.model.RenameInfo;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
+import jakarta.validation.Valid;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.transaction.Transactional;
 import java.io.IOException;
@@ -42,5 +42,17 @@ public class RawCorpusController {
                 throw new RuntimeException(e);
             }
         }, lookup);
+    }
+
+    @PostMapping("patch")
+    @Transactional
+    public void Patch(@Valid @RequestBody RawCorpus corpus) throws InterruptedException, IOException, ApiException {
+        rawCorpusService.patch(corpus);
+    }
+
+    @PutMapping("rename/{source}")
+    @Transactional
+    public void Rename(@Valid @RequestBody RenameInfo renameInfo, @PathVariable("source") String source) throws InterruptedException, IOException, ApiException {
+        rawCorpusService.rename(renameInfo.getOldName(), renameInfo.getNewName(), source);
     }
 }

@@ -39,5 +39,11 @@ public class RawCorpusService extends CorpusService<RawCorpus, CorpusLookup>{
     }
 
     @Override
-    public void patch(RawCorpus corpus) throws IOException, InterruptedException, ApiException {}
+    public void patch(RawCorpus corpus) throws IOException, InterruptedException, ApiException {
+        dockerService.createCorpus(corpus, corpus.getSource());
+    }
+
+    public void rename(String oldName, String newName, String source) throws InterruptedException, IOException, ApiException {
+        dockerService.renameRawCorpus(oldName, newName, source);
+    }
 }

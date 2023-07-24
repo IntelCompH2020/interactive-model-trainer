@@ -6,9 +6,13 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class LogicalCorpusJson extends CorpusJson {
+
+    public final static String _id = "id";
+    private UUID id;
 
     public static final String _creator = "creator";
     private String creator;
@@ -24,6 +28,7 @@ public class LogicalCorpusJson extends CorpusJson {
 
     public LogicalCorpusJson(LogicalCorpus corpus, String parquetFolder) {
         super(corpus);
+
         this.setCreator(corpus.getCreator());
         this.setValid_for(corpus.getValid_for());
         this.setDtsets(enrichDatasets((ArrayList<LocalDataset>) corpus.getDtsets(), parquetFolder));
@@ -44,6 +49,14 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setFilter(dataset.getFilter());
             return d;
         }).collect(Collectors.toList());
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getCreator() {

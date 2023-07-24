@@ -50,6 +50,8 @@ public interface DockerService {
 
     void renameCorpus(String oldName, String newName) throws InterruptedException, IOException, ApiException;
 
+    void renameRawCorpus(String oldName, String newName, String source) throws IOException;
+
     void renameModel(ModelType modelType, String oldName, String newName) throws InterruptedException, IOException, ApiException;
 
     void deleteWordList(String name) throws InterruptedException, IOException, ApiException;

@@ -22,8 +22,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { SelectionType } from '@swimlane/ngx-datatable';
 import { UserSettingsKey } from '@user-service/core/model/user-settings.model';
 import { Observable } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { RawCorpusPatchComponent } from '../raw-corpus-patch/raw-corpus-patch-modal.component';
+import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
+import { RenameDialogComponent } from '@app/ui/rename-dialog/rename-dialog.component';
+import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
 
 @Component({
   selector: 'app-raw-corpus-listing',
@@ -122,6 +126,7 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
     protected router: Router,
 		protected route: ActivatedRoute,
 		protected uiNotificationService: UiNotificationService,
+    protected snackbars: SnackBarCommonNotificationsService,
 		protected httpErrorHandlingService: HttpErrorHandlingService,
 		protected queryParamsService: QueryParamsService,
 		protected language: TranslateService,
@@ -160,6 +165,51 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
 
   public refreshWithoutReloading(): void {
     this.onCorpusSelect.emit(null);
+  }
+
+  public edit(corpus: RawCorpus, updateAll: boolean = false): void {
+    if (updateAll) {
+      this.dialog.open(RawCorpusPatchComponent,
+        {
+          width: "40rem",
+          maxWidth: "90vw",
+          disableClose: true,
+          data: {
+            corpus
+          }
+        }
+      )
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe(() => {
+          this.snackbars.successfulUpdate();
+          this.refresh();
+        });
+    } else {
+      this.dialog.open(RenameDialogComponent, {
+        width: '25rem',
+        maxWidth: "90vw",
+        disableClose: true,
+        data: {
+          name: corpus.name,
+          title: this.language.instant('APP.CORPUS-COMPONENT.LOGICAL-CORPUS-LISTING-COMPONENT.RENAME-DIALOG.TITLE')
+        }
+      })
+        .afterClosed()
+        .pipe(
+          filter(x => x),
+          takeUntil(this._destroyed)
+        )
+        .subscribe((rename: RenamePersist) => {
+          this.rawCorpusService.rename(rename, corpus.source).subscribe((_response) => {
+            this.snackbars.successfulUpdate();
+            this.refresh();
+          });
+        });
+    }
   }
 
   public export(corpus: RawCorpus): void {
