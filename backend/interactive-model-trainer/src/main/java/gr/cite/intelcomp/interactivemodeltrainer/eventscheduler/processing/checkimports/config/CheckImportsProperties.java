@@ -10,12 +10,19 @@ public class CheckImportsProperties {
 
     private final String hdfsServiceUrl, hdfsDataPath;
 
+    private final Boolean enabled;
+
     @ConstructorBinding
-    public CheckImportsProperties(Long checkIntervalInSeconds, Long fileSizeThresholdInMB, String hdfsServiceUrl, String hdfsDataPath) {
+    public CheckImportsProperties(Long checkIntervalInSeconds, Long fileSizeThresholdInMB, String hdfsServiceUrl, String hdfsDataPath, Boolean enabled) {
         this.checkIntervalInSeconds = checkIntervalInSeconds;
         this.fileSizeThresholdInMB = fileSizeThresholdInMB;
         this.hdfsServiceUrl = hdfsServiceUrl;
         this.hdfsDataPath = hdfsDataPath;
+        this.enabled = enabled;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
     }
 
     public Long getCheckIntervalInSeconds() {

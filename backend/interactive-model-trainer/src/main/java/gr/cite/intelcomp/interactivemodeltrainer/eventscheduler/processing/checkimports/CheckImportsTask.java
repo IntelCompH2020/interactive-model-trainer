@@ -65,8 +65,8 @@ public class CheckImportsTask {
         this.jsonHandlingService = jsonHandlingService;
         this.hdfsFileReader = hdfsFileReader.config(properties.getHdfsServiceUrl(), properties.getHdfsDataPath());
         this.properties = properties;
-        long intervalSeconds = properties.getCheckIntervalInSeconds();
         if (validateConfig()) {
+            long intervalSeconds = properties.getCheckIntervalInSeconds();
             logger.info("Task to check for corpora imports is scheduled to run every {} seconds", intervalSeconds);
 
             ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -288,6 +288,7 @@ public class CheckImportsTask {
     private boolean validateConfig() {
         try {
             Objects.requireNonNull(properties);
+            if (!properties.getEnabled()) return false;
             Objects.requireNonNull(properties.getHdfsDataPath());
             if (properties.getHdfsDataPath().isBlank()) return false;
             Objects.requireNonNull(properties.getHdfsServiceUrl());
