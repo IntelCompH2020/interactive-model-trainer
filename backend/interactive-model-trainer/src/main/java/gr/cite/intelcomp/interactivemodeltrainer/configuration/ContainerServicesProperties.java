@@ -180,6 +180,12 @@ public class ContainerServicesProperties {
             return null;
         }
 
+        public String getParquetFolder() {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("datasets_folder") != null) return volumeConfiguration.get("datasets_folder") + "\\parquet";
+            return null;
+        }
+
         public String getModelsFolder(Class<? extends Manager> manager) {
             if (volumeConfiguration == null) return null;
             if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager))

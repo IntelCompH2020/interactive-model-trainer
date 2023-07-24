@@ -76,7 +76,7 @@ public class CheckImportsTask {
     }
 
     public void process() {
-        logger.debug("Check imports task running");
+        logger.trace("Check imports task running");
 
         List<String> importing, imported;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
@@ -92,11 +92,11 @@ public class CheckImportsTask {
             List<String> folders = hdfsFileReader.getFolders();
             for (String folder : folders) {
                 if (imported.contains(folder)) {
-                    logger.debug("Folder '{}' already imported. Skipping.", folder);
+                    logger.trace("Folder '{}' already imported. Skipping.", folder);
                     continue;
                 }
 
-                logger.debug("Reading job folder '{}'", folder);
+                logger.trace("Reading job folder '{}'", folder);
                 List<FileStatus> files = hdfsFileReader.getFolderFiles(folder);
                 AtomicBoolean success = new AtomicBoolean(false);
                 AtomicBoolean metadataFileFound = new AtomicBoolean(false);
@@ -108,12 +108,13 @@ public class CheckImportsTask {
                     files = files.stream().filter(
                             fileStatus -> !fileStatus.getPath().getName().equals("_SUCCESS")
                     ).collect(Collectors.toList());
-                    logger.debug("Success file found and filtered");
-                    logger.debug("Found {} files", files.size());
+                    logger.trace("Success file found and filtered");
+                    logger.trace("Found {} files", files.size());
 
                     addImportRecord(folder);
 
-                    Path directory = Path.of(containerServicesProperties.getCorpusService().getDatasetsFolder(), folder + ".parquet");
+                    String generatedName = "Imported_" + Instant.now().getNano();
+                    Path directory = Path.of(containerServicesProperties.getCorpusService().getParquetFolder(), generatedName);
                     FileUtils.forceMkdir(new File(directory.toUri()));
 
                     //Gathering the corpus information and fetching parquet files
@@ -122,11 +123,13 @@ public class CheckImportsTask {
                     String name = folder;
                     int filesCount = 0;
                     long records = 0;
+                    String parameters = null;
                     for (FileStatus file : files) {
                         if (file.getPath().getName().equals("metadata.json")) {
                             ParquetMetadataModel metadata = readMetadataFile(file);
                             if (metadata == null) continue;
-                            name = metadata.getName();
+                            if (metadata.getName() != null) name = metadata.getName();
+                            if (metadata.arguments() != null) parameters = metadata.arguments().toString();
                             columns = metadata.columns();
                             records = metadata.count();
                             continue;
@@ -134,10 +137,10 @@ public class CheckImportsTask {
 
                         //Skipping files that are not parquet
                         if (!file.getPath().getName().endsWith(".parquet")) {
-                            logger.debug("Ignoring file {}. It is not a parquet file", file.getPath().getName());
+                            logger.trace("Ignoring file {}. It is not a parquet file", file.getPath().getName());
                             continue;
                         }
-                        saveFile(file, name);
+                        saveFile(file, generatedName);
                         filesCount++;
 
                         if (!fileColumnsRead && file.getLen() > 0 && !metadataFileFound.get()) {
@@ -153,26 +156,26 @@ public class CheckImportsTask {
 
                     //Aborting corpus creation since there were no valid files found
                     if (filesCount == 0) {
-                        logger.debug("No parquet files found in folder {}. Skipping.", folder);
+                        logger.trace("No parquet files found in folder {}. Skipping.", folder);
                         FileUtils.forceDelete(new File(directory.toUri()));
                         setImportStatus(List.of(folder), CorpusImportStatus.FAIL);
                         continue;
                     }
 
-                    RawCorpus corpus = createCorpus(name, (int) records, columns);
+                    RawCorpus corpus = createCorpus(name, (int) records, parameters, columns, generatedName);
 
                     try {
-                        rawCorpusService.create(corpus);
+                        rawCorpusService.create(corpus, generatedName);
                         setImportStatus(List.of(folder), CorpusImportStatus.SUCCESS);
                     } catch (IOException | InterruptedException e) {
                         setImportStatus(List.of(folder), CorpusImportStatus.FAIL);
                         logger.error("Failed to persist raw corpus information");
                     }
 
-                    logger.debug("Importing of folder '{}' completed", folder);
+                    logger.trace("Importing of folder '{}' completed", folder);
                     break;
                 } else {
-                    logger.debug("Skipping folder '{}'. Either no data or not successful.", folder);
+                    logger.trace("Skipping folder '{}'. Either no data or not successful.", folder);
                 }
             }
         } catch (Exception e) {
@@ -194,27 +197,27 @@ public class CheckImportsTask {
     private void saveFile(FileStatus file, String name) {
         try {
             if (properties.getFileSizeThresholdInBytes() == 0 || file.getLen() < properties.getFileSizeThresholdInBytes()) {
-                logger.debug("Downloading file from path {} with size {} bytes", file.getPath().toString(), file.getLen());
+                logger.trace("Downloading file from path {} with size {} bytes", file.getPath().toString(), file.getLen());
                 byte[] fileData = hdfsFileReader.getFileData(file);
-                logger.debug("Downloaded {} bytes", fileData.length);
-                File toSave = new File(Path.of(containerServicesProperties.getCorpusService().getDatasetsFolder(), name, file.getPath().getName()).toUri());
+                logger.trace("Downloaded {} bytes", fileData.length);
+                File toSave = new File(Path.of(containerServicesProperties.getCorpusService().getParquetFolder(), name, file.getPath().getName()).toUri());
                 FileUtils.writeByteArrayToFile(toSave, fileData, false);
             } else {
-                logger.debug("File {} has size exceeding limit of {}MB. Skipping.", file.getPath().getName(), properties.getFileSizeThresholdInMB());
+                logger.trace("File {} has size exceeding limit of {}MB. Skipping.", file.getPath().getName(), properties.getFileSizeThresholdInMB());
             }
         } catch (IOException e) {
             logger.error("Failed to fetch and save file {}", file.getPath().toString());
         }
     }
 
-    private RawCorpus createCorpus(String name, Integer records, List<String> columns) {
+    private RawCorpus createCorpus(String name, Integer records, String parameters, List<String> columns, String generatedName) {
         RawCorpus corpus = new RawCorpus();
-        corpus.setName(name + ".parquet");
-        corpus.setDescription("Imported automatically");
+        corpus.setName(name);
+        corpus.setDescription(parameters == null ? "No parameters" : parameters);
         corpus.setVisibility(Visibility.Public);
         corpus.setDownload_date(new Date());
         corpus.setRecords(records);
-        corpus.setSource(name);
+        corpus.setSource(generatedName);
         corpus.setSchema(columns);
         return corpus;
     }
@@ -226,7 +229,7 @@ public class CheckImportsTask {
         transaction.begin();
 
         CorpusImportQuery query = applicationContext.getBean(CorpusImportQuery.class);
-        logger.debug("Fetching running imports from the database");
+        logger.trace("Fetching running imports from the database");
         List<CorpusImportEntity> results = query.statuses(status).collect();
 
         transaction.commit();

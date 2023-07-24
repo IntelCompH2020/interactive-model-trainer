@@ -93,9 +93,9 @@ public class HdfsFileReader {
     }
 
     private void initHdfsClient() throws IOException {
-        logger.debug("Trying to connect with the hdfs server");
+        logger.trace("Trying to connect with the hdfs server");
         fileSystem = FileSystem.get(getConfiguration());
-        logger.debug("Connected with hdfs at '{}'", fileName.getAuthority());
+        logger.trace("Connected with hdfs at '{}'", fileName.getAuthority());
     }
 
 }

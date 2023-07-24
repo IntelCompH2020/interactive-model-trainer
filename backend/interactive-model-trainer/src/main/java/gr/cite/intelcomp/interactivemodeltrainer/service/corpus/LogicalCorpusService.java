@@ -1,6 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.corpus;
 
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
+import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.LogicalCorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpus;
@@ -27,11 +28,13 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(LogicalCorpusService.class));
     private final ApplicationContext applicationContext;
+    private final ContainerServicesProperties containerServicesProperties;
 
     @Autowired
-    protected LogicalCorpusService(BuilderFactory builderFactory, DockerService dockerService, ApplicationContext applicationContext) {
+    protected LogicalCorpusService(BuilderFactory builderFactory, DockerService dockerService, ApplicationContext applicationContext, ContainerServicesProperties containerServicesProperties) {
         super(builderFactory, dockerService);
         this.applicationContext = applicationContext;
+        this.containerServicesProperties = containerServicesProperties;
     }
 
     @Override
@@ -55,13 +58,13 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
 
     @Override
     public void create(LogicalCorpus logicalCorpus) throws IOException, InterruptedException, ApiException {
-        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus);
+        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetFolder());
         dockerService.createCorpus(corpus, true);
     }
 
     @Override
     public void patch(LogicalCorpus logicalCorpus) throws IOException, InterruptedException, ApiException {
-        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus);
+        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetFolder());
         try {
             CorpusLookup corpusLookup = new CorpusLookup();
             corpusLookup.setProject(new BaseFieldSet("id", "creator"));

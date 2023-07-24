@@ -750,11 +750,11 @@ public class DockerServiceImpl implements DockerService {
     }
 
     @Override
-    public void createCorpus(RawCorpus corpus) throws IOException {
-        Path datasetMetaPath = Path.of(this.containerServicesProperties.getCorpusService().getDatasetsFolder(), "parquet", "datasetMeta.json");
+    public void createCorpus(RawCorpus corpus, String generatedName) throws IOException {
+        Path datasetMetaPath = Path.of(this.containerServicesProperties.getCorpusService().getParquetFolder(), "datasetMeta.json");
         String content = Files.readString(datasetMetaPath, Charset.defaultCharset());
         Map<String, RawCorpusJson> existingCorpora = jsonHandlingService.fromJson(Map.class, content);
-        existingCorpora.put(corpus.getName(), new RawCorpusJson(corpus));
+        existingCorpora.put(generatedName, new RawCorpusJson(corpus));
         Files.writeString(datasetMetaPath, jsonHandlingService.toJson(existingCorpora), Charset.defaultCharset());
     }
 
