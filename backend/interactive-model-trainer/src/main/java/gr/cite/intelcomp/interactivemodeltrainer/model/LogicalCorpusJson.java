@@ -33,7 +33,7 @@ public class LogicalCorpusJson extends CorpusJson {
     private static ArrayList<LocalDataset> enrichDatasets(ArrayList<LocalDataset> datasets, String parquetFolder) {
         return (ArrayList<LocalDataset>) datasets.stream().map((dataset) -> {
             LocalDataset d = new LocalDataset();
-            d.setParquet(Path.of(parquetFolder, dataset.getSource()).toString());
+            d.setParquet(parquetFolder + "/" + dataset.getSource());
             d.setSource(dataset.getSource());
             d.setIdfld(dataset.getIdfld());
             d.setTitlefld(dataset.getTitlefld());

@@ -186,6 +186,10 @@ public class ContainerServicesProperties {
             return null;
         }
 
+        public String getParquetInnerFolder() {
+            return "/data/datasets/parquet";
+        }
+
         public String getModelsFolder(Class<? extends Manager> manager) {
             if (volumeConfiguration == null) return null;
             if (volumeConfiguration.get("tm_models_folder") != null && ManageTopicModels.class.equals(manager))

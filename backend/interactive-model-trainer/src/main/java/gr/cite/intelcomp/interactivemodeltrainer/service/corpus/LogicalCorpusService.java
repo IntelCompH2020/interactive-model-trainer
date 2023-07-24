@@ -58,13 +58,13 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
 
     @Override
     public void create(LogicalCorpus logicalCorpus) throws IOException, InterruptedException, ApiException {
-        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetFolder());
+        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetInnerFolder());
         dockerService.createCorpus(corpus, true);
     }
 
     @Override
     public void patch(LogicalCorpus logicalCorpus) throws IOException, InterruptedException, ApiException {
-        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetFolder());
+        LogicalCorpusJson corpus = new LogicalCorpusJson(logicalCorpus, containerServicesProperties.getCorpusService().getParquetInnerFolder());
         try {
             CorpusLookup corpusLookup = new CorpusLookup();
             corpusLookup.setProject(new BaseFieldSet("id", "creator"));

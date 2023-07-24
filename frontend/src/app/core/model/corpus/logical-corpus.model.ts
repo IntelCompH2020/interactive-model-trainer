@@ -29,6 +29,7 @@ export interface CorpusItem {
 export interface CorpusItemPersist {
   corpusId: Guid;
   corpusName?: string;
+  corpusSource?: string;
   corpusSelections: RawCorpusFieldPersist[];
 }
 

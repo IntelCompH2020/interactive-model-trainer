@@ -46,7 +46,7 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
       let texts: string[] = [];
       let lemmas: string[] = [];
       let dataset: LocalDataset = {
-        source: field.corpusName,
+        source: field.corpusSource,
         filter: ""
       }
       for (let item of field.corpusSelections) {

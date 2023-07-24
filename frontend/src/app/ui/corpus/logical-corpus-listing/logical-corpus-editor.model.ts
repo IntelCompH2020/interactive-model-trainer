@@ -52,6 +52,7 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
                 this.corpora.map((corpus, i) => this.formBuilder.group({
                     corpusId: [{ value: corpus.corpusId, disabled: disabled }, context.getValidation(`corpora[${i}].corpusId`).validators], // TODO WHAT IF WE ADD AN EXTRA FIELD
                     corpusName: [{ value: corpus.corpusName, disabled: disabled }, context.getValidation(`corpora[${i}].corpusName`).validators],
+                    corpusSource: [{ value: corpus.corpusSource, disabled: disabled }, context.getValidation(`corpora[${i}].corpusSource`).validators],
                     corpusSelections: this.formBuilder.array(
                         (corpus.corpusSelections ?? []).map((corpusSelection, j) => this.formBuilder.group({
                             name: [{ value: corpusSelection.name, disabled: disabled }, context.getValidation(`corpora[${i}].corpusSelections[${j}].name`).validators],
@@ -91,6 +92,12 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
                 key: `corpora[${i}].corpusName`,
                 validators: [
                     BackendErrorValidator(this.validationErrorModel, `Corpora[${i}].CorpusName`)
+                ]
+            });
+            baseValidationArray.push({
+                key: `corpora[${i}].corpusSource`,
+                validators: [
+                    BackendErrorValidator(this.validationErrorModel, `Corpora[${i}].CorpusSource`)
                 ]
             });
 
@@ -143,6 +150,12 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
                     BackendErrorValidator(this.validationErrorModel, `Corpora[${index}].CorpusName`)
                 ]
             });
+            baseValidationArray.push({
+                key: `corpora[${index}].corpusSource`,
+                validators: [
+                    BackendErrorValidator(this.validationErrorModel, `Corpora[${index}].CorpusSource`)
+                ]
+            });
 
             corpus.corpusSelections?.forEach((corpusSelection, j) => {
                 baseValidationArray.push({
@@ -169,6 +182,7 @@ export class LogicalCorpusEditorModel implements LogicalCorpusPersistHelper {
         return this.formBuilder.group({
             corpusId: [{ value: corpus.corpusId, disabled: disabled }, context.getValidation(`corpora[${index}].corpusId`).validators], // TODO WHAT IF WE ADD AN EXTRA FIELD
             corpusName: [{ value: corpus.corpusName, disabled: disabled }, context.getValidation(`corpora[${index}].corpusName`).validators],
+            corpusSource: [{ value: corpus.corpusSource, disabled: disabled }, context.getValidation(`corpora[${index}].corpusSource`).validators],
             corpusSelections: this.formBuilder.array(
                 (corpus.corpusSelections ?? []).map((corpusSelection, j) => this.formBuilder.group({
                     name: [{ value: corpusSelection.name, disabled: disabled }, context.getValidation(`corpora[${index}].corpusSelections[${j}].name`).validators],

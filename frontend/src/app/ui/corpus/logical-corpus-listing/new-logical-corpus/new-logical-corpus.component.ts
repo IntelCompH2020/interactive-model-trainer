@@ -75,6 +75,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
       fields: [
         nameof<RawCorpus>(x => x.id),
         nameof<RawCorpus>(x => x.name),
+        nameof<RawCorpus>(x => x.source),
         nameof<RawCorpus>(x => x.description),
         nameof<RawCorpus>(x => x.visibility),
         nameof<RawCorpus>(x => x.schema)
@@ -176,6 +177,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   }
 
   mergeCorpus(): void {
+    console.log(this.formGroup.value);
     this.dialog.open(MergeLogicalCorpusComponent, {
       width: "50rem",
       maxWidth: "90vw",
@@ -190,6 +192,7 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
     const formGroup = this.editorModel.buildCorpusFormGroup(this.availableCorpora?.length ?? 0, {
       corpusId: corpus.id,
       corpusName: corpus.name,
+      corpusSource: corpus.source,
       corpusSelections: corpus.schema.map(function (x) {
         if (x == "id") this.selectedFieldsCount++;
         return { name: x, selected: x == "id", type: x == "id" ? "id" : null }
