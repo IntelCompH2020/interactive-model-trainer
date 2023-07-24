@@ -12,7 +12,7 @@ event-scheduler:
       enabled: true
       checkIntervalInSeconds: 60
       hdfsDataPath: "data/out"
-      hdfsServiceUrl: "ic-devel01.local.cite.gr:8020"
+      hdfsServiceUrl: "XXXXX"
       fileSizeThresholdInMB: 20
   task:
     name: EventSchedulerTask
