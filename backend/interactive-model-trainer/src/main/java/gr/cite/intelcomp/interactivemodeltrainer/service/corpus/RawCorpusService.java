@@ -32,7 +32,9 @@ public class RawCorpusService extends CorpusService<RawCorpus, CorpusLookup>{
     }
 
     @Override
-    public void create(RawCorpus word) throws IOException, InterruptedException {}
+    public void create(RawCorpus corpus) throws IOException, InterruptedException {
+        dockerService.createCorpus(corpus);
+    }
 
     @Override
     public void patch(RawCorpus corpus) throws IOException, InterruptedException, ApiException {}

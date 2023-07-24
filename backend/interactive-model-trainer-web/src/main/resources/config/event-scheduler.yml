@@ -8,6 +8,12 @@ event-scheduler:
       cacheOptions:
         validPeriodInSeconds: 60
         taskResponseCacheRetentionInHours: 48
+    check-for-imports:
+      enabled: true
+      checkIntervalInSeconds: 60
+      hdfsDataPath: "data/out"
+      hdfsServiceUrl: "ic-devel01.local.cite.gr:8020"
+      fileSizeThresholdInMB: 20
   task:
     name: EventSchedulerTask
     processor:

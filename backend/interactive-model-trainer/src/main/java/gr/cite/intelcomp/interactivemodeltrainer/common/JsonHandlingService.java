@@ -18,13 +18,13 @@ public class JsonHandlingService {
 
 	public String toJson(Object item) throws JsonProcessingException {
 		if (item == null) return null;
-		return objectMapper.writeValueAsString(item);
+		return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item);
 	}
 
 	public String toJsonSafe(Object item) {
 		if (item == null) return null;
 		try {
-			return objectMapper.writeValueAsString(item);
+			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item);
 		} catch (Exception ex) {
 			return null;
 		}

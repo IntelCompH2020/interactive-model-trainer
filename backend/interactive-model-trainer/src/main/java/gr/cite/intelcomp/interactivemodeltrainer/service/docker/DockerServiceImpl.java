@@ -11,6 +11,8 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.*;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
+import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpus;
+import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
 import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
@@ -32,6 +34,7 @@ import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -744,6 +747,15 @@ public class DockerServiceImpl implements DockerService {
 
         this.deleteInputTempFileInTempFolder(tmp_file, DockerService.MANAGE_CORPUS);
         cacheLibrary.setDirtyByKey(LogicalCorpusCachedEntity.CODE);
+    }
+
+    @Override
+    public void createCorpus(RawCorpus corpus) throws IOException {
+        Path datasetMetaPath = Path.of(this.containerServicesProperties.getCorpusService().getDatasetsFolder(), "parquet", "datasetMeta.json");
+        String content = Files.readString(datasetMetaPath, Charset.defaultCharset());
+        Map<String, RawCorpusJson> existingCorpora = jsonHandlingService.fromJson(Map.class, content);
+        existingCorpora.put(corpus.getName(), new RawCorpusJson(corpus));
+        Files.writeString(datasetMetaPath, jsonHandlingService.toJson(existingCorpora), Charset.defaultCharset());
     }
 
     @Override

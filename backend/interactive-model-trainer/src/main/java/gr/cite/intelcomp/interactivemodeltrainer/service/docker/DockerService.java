@@ -7,6 +7,8 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
+import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpus;
+import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.CorpusLookup;
@@ -36,6 +38,8 @@ public interface DockerService {
     void createWordList(WordListJson wordList, boolean isNew) throws IOException, InterruptedException, ApiException;
 
     void createCorpus(LogicalCorpusJson corpus, boolean isNew) throws IOException, InterruptedException, ApiException;
+
+    void createCorpus(RawCorpus corpus) throws IOException;
 
     void copyWordList(String name) throws InterruptedException, IOException, ApiException;
 
