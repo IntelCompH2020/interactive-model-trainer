@@ -86,7 +86,7 @@ public class CheckImportsTask {
                 logger.error("Imports got interrupted. Setting status to fail.");
                 setImportStatus(importing, CorpusImportStatus.FAIL);
             }
-            imported = getImportRecords(CorpusImportStatus.SUCCESS, CorpusImportStatus.FAIL).stream().map(CorpusImportEntity::getName).toList();
+            imported = getImportRecords(CorpusImportStatus.SUCCESS).stream().map(CorpusImportEntity::getName).toList();
 
             //Scanning the hdfs folders
             List<String> folders = hdfsFileReader.getFolders();
