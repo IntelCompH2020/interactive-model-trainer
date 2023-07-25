@@ -1,5 +1,5 @@
 ####################################### Build stage #######################################
-FROM maven:3.8.6-openjdk-11-slim AS build-stage
+FROM maven:3.9-eclipse-temurin-17-alpine AS build-stage
 
 ARG CITE_MAVEN_ACCOUNT_USR
 ARG CITE_MAVEN_ACCOUNT_PSW
@@ -20,7 +20,7 @@ RUN mvn -Dserver.username=${CITE_MAVEN_ACCOUNT_USR} -Dserver.password=${CITE_MAV
 RUN mvn -Dserver.username=${CITE_MAVEN_ACCOUNT_USR} -Dserver.password=${CITE_MAVEN_ACCOUNT_PSW} clean package
 
 ######################################## Run Stage ########################################
-FROM adoptopenjdk:11.0.8_10-jre-hotspot-bionic
+FROM eclipse-temurin:17-jre-ubi9-minimal
 
 ENV SERVER_PORT=8080
 EXPOSE ${SERVER_PORT}
