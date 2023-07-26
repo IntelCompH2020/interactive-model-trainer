@@ -78,7 +78,7 @@ public class CheckImportsTask {
     public void process() {
         logger.trace("Check imports task running");
 
-        List<String> importing, imported;
+        List<String> importing, imported, failed;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
             //Figuring out the database status
             importing = getImportRecords(CorpusImportStatus.IMPORTING).stream().map(CorpusImportEntity::getName).toList();
@@ -87,6 +87,7 @@ public class CheckImportsTask {
                 setImportStatus(importing, CorpusImportStatus.FAIL);
             }
             imported = getImportRecords(CorpusImportStatus.SUCCESS).stream().map(CorpusImportEntity::getName).toList();
+            failed = getImportRecords(CorpusImportStatus.FAIL).stream().map(CorpusImportEntity::getName).toList();
 
             //Scanning the hdfs folders
             List<String> folders = hdfsFileReader.getFolders();
@@ -111,7 +112,9 @@ public class CheckImportsTask {
                     logger.trace("Success file found and filtered");
                     logger.trace("Found {} files", files.size());
 
-                    addImportRecord(folder);
+                    if (!failed.contains(folder)) addImportRecord(folder);
+                        //If the import has failed in the past, try again.
+                    else setImportStatus(List.of(folder), CorpusImportStatus.IMPORTING);
 
                     String generatedName = "Imported_" + Instant.now().getNano();
                     Path directory = Path.of(containerServicesProperties.getCorpusService().getParquetFolder(), generatedName);
@@ -148,7 +151,9 @@ public class CheckImportsTask {
                                     HadoopInputFile.fromStatus(file, hdfsFileReader.getConfiguration())
                             );
                             ParquetMetadata parquetMetadata = reader.getFooter();
-                            columns = parquetMetadata.getFileMetaData().getSchema().getColumns().stream().map(ColumnDescriptor::toString).toList();
+                            columns = parquetMetadata.getFileMetaData().getSchema().getColumns().stream().map(
+                                            columnDescriptor -> columnDescriptor.toString().substring(1, columnDescriptor.toString().lastIndexOf(']')))
+                                    .toList();
                             records += reader.getRecordCount();
                             fileColumnsRead = true;
                         }
@@ -162,6 +167,7 @@ public class CheckImportsTask {
                         continue;
                     }
 
+                    //Generate new corpus object to ingest it to the existing
                     RawCorpus corpus = createCorpus(name, (int) records, parameters, columns, generatedName);
 
                     try {
@@ -172,8 +178,7 @@ public class CheckImportsTask {
                         logger.error("Failed to persist raw corpus information");
                     }
 
-                    logger.trace("Importing of folder '{}' completed", folder);
-                    break;
+                    logger.info("Importing of folder '{}' completed", folder);
                 } else {
                     logger.trace("Skipping folder '{}'. Either no data or not successful.", folder);
                 }

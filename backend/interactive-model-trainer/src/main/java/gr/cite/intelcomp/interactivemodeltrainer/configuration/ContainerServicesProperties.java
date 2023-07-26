@@ -4,6 +4,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.nio.file.Path;
 import java.util.*;
 
 @ConfigurationProperties(prefix = "services")
@@ -182,7 +183,7 @@ public class ContainerServicesProperties {
 
         public String getParquetFolder() {
             if (volumeConfiguration == null) return null;
-            if (volumeConfiguration.get("datasets_folder") != null) return volumeConfiguration.get("datasets_folder") + "\\parquet";
+            if (volumeConfiguration.get("datasets_folder") != null) return Path.of(volumeConfiguration.get("datasets_folder"), "parquet").toString();
             return null;
         }
 
