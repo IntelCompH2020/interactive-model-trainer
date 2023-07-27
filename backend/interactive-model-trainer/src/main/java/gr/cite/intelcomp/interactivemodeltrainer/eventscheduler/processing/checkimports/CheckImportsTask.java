@@ -146,16 +146,18 @@ public class CheckImportsTask {
                         saveFile(file, generatedName);
                         filesCount++;
 
-                        if (!fileColumnsRead && file.getLen() > 0 && !metadataFileFound.get()) {
+                        if (file.getLen() > 0 && !metadataFileFound.get()) {
                             ParquetFileReader reader = ParquetFileReader.open(
                                     HadoopInputFile.fromStatus(file, hdfsFileReader.getConfiguration())
                             );
-                            ParquetMetadata parquetMetadata = reader.getFooter();
-                            columns = parquetMetadata.getFileMetaData().getSchema().getColumns().stream().map(
-                                            columnDescriptor -> columnDescriptor.toString().substring(1, columnDescriptor.toString().lastIndexOf(']')))
-                                    .toList();
+                            if (!fileColumnsRead) {
+                                ParquetMetadata parquetMetadata = reader.getFooter();
+                                columns = parquetMetadata.getFileMetaData().getSchema().getColumns().stream().map(
+                                                columnDescriptor -> columnDescriptor.toString().substring(1, columnDescriptor.toString().lastIndexOf(']')))
+                                        .toList();
+                                fileColumnsRead = true;
+                            }
                             records += reader.getRecordCount();
-                            fileColumnsRead = true;
                         }
                     }
 
