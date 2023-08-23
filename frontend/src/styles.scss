@@ -109,13 +109,14 @@
     .mat-form-field-subscript-wrapper {
         margin-top: .2em;
     }
+
     .mat-form-field-appearance-outline .mat-form-field-outline {
         background-color: white;
         border-radius: 5px;
     }
 }
 
-.filters-container{
+.filters-container {
     width: 40rem !important;
     min-width: 30rem !important;
     padding: 1rem;
@@ -181,6 +182,14 @@ mat-spinner {
     margin: 0px auto;
 }
 
-.mat-button-disabled, input[readonly] {
+.mat-button-disabled,
+input[readonly] {
     cursor: not-allowed !important;
+}
+
+markdown {
+    p {
+        text-align: justify;
+        text-indent: 2rem;
+    }
 }
