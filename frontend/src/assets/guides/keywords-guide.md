@@ -22,3 +22,27 @@ For keywords, the available information is the following:
 - **Creator:** The name of the user that added this item.
 - **Location:** The location of the data file related to the item.
 - **Access:** Shows whether the item is public to everyone or private. Access can also be set on the update modal.
+
+##### Importing / Creating
+
+Above the listing, on the left side of the filtering options there is a "**Add keywords**" button. When you click it, a menu pops up giving you all the available options for keyword creation.
+
+There are three ways you can add keywords to the system.
+
+###### **i)** Import from file
+
+On the file import form, there is a "**Load File**" button. When you click it, you can select the file you want to import. Then, the name of the file gets populated, along with an overview of the words contained in it and the system location in which the file will reside when saved. If you see words populating the 'overview' box, it is a good indication that there is no problem with the file formatting and you can safely save it. You can view information about the correct formatting by clicking on the blue "**i**" button on the left.
+
+<img class="mb-3" src="/assets/guides/images/wordlist-1.png">
+
+###### ii) Manually
+
+When you choose this option, a modal with the keyword creation form gets revealed where you can manually set the name, description and the wordlist items.
+
+<img class="mb-3" src="/assets/guides/images/keyword-1.png">
+
+###### iii) Merge existing lists
+
+You can create a new list by merging existing ones. On the modal that opens, along with the name and a description for your new list, you can select one or more existing lists to merge from the table. You can also view the items of these lists by clicking the "**View list**" buttons on the "**Actions**" column. When ready, you can click the "**Merge**" button to save your list.
+
+<img class="mb-3" src="/assets/guides/images/wordlist-2.png">
