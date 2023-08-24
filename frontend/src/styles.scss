@@ -192,4 +192,17 @@ markdown {
         text-align: justify;
         text-indent: 2rem;
     }
+
+    h5 {
+        padding: .5rem;
+        background-color: #ddd;
+        border-bottom: 2px solid #bbb;
+    }
+
+    img {
+        max-width: 100%;
+        border: 1px solid lightgray;
+        border-radius: .5rem;
+        margin: 0px auto;
+    }
 }

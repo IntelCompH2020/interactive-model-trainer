@@ -1,5 +1,7 @@
 On the main menu, when you hover over the "**Models**" item, two new options are getting revealed with the first one being "**Domain Models**", linking to a table with all the available domain models.
 
+##### Listing
+
 There are some tools that can help you with finding and displaying all the information about the models. Above the table, there is a text bar where you can search by the model name, and next to it there are some more filtering options. You can view them by clicking the "**Filter**" button.
 
 The available filters for topic models are the following:
@@ -10,6 +12,8 @@ The available filters for topic models are the following:
 - **By you:** You can check the "Show only mine" option to only view your models.
 
 The information being presented in the table, can also be sorted. All the columns that can be sorted or are already sorted, have a corresponding indication on the right side of the column headers. By default, the table is sorted by date in descending order, meaning that the most recent items are getting displayed at the top. Only one sortable column can be used at a time. Also, some of the columns can be hidden or revealed using the **'gear'** button positioned at the right bottom of the table. When you click on it, all the available display columns will be there for you to select using checkboxes.
+
+##### Details panel
 
 When you click on an item, all the available details about it can be viewed on a panel that gets populated on the right side of the table, regardless of the columns you have revealed at the time. From there, you can perform some actions on the selected item, using the corresponding buttons on the top part of the panel. Domain models can be renamed, updated, cloned or deleted. Renaming and updating is performed using modals that popup when you click the buttons mentioned above. When you try to delete an item, you will be warned by another modal before you can actually perform the action.
 
