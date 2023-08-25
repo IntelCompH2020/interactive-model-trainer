@@ -27,3 +27,11 @@ For topic models, the available information is the following:
 - **Trained Corpus:** The name of the logical corpus used to train the model.
 - **Hierarchy Level:** It can be either 0 or 1 for hierarchical models.
 - **Access:** Shows whether the item is public to everyone or private. Access can also be set on the update modal.
+
+##### Importing / Creating
+
+Above the listing, on the left side of the filtering options there is a "**New model**" button. When you click it, a form pops up giving you all the available options for training new topic models. Importing of existing trained topic models is not possible.
+
+<img class="mb-3" src="/assets/guides/images/topic-model-1.png">
+
+On the form you can set basic information for the model, like the name, the description (if any), the dataset is going to be trained on and the method of training along with all the parameters that are available to change. All the important parameters are already displayed to the form. For advanced options, you can reveal them by checking the "**Advanced options**" and "**Advanced options for preprocessing**" at the bottom of the form. When ready, you can press "**Create**" to start the training process. During that time, you can view the progress along with logging messages from the service, on a new modal that will popup in a couple of seconds once the training starts. You can close it at any time and open it again by clicking on the corresponding running task indications that will be showing at the footer of the page. When the training is done, these indicators turn blue. There may be one or more trainings running at the same time. When you hover over the indicators, you will be able to see the name of the model you set before so that you can view the right process status. Once the process is done, you will be able to press "**Finish**" on the progress modal and the indicator will disappear.

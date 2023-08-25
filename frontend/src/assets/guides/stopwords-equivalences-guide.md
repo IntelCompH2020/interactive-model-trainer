@@ -25,7 +25,7 @@ For Stopwords and equivalences, the available information is the following:
 
 ##### Importing / Creating
 
-Above the listing, on the left side of the filtering options there is a "**Add stopwords**" or "**Add equivalencies**" button based on the tab you are. When you click it, a menu pops up giving you all the available options for stopword or equivalence creation.
+Above the listing, on the left side of the filtering options there is a "**Add stopwords**" or "**Add equivalences**" button based on the tab you are. When you click it, a menu pops up giving you all the available options for stopword or equivalence creation.
 
 There are three ways you can add stopwords and equivalences to the system.
 

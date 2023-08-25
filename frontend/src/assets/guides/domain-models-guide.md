@@ -26,3 +26,13 @@ For domain models, the available information is the following:
 - **Location:** The location of the data file related to the item.
 - **Trained Corpus:** The name of the logical corpus used to train the model.
 - **Access:** Shows whether the item is public to everyone or private. Access can also be set on the update modal.
+
+##### Importing / Creating
+
+Above the listing, on the left side of the filtering options there is a "**New model**" button. When you click it, a menu pops up giving you all the available options for training new domain models. Specifically, you can train by keywords or category name. Importing of existing trained domain models is not possible.
+
+<img class="mb-3" src="/assets/guides/images/domain-model-1.png">
+
+On the form that pops up, you can set basic information for the model, like the name, the description (if any), the dataset is going to be trained on and the domain name along with all the parameters that are available to change. If you chose to train using keywords, you will have to select keywords from one or more keyword sources using the dropdown list and then clicking on the specific ones you want to include as shown in the figure above.
+
+Regardless of the training method you chose, when ready, you can press "**Create**" to start the training process. During that time, you can view the progress along with logging messages from the service, on a new modal that will popup in a couple of seconds once the training starts. You can close it at any time and open it again by clicking on the corresponding running task indications  that will be showing at the footer of the page. When the training is done, these indicators turn blue. There may be one or more trainings running at the same time. When you hover over the indicators, you will be able to see the name of the model you set before so that you can view the right process status. Once the process is done, you will be able to press "**Finish**" on the progress modal and the indicator will disappear.
