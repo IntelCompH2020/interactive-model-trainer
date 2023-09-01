@@ -1,8 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Pipe, PipeTransform } from '@angular/core';
 import { TimezoneService } from '@user-service/services/timezone.service';
-import * as moment from 'moment';
-import 'moment-timezone';
+import * as moment from 'moment-timezone';
 
 @Pipe({
 	name: 'dateTimeFormatter'
@@ -14,9 +13,8 @@ export class DateTimeFormatPipe implements PipeTransform {
 	}
 
 	transform(value: any, format?: string, timezone?: string, locale?: string): string | null {
-		// using timezone set in timezoneService by default. can be overwritten with pipe arguments
-		const timezoneToUse = timezone ? timezone : moment(value).tz(this.timezoneService.getCurrentTimezone()).format('Z');
-		return this.datePipe.transform(value, format, timezoneToUse, locale);
+		const timezoneToUse = timezone ? timezone : moment.tz.guess();
+		return this.datePipe.transform(moment.utc(value).toDate(), format, timezoneToUse, locale);
 	}
 }
 

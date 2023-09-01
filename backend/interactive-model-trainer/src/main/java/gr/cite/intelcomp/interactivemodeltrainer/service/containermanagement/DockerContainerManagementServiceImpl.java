@@ -1,7 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -66,15 +65,17 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
     private final CacheLibrary cacheLibrary;
     private final ContainerServicesProperties containerServicesProperties;
     private final JsonHandlingService jsonHandlingService;
+    private final ObjectMapper objectMapper;
 
 
     @Autowired
-    public DockerContainerManagementServiceImpl(DockerProperties dockerProperties, UserScope userScope, ExecutionService executionService, CacheLibrary cacheLibrary, ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService){
+    public DockerContainerManagementServiceImpl(DockerProperties dockerProperties, UserScope userScope, ExecutionService executionService, CacheLibrary cacheLibrary, ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService, ObjectMapper objectMapper){
         super(userScope, executionService);
         this.dockerProperties = dockerProperties;
         this.cacheLibrary = cacheLibrary;
         this.containerServicesProperties = containerServicesProperties;
         this.jsonHandlingService = jsonHandlingService;
+        this.objectMapper = objectMapper;
         this.dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerHost(this.dockerProperties.getHost()).build();
         this.dockerHttpClient = new ApacheDockerHttpClient.Builder().dockerHost(this.dockerClientConfig.getDockerHost()).build();
         this.dockerClient = DockerClientImpl.getInstance(this.dockerClientConfig, this.dockerHttpClient);
@@ -91,8 +92,6 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
         syncContainerIds.clear();
         logger.info("Dumping user tasks cache to a file...");
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         UserTasksCacheEntityFull cacheToWrite = objectMapper.convertValue(cache, UserTasksCacheEntityFull.class);
         for (RunningTaskQueueItemFull item : cacheToWrite.getPayload()) {
             RunningTaskQueueItem cacheItem = cache.getPayload().stream().filter(i -> i.getTask().equals(item.getTask())).collect(Collectors.toList()).get(0);

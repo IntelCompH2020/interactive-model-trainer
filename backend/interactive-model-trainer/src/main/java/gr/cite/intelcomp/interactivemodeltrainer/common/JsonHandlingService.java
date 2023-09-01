@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class JsonHandlingService {
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper;
 
-	public JsonHandlingService() {
-		objectMapper.registerModule(new JavaTimeModule());
+	public JsonHandlingService(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
 	}
 
 	public String toJson(Object item) throws JsonProcessingException {

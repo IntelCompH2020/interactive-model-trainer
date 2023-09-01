@@ -19,7 +19,6 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
@@ -82,7 +81,7 @@ public class CheckImportsTask {
         try (FakeRequestScope ignored = new FakeRequestScope()) {
             //Figuring out the database status
             importing = getImportRecords(CorpusImportStatus.IMPORTING).stream().map(CorpusImportEntity::getName).toList();
-            if (importing.size() > 0) {
+            if (!importing.isEmpty()) {
                 logger.error("Imports got interrupted. Setting status to fail.");
                 setImportStatus(importing, CorpusImportStatus.FAIL);
             }
@@ -116,14 +115,15 @@ public class CheckImportsTask {
                         //If the import has failed in the past, try again.
                     else setImportStatus(List.of(folder), CorpusImportStatus.IMPORTING);
 
-                    String generatedName = "Imported_" + Instant.now().getNano();
+                    String nameRandomizer = String.valueOf(Instant.now().getNano());
+                    String generatedName = "Imported_" + nameRandomizer;
                     Path directory = Path.of(containerServicesProperties.getCorpusService().getParquetFolder(), generatedName);
                     FileUtils.forceMkdir(new File(directory.toUri()));
 
                     //Gathering the corpus information and fetching parquet files
                     List<String> columns = new ArrayList<>();
                     boolean fileColumnsRead = false;
-                    String name = folder;
+                    String name = nameRandomizer;
                     int filesCount = 0;
                     long records = 0;
                     String parameters = null;

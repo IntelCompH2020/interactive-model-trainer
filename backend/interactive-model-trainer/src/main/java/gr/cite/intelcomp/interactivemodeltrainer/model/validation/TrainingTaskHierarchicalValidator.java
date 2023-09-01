@@ -25,11 +25,12 @@ public class TrainingTaskHierarchicalValidator implements ConstraintValidator<Va
     @Autowired
     private ContainerServicesProperties servicesProperties;
 
-    private final ObjectMapper mapper = new ObjectMapper();;
+    @Autowired
+    private ObjectMapper mapper;
 
     @Override
     public void initialize(ValidByHierarchical constraintAnnotation) {
-        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS"));
+//        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS"));
     }
 
     @Override

@@ -1,7 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
@@ -34,10 +33,12 @@ public class CacheLibrary extends ConcurrentHashMap<String, CachedEntity<?>> {
 
     private final JsonHandlingService jsonHandlingService;
     private final ContainerServicesProperties containerServicesProperties;
+    private final ObjectMapper mapper;
 
-    public CacheLibrary(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties) {
+    public CacheLibrary(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ObjectMapper mapper) {
         this.jsonHandlingService = jsonHandlingService;
         this.containerServicesProperties = containerServicesProperties;
+        this.mapper = mapper;
     }
 
     @PostConstruct()
@@ -53,8 +54,6 @@ public class CacheLibrary extends ConcurrentHashMap<String, CachedEntity<?>> {
                 UserTasksCacheEntity cacheToBeSet = new UserTasksCacheEntity();
                 List<RunningTaskQueueItem> payload = new ArrayList<>();
                 for (RunningTaskQueueItemFull cacheItem : cache.getPayload()) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.registerModule(new JavaTimeModule());
                     if (cacheItem.getType().equals(RunningTaskType.curating)) {
                         CuratingTaskQueueItem item = mapper.convertValue(cacheItem, CuratingTaskQueueItem.class);
                         item.setUserId(cacheItem.getUserId());
