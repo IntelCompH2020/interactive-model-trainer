@@ -13,65 +13,67 @@ import java.util.UUID;
 @Service
 public class UserInterceptorCacheService extends CacheService<UserInterceptorCacheService.UserInterceptorCacheValue> {
 
-	public static class UserInterceptorCacheValue {
+    public static class UserInterceptorCacheValue {
 
-		public UserInterceptorCacheValue() {
-		}
+        public UserInterceptorCacheValue() {
+        }
 
-		public UserInterceptorCacheValue(String subjectId, UUID userId) {
-			this.subjectId = subjectId;
-			this.userId = userId;
-		}
+        public UserInterceptorCacheValue(String subjectId, UUID userId) {
+            this.subjectId = subjectId;
+            this.userId = userId;
+        }
 
-		private String subjectId;
+        private String subjectId;
 
-		public String getSubjectId() {
-			return subjectId;
-		}
+        public String getSubjectId() {
+            return subjectId;
+        }
 
-		public void setSubjectId(String subjectId) {
-			this.subjectId = subjectId;
-		}
+        public void setSubjectId(String subjectId) {
+            this.subjectId = subjectId;
+        }
 
-		private UUID userId;
+        private UUID userId;
 
-		public UUID getUserId() {
-			return userId;
-		}
+        public UUID getUserId() {
+            return userId;
+        }
 
-		public void setUserId(UUID userId) {
-			this.userId = userId;
-		}
-	}
+        public void setUserId(UUID userId) {
+            this.userId = userId;
+        }
+    }
 
-	private final ConventionService conventionService;
+    private final ConventionService conventionService;
 
-	@Autowired
-	public UserInterceptorCacheService(UserInterceptorCacheOptions options, ConventionService conventionService) {
-		super(options);
-		this.conventionService = conventionService;
-	}
+    @Autowired
+    public UserInterceptorCacheService(UserInterceptorCacheOptions options, ConventionService conventionService) {
+        super(options);
+        this.conventionService = conventionService;
+    }
 
-	@EventListener
-	public void handleUserTouchedEvent(UserTouchedEvent event) {
-		if (!this.conventionService.isNullOrEmpty(event.getSubjectId())) this.evict(this.buildKey(event.getSubjectId()));
-		if (!this.conventionService.isNullOrEmpty(event.getPreviousSubjectId())) this.evict(this.buildKey(event.getPreviousSubjectId()));
-	}
+    @EventListener
+    public void handleUserTouchedEvent(UserTouchedEvent event) {
+        if (!this.conventionService.isNullOrEmpty(event.getSubjectId()))
+            this.evict(this.buildKey(event.getSubjectId()));
+        if (!this.conventionService.isNullOrEmpty(event.getPreviousSubjectId()))
+            this.evict(this.buildKey(event.getPreviousSubjectId()));
+    }
 
-	@Override
-	protected Class<UserInterceptorCacheValue> valueClass() {
-		return UserInterceptorCacheValue.class;
-	}
+    @Override
+    protected Class<UserInterceptorCacheValue> valueClass() {
+        return UserInterceptorCacheValue.class;
+    }
 
-	@Override
-	public String keyOf(UserInterceptorCacheValue value) {
-		return this.buildKey(value.getSubjectId());
-	}
+    @Override
+    public String keyOf(UserInterceptorCacheValue value) {
+        return this.buildKey(value.getSubjectId());
+    }
 
 
-	public String buildKey(String subject) {
-		return this.generateKey(new HashMap<>() {{
-			put("$subject$", subject);
-		}});
-	}
+    public String buildKey(String subject) {
+		HashMap<String, String> keyParts = new HashMap<>();
+		keyParts.put("$subject$", subject);
+        return this.generateKey(keyParts);
+    }
 }

@@ -33,19 +33,26 @@ public class TopicBuilder extends BaseBuilder<Topic, TopicEntity> {
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
-        List<Topic> models = new ArrayList<>();
+        List<Topic> models = new ArrayList<>(100);
 
         if (data == null) return models;
         for (TopicEntity d : data) {
 
             Topic m = new Topic();
-            if (fields.hasField(this.asIndexer(TopicEntity._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(TopicEntity._size))) m.setSize(d.getSize());
-            if (fields.hasField(this.asIndexer(TopicEntity._label))) m.setLabel(d.getLabel());
-            if (fields.hasField(this.asIndexer(TopicEntity._wordDescription))) m.setWordDescription(d.getWordDescription());
-            if (fields.hasField(this.asIndexer(TopicEntity._docsActive))) m.setDocsActive(d.getDocsActive());
-            if (fields.hasField(this.asIndexer(TopicEntity._topicEntropy))) m.setTopicEntropy(d.getTopicEntropy());
-            if (fields.hasField(this.asIndexer(TopicEntity._topicCoherence))) m.setTopicCoherence(d.getTopicCoherence());
+            if (fields.hasField(this.asIndexer(TopicEntity._id)))
+                m.setId(d.getId());
+            if (fields.hasField(this.asIndexer(TopicEntity._size)))
+                m.setSize(d.getSize());
+            if (fields.hasField(this.asIndexer(TopicEntity._label)))
+                m.setLabel(d.getLabel());
+            if (fields.hasField(this.asIndexer(TopicEntity._wordDescription)))
+                m.setWordDescription(d.getWordDescription());
+            if (fields.hasField(this.asIndexer(TopicEntity._docsActive)))
+                m.setDocsActive(d.getDocsActive());
+            if (fields.hasField(this.asIndexer(TopicEntity._topicEntropy)))
+                m.setTopicEntropy(d.getTopicEntropy());
+            if (fields.hasField(this.asIndexer(TopicEntity._topicCoherence)))
+                m.setTopicCoherence(d.getTopicCoherence());
             models.add(m);
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));

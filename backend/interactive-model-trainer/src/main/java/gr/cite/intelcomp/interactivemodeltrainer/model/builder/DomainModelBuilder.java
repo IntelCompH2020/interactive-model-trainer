@@ -46,14 +46,14 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
-        List<DomainModel> models = new ArrayList<>();
+        List<DomainModel> models = new ArrayList<>(100);
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         UserScope userScope = applicationContext.getBean(UserScope.class);
 
         if (data == null) return models;
         for (DomainModelEntity d : data) {
-            if (Visibility.Private.equals(d.getVisibility())) {
+            if (Visibility.Private == d.getVisibility()) {
                 if (!userScope.isSet()) continue;
                 if (d.getCreator() != null
                         && !d.getCreator().equals("-")
@@ -63,19 +63,28 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
             if (modelIsTraining(d)) continue;
 
             DomainModel m = new DomainModel();
-            if (fields.hasField(this.asIndexer(DomainModelEntity._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._name))) m.setName(d.getName());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._tag))) m.setTag(d.getTag());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._corpus))) m.setCorpus(
-                    d.getCorpus()
-                            .replaceAll("^(.*)/", "")
-                            .replace(".json", "")
-            );
-            if (fields.hasField(this.asIndexer(DomainModelEntity._creator))) m.setCreator(extractUsername(d.getCreator(), users));
-            if (fields.hasField(this.asIndexer(DomainModelEntity._location))) m.setLocation(d.getLocation());
-            if (fields.hasField(this.asIndexer(DomainModelEntity._creation_date))) m.setCreation_date(d.getCreation_date());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._id)))
+                m.setId(d.getId());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._name)))
+                m.setName(d.getName());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._description)))
+                m.setDescription(d.getDescription());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._tag)))
+                m.setTag(d.getTag());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._visibility)))
+                m.setVisibility(d.getVisibility());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._corpus)))
+                m.setCorpus(
+                        d.getCorpus()
+                                .replaceAll("^(.*)/", "")
+                                .replace(".json", "")
+                );
+            if (fields.hasField(this.asIndexer(DomainModelEntity._creator)))
+                m.setCreator(extractUsername(d.getCreator(), users));
+            if (fields.hasField(this.asIndexer(DomainModelEntity._location)))
+                m.setLocation(d.getLocation());
+            if (fields.hasField(this.asIndexer(DomainModelEntity._creation_date)))
+                m.setCreation_date(d.getCreation_date());
             models.add(m);
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -87,9 +96,9 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && !cache.getPayload().isEmpty()) {
             cache.getPayload().forEach((item) -> {
-                if (item.getType().equals(RunningTaskType.training) &&
+                if (item.getType() == RunningTaskType.training &&
                         !item.isFinished() &&
-                        item.getSubType().equals(RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING) &&
+                        item.getSubType() == RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING &&
                         item.getLabel().equals(model.getName()))
                     result.set(true);
             });
@@ -100,12 +109,12 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
     @Override
     public List<DomainModel> buildSortedByOwnerAsc(FieldSet directives, List<DomainModelEntity> data) {
         Comparator<DomainModel> byOwner = Comparator.comparing(DomainModel::getCreator);
-        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner).toList();
     }
 
     @Override
     public List<DomainModel> buildSortedByOwnerDesc(FieldSet directives, List<DomainModelEntity> data) {
         Comparator<DomainModel> byOwner = Comparator.comparing(DomainModel::getCreator);
-        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner.reversed()).toList();
     }
 }

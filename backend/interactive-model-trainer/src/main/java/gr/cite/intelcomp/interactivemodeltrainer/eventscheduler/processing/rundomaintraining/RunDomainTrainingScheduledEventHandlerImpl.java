@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.EntityManager;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -56,11 +57,11 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING)) {
             return handleTraining(scheduledEvent, entityManager);
         } else if (
-                scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.CLASSIFY_DOMAIN_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.SAMPLE_DOMAIN_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL)
+                scheduledEvent.getEventType() == ScheduledEventType.RETRAIN_DOMAIN_MODEL ||
+                        scheduledEvent.getEventType() == ScheduledEventType.CLASSIFY_DOMAIN_MODEL ||
+                        scheduledEvent.getEventType() == ScheduledEventType.EVALUATE_DOMAIN_MODEL ||
+                        scheduledEvent.getEventType() == ScheduledEventType.SAMPLE_DOMAIN_MODEL ||
+                        scheduledEvent.getEventType() == ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL
         ) {
             return handleCurating(scheduledEvent, entityManager);
         } else return EventProcessingStatus.Error;
@@ -91,8 +92,8 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                         .jobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                         .ids(trainingTaskRequestId).first();
                 try {
-                    if (!EventProcessingStatus.Postponed.equals(status)) {
-                        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING))
+                    if (EventProcessingStatus.Postponed != status) {
+                        if (scheduledEvent.getEventType() == ScheduledEventType.RUN_ROOT_DOMAIN_TRAINING)
                             runRootTraining(trainingTaskRequest, scheduledEvent, entityManager);
                         status = EventProcessingStatus.Success;
 
@@ -137,15 +138,15 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
                         .jobName(TRAIN_DOMAIN_MODELS_SERVICE_NAME)
                         .ids(trainingTaskRequestId).first();
                 try {
-                    if (scheduledEvent.getEventType().equals(ScheduledEventType.RETRAIN_DOMAIN_MODEL))
+                    if (scheduledEvent.getEventType() == ScheduledEventType.RETRAIN_DOMAIN_MODEL)
                         runRootRetraining(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.CLASSIFY_DOMAIN_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.CLASSIFY_DOMAIN_MODEL)
                         runRootClassification(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.EVALUATE_DOMAIN_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.EVALUATE_DOMAIN_MODEL)
                         runRootEvaluation(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.SAMPLE_DOMAIN_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.SAMPLE_DOMAIN_MODEL)
                         runRootSampling(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.GIVE_FEEDBACK_DOMAIN_MODEL)
                         runRootFeedback(trainingTaskRequest, scheduledEvent, entityManager);
                     status = EventProcessingStatus.Success;
                 } catch (Exception e) {
@@ -173,7 +174,8 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         HashMap<String, String> params = new HashMap<>();
         params.put("corpus_name", request.getCorpus());
         params.put("tag", request.getName());
-        if (request.getKeywords() != null && !request.getKeywords().isEmpty()) params.put("keywords", "\""+request.getKeywords()+"\"");
+        if (request.getKeywords() != null && !request.getKeywords().isEmpty())
+            params.put("keywords", "\"" + request.getKeywords() + "\"");
         else params.put("keywords", "");
         if ("on_create_category_name".equals(request.getTask())) {
             params.put("zeroshot", containerServicesProperties.getDomainTrainingService().getZeroShotModelFolder());

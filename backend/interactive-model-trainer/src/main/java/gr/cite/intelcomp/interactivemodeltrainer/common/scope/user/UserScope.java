@@ -7,29 +7,30 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import javax.management.InvalidApplicationException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @RequestScope
 public class UserScope {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UserScope.class));
-    private  UUID userId = null;
+    private final AtomicReference<UUID> userId = new AtomicReference<>();
 
-    public Boolean isSet(){
-        return this.userId != null;
+    public Boolean isSet() {
+        return this.userId.get() != null;
     }
 
     public UUID getUserId() throws InvalidApplicationException {
-        if (this.userId == null) throw new InvalidApplicationException("user not set");
-        return this.userId;
+        if (this.userId.get() == null) throw new InvalidApplicationException("user not set");
+        return this.userId.get();
     }
 
     public UUID getUserIdSafe() {
-        return this.userId;
+        return this.userId.get();
     }
 
     public void setUserId(UUID userId) {
+        this.userId.set(userId);
         logger.trace("User scope set {}", userId);
-        this.userId = userId;
     }
 }
 

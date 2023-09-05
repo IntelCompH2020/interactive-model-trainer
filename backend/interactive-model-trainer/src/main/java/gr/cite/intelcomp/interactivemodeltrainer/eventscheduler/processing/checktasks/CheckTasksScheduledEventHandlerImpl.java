@@ -35,9 +35,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.EntityManager;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -205,8 +207,13 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private void updateCache(UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache == null || cache.getPayload() == null) return;
-        RunningTaskQueueItem item = cache.getPayload().stream().filter(i -> i.getTask().equals(task)).collect(Collectors.toList()).get(0);
-        if (item == null) return;
+        Optional<RunningTaskQueueItem> itemOptional = cache.getPayload()
+                .stream()
+                .filter(i -> i.getTask().equals(task))
+                .findFirst();
+        if (itemOptional.isEmpty())
+            return;
+        RunningTaskQueueItem item = itemOptional.get();
 
         item.setFinished(true);
         item.setFinishedAt(Instant.now());
@@ -216,25 +223,25 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             logger.error("Cannot extract label from running task object. Updating cache failed.");
             return;
         }
-        if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL.equals(item.getSubType())) {
+        if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME));
             item.setResponse(response);
-        } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL.equals(item.getSubType())) {
+        } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME));
             item.setResponse(response);
-        } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL.equals(item.getSubType())) {
+        } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
             response.setPuScores(domainClassificationParametersService.getPU_scores(modelName));
             item.setResponse(response);
-        } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL.equals(item.getSubType())) {
+        } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME));
             response.setDocuments(domainClassificationParametersService.getSampledDocuments(modelName));
             item.setResponse(response);
-        } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL.equals(item.getSubType())) {
+        } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_FEEDBACK_LOG_FILE_NAME));
             item.setResponse(response);
@@ -244,9 +251,16 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private void removeOldCache() {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
-            List<RunningTaskQueueItem> finishedItems = cache.getPayload().stream().filter(i -> i.isFinished() && i.getType().equals(RunningTaskType.curating)).collect(Collectors.toList());
+            List<RunningTaskQueueItem> finishedItems = cache.getPayload()
+                    .stream()
+                    .filter(i -> i.isFinished() && i.getType() == RunningTaskType.curating)
+                    .toList();
             for (RunningTaskQueueItem item : finishedItems) {
-                if (item.getFinishedAt().isBefore(Instant.now().minus(config.get().getCacheOptions().getTaskResponseCacheRetentionInHours(), ChronoUnit.HOURS))) cache.getPayload().remove(item);
+                boolean isOld = item.getFinishedAt().isBefore(
+                        Instant.now().minus(config.get().getCacheOptions().getTaskResponseCacheRetentionInHours(), ChronoUnit.HOURS)
+                );
+                if (isOld)
+                    cache.getPayload().remove(item);
             }
         }
     }

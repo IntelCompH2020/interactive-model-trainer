@@ -11,11 +11,8 @@ import org.springframework.stereotype.Component;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class RunTrainingConsistencyHandler implements ConsistencyHandler<RunTrainingConsistencyPredicates> {
 
-    private final QueryFactory queryFactory;
-
     @Autowired
     public RunTrainingConsistencyHandler(QueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
     }
 
     @Override

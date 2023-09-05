@@ -21,6 +21,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.Con
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,7 +88,7 @@ public class DockerServiceImpl implements DockerService {
         }
         Path temp_file = Paths.get(this.containerServicesProperties.getServices().get(service).getTempFolder(), fileName);
         Files.createFile(temp_file);
-        Files.write(temp_file, content.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(temp_file, content);
     }
 
     @Override
@@ -130,24 +129,31 @@ public class DockerServiceImpl implements DockerService {
         List<WordListEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
         if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
-            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).toList();
         }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
+                    .toList();
         }
         if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
+                    .toList();
         }
         if (lookup.getCreatedAt() != null) {
-            result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
-                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                            e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS)))
+                    .toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -156,13 +162,13 @@ public class DockerServiceImpl implements DockerService {
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
                 if (orderItem.equals("name"))
-                    result = result.stream().sorted(byNme.reversed()).collect(Collectors.toList());
+                    result = result.stream().sorted(byNme.reversed()).toList();
                 else if (orderItem.equals("creation_date"))
-                    result = result.stream().sorted(byCreationDate.reversed()).collect(Collectors.toList());
+                    result = result.stream().sorted(byCreationDate.reversed()).toList();
             } else {
-                if (orderItem.equals("name")) result = result.stream().sorted(byNme).collect(Collectors.toList());
+                if (orderItem.equals("name")) result = result.stream().sorted(byNme).toList();
                 else if (orderItem.equals("creation_date"))
-                    result = result.stream().sorted(byCreationDate).collect(Collectors.toList());
+                    result = result.stream().sorted(byCreationDate).toList();
             }
         }
 
@@ -176,24 +182,37 @@ public class DockerServiceImpl implements DockerService {
         List<RawCorpusEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim()))
+                    .toList();
         }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
+                    .toList();
         }
         if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
+                    .toList();
         }
-        if (lookup.getCorpusValidFor() != null && !CorpusValidFor.ALL.equals(lookup.getCorpusValidFor())) {
-            result = result.stream().filter(e -> e.getValid_for().equals(lookup.getCorpusValidFor())).collect(Collectors.toList());
+        if (lookup.getCorpusValidFor() != null && CorpusValidFor.ALL != lookup.getCorpusValidFor()) {
+            result = result
+                    .stream()
+                    .filter(e -> e.getValid_for() == lookup.getCorpusValidFor())
+                    .toList();
         }
         if (lookup.getCreatedAt() != null) {
-            result = result.stream().filter(e -> e.getDownload_date().toInstant().isAfter(lookup.getCreatedAt()) &&
-                    e.getDownload_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getDownload_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                            e.getDownload_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS)))
+                    .toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -202,29 +221,19 @@ public class DockerServiceImpl implements DockerService {
             Comparator<RawCorpusEntity> byRecords = Comparator.comparing(RawCorpusEntity::getRecords);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName.reversed()).collect(Collectors.toList());
-                        break;
-                    case "download_date":
-                        result = result.stream().sorted(byDownloadDate.reversed()).collect(Collectors.toList());
-                        break;
-                    case "records":
-                        result = result.stream().sorted(byRecords.reversed()).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName.reversed()).toList();
+                    case "download_date" -> result.stream().sorted(byDownloadDate.reversed()).toList();
+                    case "records" -> result.stream().sorted(byRecords.reversed()).toList();
+                    default -> result;
+                };
             } else {
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName).collect(Collectors.toList());
-                        break;
-                    case "download_date":
-                        result = result.stream().sorted(byDownloadDate).collect(Collectors.toList());
-                        break;
-                    case "records":
-                        result = result.stream().sorted(byRecords).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName).toList();
+                    case "download_date" -> result.stream().sorted(byDownloadDate).toList();
+                    case "records" -> result.stream().sorted(byRecords).toList();
+                    default -> result;
+                };
             }
         }
 
@@ -238,27 +247,37 @@ public class DockerServiceImpl implements DockerService {
         List<LogicalCorpusEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
         if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
-            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).toList();
         }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
+                    .toList();
         }
         if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
+                    .toList();
         }
-        if (lookup.getCorpusValidFor() != null && !CorpusValidFor.ALL.equals(lookup.getCorpusValidFor())) {
-            result = result.stream().filter(e -> e.getValid_for().equals(lookup.getCorpusValidFor())).collect(Collectors.toList());
+        if (lookup.getCorpusValidFor() != null && CorpusValidFor.ALL != lookup.getCorpusValidFor()) {
+            result = result
+                    .stream()
+                    .filter(e -> e.getValid_for() == lookup.getCorpusValidFor())
+                    .toList();
         }
         if (lookup.getCreatedAt() != null) {
-            result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
-                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                            e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS)))
+                    .toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -267,29 +286,19 @@ public class DockerServiceImpl implements DockerService {
             Comparator<LogicalCorpusEntity> byValidFor = Comparator.comparing(LogicalCorpusEntity::getValid_for);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName.reversed()).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate.reversed()).collect(Collectors.toList());
-                        break;
-                    case "valid_for":
-                        result = result.stream().sorted(byValidFor.reversed()).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName.reversed()).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate.reversed()).toList();
+                    case "valid_for" -> result.stream().sorted(byValidFor.reversed()).toList();
+                    default -> result;
+                };
             } else {
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate).collect(Collectors.toList());
-                        break;
-                    case "valid_for":
-                        result = result.stream().sorted(byValidFor).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate).toList();
+                    case "valid_for" -> result.stream().sorted(byValidFor).toList();
+                    default -> result;
+                };
             }
         }
 
@@ -303,42 +312,46 @@ public class DockerServiceImpl implements DockerService {
         List<TopicModelEntity> result = new ArrayList<>(data);
 
         result = result.stream().filter(entity -> {
-            if (Visibility.Public.equals(entity.getVisibility())) return true;
+            if (Visibility.Public == entity.getVisibility()) return true;
             else {
                 if (!userScope.isSet()) return false;
                 else return entity.getCreator() != null
                         && !entity.getCreator().equals("-")
                         && extractId(entity.getCreator(), users).equals(userScope.getUserIdSafe().toString());
             }
-        }).collect(Collectors.toList());
+        }).toList();
 
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
         if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
-            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).toList();
         }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
+                    .toList();
         }
         if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
+                    .toList();
         }
         TopicModelLookup topicModelLookup = (TopicModelLookup) lookup;
         if (topicModelLookup.getTrainer() != null && !topicModelLookup.getTrainer().equals("all")) {
-            result = result.stream().filter(e -> e.getTrainer().contains(topicModelLookup.getTrainer().trim())).collect(Collectors.toList());
+            result = result.stream().filter(e -> e.getTrainer().contains(topicModelLookup.getTrainer().trim())).toList();
         }
         if (topicModelLookup.getHierarchyLevel() != null) {
-            result = result.stream().filter(e -> e.getHierarchyLevel().equals(topicModelLookup.getHierarchyLevel())).collect(Collectors.toList());
+            result = result.stream().filter(e -> e.getHierarchyLevel().equals(topicModelLookup.getHierarchyLevel())).toList();
         }
         if (lookup.getCreatedAt() != null) {
             result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
-                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -347,42 +360,33 @@ public class DockerServiceImpl implements DockerService {
             Comparator<TopicModelEntity> byType = Comparator.comparing(TopicModelEntity::getTrainer);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName.reversed()).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate.reversed()).collect(Collectors.toList());
-                        break;
-                    case "type":
-                        result = result.stream().sorted(byType.reversed()).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName.reversed()).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate.reversed()).toList();
+                    case "type" -> result.stream().sorted(byType.reversed()).toList();
+                    default -> result;
+                };
             } else {
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate).collect(Collectors.toList());
-                        break;
-                    case "type":
-                        result = result.stream().sorted(byType).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate).toList();
+                    case "type" -> result.stream().sorted(byType).toList();
+                    default -> result;
+                };
             }
         }
 
         if (lookup.getPage() != null) {
-            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).collect(Collectors.toList());
-            List<TopicModelEntity> collectedSubmodels = result.stream().filter(entity -> entity.getHierarchyLevel() > 0).collect(Collectors.toList());
+            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).toList();
+            List<TopicModelEntity> collectedSubmodels = result.stream().filter(entity -> entity.getHierarchyLevel() > 0).toList();
             collectedModels = collectedModels.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), collectedModels.size()));
             for (TopicModelEntity submodel : collectedSubmodels) {
                 String corpus = submodel.getCorpus()
                         .replaceAll("^(.*)/", "")
                         .replace("Subcorpus created from ", "")
                         .replace(".json", "");
-                if (collectedModels.stream().anyMatch(entity -> entity.getName().equals(corpus))) collectedModels.add(submodel);
+                if (collectedModels.stream().anyMatch(entity -> entity.getName().equals(corpus)))
+                    collectedModels.add(submodel);
             }
             return collectedModels;
         }
@@ -393,28 +397,44 @@ public class DockerServiceImpl implements DockerService {
         List<DomainModelEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim()))
+                    .toList();
         }
         if (lookup.getVisibilities() != null && !lookup.getVisibilities().isEmpty()) {
-            result = result.stream().filter(e -> lookup.getVisibilities().contains(e.getVisibility())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> lookup.getVisibilities().contains(e.getVisibility()))
+                    .toList();
         }
         if (lookup.getCreator() != null && !lookup.getCreator().isEmpty()) {
             List<String> idsFromUsername = getUserIdsFromUsername(lookup.getCreator());
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromUsername.contains(e.getCreator()))
+                    .toList();
         }
         if (!currentUser.equals("-") && lookup.getMine() != null && lookup.getMine()) {
             List<String> idsFromId = getUserIdsFromId(currentUser);
-            result = result.stream().filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
-                    .collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreator() != null && idsFromId.contains(e.getCreator()))
+                    .toList();
         }
         DomainModelLookup domainModelLookup = (DomainModelLookup) lookup;
         if (domainModelLookup.getTag() != null && !domainModelLookup.getTag().trim().isEmpty()) {
-            result = result.stream().filter(e -> e.getTag().contains(domainModelLookup.getTag().trim())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getTag().contains(domainModelLookup.getTag().trim()))
+                    .toList();
         }
         if (lookup.getCreatedAt() != null) {
-            result = result.stream().filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
-                    e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS))).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getCreation_date().toInstant().isAfter(lookup.getCreatedAt()) &&
+                            e.getCreation_date().toInstant().isBefore(lookup.getCreatedAt().plus(1, ChronoUnit.DAYS)))
+                    .toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -423,29 +443,19 @@ public class DockerServiceImpl implements DockerService {
             Comparator<DomainModelEntity> byTag = Comparator.comparing(DomainModelEntity::getTag);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName.reversed()).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate.reversed()).collect(Collectors.toList());
-                        break;
-                    case "tag":
-                        result = result.stream().sorted(byTag.reversed()).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName.reversed()).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate.reversed()).toList();
+                    case "tag" -> result.stream().sorted(byTag.reversed()).toList();
+                    default -> result;
+                };
             } else {
-                switch (orderItem) {
-                    case "name":
-                        result = result.stream().sorted(byName).collect(Collectors.toList());
-                        break;
-                    case "creation_date":
-                        result = result.stream().sorted(byCreationDate).collect(Collectors.toList());
-                        break;
-                    case "tag":
-                        result = result.stream().sorted(byTag).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "name" -> result.stream().sorted(byName).toList();
+                    case "creation_date" -> result.stream().sorted(byCreationDate).toList();
+                    case "tag" -> result.stream().sorted(byTag).toList();
+                    default -> result;
+                };
             }
         }
 
@@ -458,10 +468,16 @@ public class DockerServiceImpl implements DockerService {
     private List<TopicEntity> applyTopicLookup(List<TopicEntity> data, @NotNull TopicLookup lookup) {
         List<TopicEntity> result = new ArrayList<>(data);
         if (lookup.getLike() != null) {
-            result = result.stream().filter(e -> e.getLabel().toLowerCase().contains(lookup.getLike().trim())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getLabel().toLowerCase().contains(lookup.getLike().trim()))
+                    .toList();
         }
         if (lookup.getWordDescription() != null) {
-            result = result.stream().filter(e -> e.getWordDescription().toLowerCase().contains(lookup.getWordDescription().trim())).collect(Collectors.toList());
+            result = result
+                    .stream()
+                    .filter(e -> e.getWordDescription().toLowerCase().contains(lookup.getWordDescription().trim()))
+                    .toList();
         }
         if (lookup.getOrder() != null && !lookup.getOrder().isEmpty()) {
             String orderItem = lookup.getOrder().getItems().get(0);
@@ -473,47 +489,25 @@ public class DockerServiceImpl implements DockerService {
             Comparator<TopicEntity> byEntropy = Comparator.comparing(TopicEntity::getTopicEntropyNumber);
             if (orderItem.contains("-")) {
                 orderItem = orderItem.replace("-", "");
-                switch (orderItem) {
-                    case "id":
-                        result = result.stream().sorted(byId.reversed()).collect(Collectors.toList());
-                        break;
-                    case "size":
-                        result = result.stream().sorted(bySize.reversed()).collect(Collectors.toList());
-                        break;
-                    case "label":
-                        result = result.stream().sorted(byLabel.reversed()).collect(Collectors.toList());
-                        break;
-                    case "docsactive":
-                        result = result.stream().sorted(byDocsActive.reversed()).collect(Collectors.toList());
-                        break;
-                    case "topiccoherence":
-                        result = result.stream().sorted(byCoherence.reversed()).collect(Collectors.toList());
-                        break;
-                    case "topicentropy":
-                        result = result.stream().sorted(byEntropy.reversed()).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "id" -> result.stream().sorted(byId.reversed()).toList();
+                    case "size" -> result.stream().sorted(bySize.reversed()).toList();
+                    case "label" -> result.stream().sorted(byLabel.reversed()).toList();
+                    case "docsactive" -> result.stream().sorted(byDocsActive.reversed()).toList();
+                    case "topiccoherence" -> result.stream().sorted(byCoherence.reversed()).toList();
+                    case "topicentropy" -> result.stream().sorted(byEntropy.reversed()).toList();
+                    default -> result;
+                };
             } else {
-                switch (orderItem) {
-                    case "id":
-                        result = result.stream().sorted(byId).collect(Collectors.toList());
-                        break;
-                    case "size":
-                        result = result.stream().sorted(bySize).collect(Collectors.toList());
-                        break;
-                    case "label":
-                        result = result.stream().sorted(byLabel).collect(Collectors.toList());
-                        break;
-                    case "docsactive":
-                        result = result.stream().sorted(byDocsActive).collect(Collectors.toList());
-                        break;
-                    case "topiccoherence":
-                        result = result.stream().sorted(byCoherence).collect(Collectors.toList());
-                        break;
-                    case "topicentropy":
-                        result = result.stream().sorted(byEntropy).collect(Collectors.toList());
-                        break;
-                }
+                result = switch (orderItem) {
+                    case "id" -> result.stream().sorted(byId).toList();
+                    case "size" -> result.stream().sorted(bySize).toList();
+                    case "label" -> result.stream().sorted(byLabel).toList();
+                    case "docsactive" -> result.stream().sorted(byDocsActive).toList();
+                    case "topiccoherence" -> result.stream().sorted(byCoherence).toList();
+                    case "topicentropy" -> result.stream().sorted(byEntropy).toList();
+                    default -> result;
+                };
             }
         }
 
@@ -554,7 +548,7 @@ public class DockerServiceImpl implements DockerService {
     @Override
     public List<? extends CorpusEntity> listCorpus(CorpusLookup lookup) throws InterruptedException, IOException, ApiException {
         List<CorpusEntity> result = Lists.newArrayList();
-        if (CorpusType.LOGICAL.equals(lookup.getCorpusType())) {
+        if (CorpusType.LOGICAL == lookup.getCorpusType()) {
             List<LogicalCorpusEntity> data = new ArrayList<>();
             LogicalCorpusCachedEntity cached = (LogicalCorpusCachedEntity) cacheLibrary.get(LogicalCorpusCachedEntity.CODE);
             if (cached == null || cached.isDirty(checkTasksSchedulerEventConfig.get().getCacheOptions().getValidPeriodInSeconds())) {
@@ -577,7 +571,7 @@ public class DockerServiceImpl implements DockerService {
                 data.addAll(cached.getPayload());
             }
             result.addAll(applyLogicalCorpusLookup(data, lookup));
-        } else if (CorpusType.RAW.equals(lookup.getCorpusType())) {
+        } else if (CorpusType.RAW == lookup.getCorpusType()) {
             List<RawCorpusEntity> data = new ArrayList<>();
             RawCorpusCachedEntity cached = (RawCorpusCachedEntity) cacheLibrary.get(RawCorpusCachedEntity.CODE);
             if (cached == null || cached.isDirty(checkTasksSchedulerEventConfig.get().getCacheOptions().getValidPeriodInSeconds())) {
@@ -606,7 +600,7 @@ public class DockerServiceImpl implements DockerService {
     public List<? extends ModelEntity> listModels(ModelLookup lookup, List<UserEntity> users) throws InterruptedException, IOException, ApiException {
         List<ModelEntity> result = new ArrayList<>();
 
-        if (ModelType.DOMAIN.equals(lookup.getModelType())) {
+        if (ModelType.DOMAIN == lookup.getModelType()) {
             List<DomainModelEntity> data = new ArrayList<>();
             DomainModelCachedEntity cached = (DomainModelCachedEntity) cacheLibrary.get(DomainModelCachedEntity.CODE);
             if (cached == null || cached.isDirty(checkTasksSchedulerEventConfig.get().getCacheOptions().getValidPeriodInSeconds())) {
@@ -631,7 +625,7 @@ public class DockerServiceImpl implements DockerService {
                 data.addAll(cached.getPayload());
             }
             result.addAll(applyDomainModelLookup(data, lookup));
-        } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
+        } else if (ModelType.TOPIC == lookup.getModelType()) {
             List<TopicModelEntity> data = new ArrayList<>();
             TopicModelCachedEntity cached = (TopicModelCachedEntity) cacheLibrary.get(TopicModelCachedEntity.CODE);
             if (cached == null || cached.isDirty(checkTasksSchedulerEventConfig.get().getCacheOptions().getValidPeriodInSeconds())) {
@@ -672,7 +666,7 @@ public class DockerServiceImpl implements DockerService {
 
         String response = this.dockerExecutionService.execCommand(CommandType.MODEL_GET, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
-        if (ModelType.DOMAIN.equals(lookup.getModelType())) {
+        if (ModelType.DOMAIN == lookup.getModelType()) {
             Map<String, DomainModelEntity> models = mapper.readValue(response, new TypeReference<>() {
             });
             List<DomainModelEntity> data = new ArrayList<>();
@@ -683,7 +677,7 @@ public class DockerServiceImpl implements DockerService {
             });
 
             result.addAll(data);
-        } else if (ModelType.TOPIC.equals(lookup.getModelType())) {
+        } else if (ModelType.TOPIC == lookup.getModelType()) {
             Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
             });
             List<TopicModelEntity> data = new ArrayList<>();
@@ -782,7 +776,7 @@ public class DockerServiceImpl implements DockerService {
     @Override
     public void copyModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
         List<String> command;
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.COPY_CMD);
         } else {
@@ -795,7 +789,7 @@ public class DockerServiceImpl implements DockerService {
         command.add(name + "-copy");
 
         this.dockerExecutionService.execCommand(CommandType.MODEL_COPY, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
         } else {
             cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
@@ -843,7 +837,7 @@ public class DockerServiceImpl implements DockerService {
     @Override
     public void renameModel(ModelType modelType, String oldName, String newName) throws InterruptedException, IOException, ApiException {
         List<String> command;
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.RENAME_CMD);
         } else {
@@ -858,7 +852,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
         } else {
             cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
@@ -892,7 +886,7 @@ public class DockerServiceImpl implements DockerService {
     @Override
     public void deleteModel(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
         List<String> command;
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             command = new ArrayList<>(ContainerServicesProperties.ManageTopicModels.MANAGER_ENTRY_CMD);
             command.add(ContainerServicesProperties.ManageTopicModels.DELETE_CMD);
         } else {
@@ -908,7 +902,7 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
-        if (ModelType.TOPIC.equals(modelType)) {
+        if (ModelType.TOPIC == modelType) {
             cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
             cacheLibrary.remove(TopicCachedEntity.CODE + name);
         } else {

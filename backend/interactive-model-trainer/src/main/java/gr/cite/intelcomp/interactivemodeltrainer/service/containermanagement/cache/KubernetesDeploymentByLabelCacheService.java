@@ -10,69 +10,67 @@ import java.util.HashMap;
 @Service
 public class KubernetesDeploymentByLabelCacheService extends CacheService<KubernetesDeploymentByLabelCacheService.KubernetesDeploymentByLabelCacheValue> {
 
-	public static class KubernetesDeploymentByLabelCacheValue {
+    public static class KubernetesDeploymentByLabelCacheValue {
 
-		public KubernetesDeploymentByLabelCacheValue() {
-		}
+        public KubernetesDeploymentByLabelCacheValue() {
+        }
 
-		public KubernetesDeploymentByLabelCacheValue(String namespace, String deploymentLabel, String name) {
-			this.namespace = namespace;
-			this.deploymentLabel = deploymentLabel;
-			this.name = name;
-		}
+        public KubernetesDeploymentByLabelCacheValue(String namespace, String deploymentLabel, String name) {
+            this.namespace = namespace;
+            this.deploymentLabel = deploymentLabel;
+            this.name = name;
+        }
 
-		private String namespace;
-		public String getNamespace() {
-			return namespace;
-		}
+        private String namespace;
 
-		public void setNamespace(String namespace) {
-			this.namespace = namespace;
-		}
+        public String getNamespace() {
+            return namespace;
+        }
 
-		private String deploymentLabel;
+        public void setNamespace(String namespace) {
+            this.namespace = namespace;
+        }
 
-		public String getDeploymentLabel() {
-			return deploymentLabel;
-		}
+        private String deploymentLabel;
 
-		public void setDeploymentLabel(String deploymentLabel) {
-			this.deploymentLabel = deploymentLabel;
-		}
+        public String getDeploymentLabel() {
+            return deploymentLabel;
+        }
 
-		private String name;
+        public void setDeploymentLabel(String deploymentLabel) {
+            this.deploymentLabel = deploymentLabel;
+        }
 
-		public String getName() {
-			return name;
-		}
+        private String name;
 
-		public void setName(String name) {
-			this.name = name;
-		}
-	}
+        public String getName() {
+            return name;
+        }
 
-	private final ConventionService conventionService;
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
 
-	@Autowired
-	public KubernetesDeploymentByLabelCacheService(KubernetesDeploymentByLabelCacheOptions options, ConventionService conventionService) {
-		super(options);
-		this.conventionService = conventionService;
-	}
-	
-	@Override
-	protected Class<KubernetesDeploymentByLabelCacheValue> valueClass() {
-		return KubernetesDeploymentByLabelCacheValue.class;
-	}
+    @Autowired
+    public KubernetesDeploymentByLabelCacheService(KubernetesDeploymentByLabelCacheOptions options) {
+        super(options);
+    }
 
-	@Override
-	public String keyOf(KubernetesDeploymentByLabelCacheValue value) {
-		return this.buildKey(value.getNamespace(), value.getDeploymentLabel());
-	}
+    @Override
+    protected Class<KubernetesDeploymentByLabelCacheValue> valueClass() {
+        return KubernetesDeploymentByLabelCacheValue.class;
+    }
 
-	public String buildKey(String namespace, String deploymentLabel) {
-		return this.generateKey(new HashMap<>() {{
-			put("$namespace$", namespace);
-			put("$label$", deploymentLabel);
-		}});
-	}
+    @Override
+    public String keyOf(KubernetesDeploymentByLabelCacheValue value) {
+        return this.buildKey(value.getNamespace(), value.getDeploymentLabel());
+    }
+
+    public String buildKey(String namespace, String deploymentLabel) {
+        HashMap<String, String> keyPaths = new HashMap<>();
+        keyPaths.put("$namespace$", namespace);
+        keyPaths.put("$label$", deploymentLabel);
+        return this.generateKey(keyPaths);
+    }
 }

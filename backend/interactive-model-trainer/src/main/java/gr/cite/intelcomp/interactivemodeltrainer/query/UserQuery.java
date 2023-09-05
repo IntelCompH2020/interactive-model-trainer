@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+
 import java.util.*;
 
 @Component
@@ -68,7 +69,7 @@ public class UserQuery extends QueryBase<UserEntity> {
 
     @Override
     protected Boolean isFalseQuery() {
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
@@ -98,7 +99,7 @@ public class UserQuery extends QueryBase<UserEntity> {
             predicates.add(inClause);
         }
 
-        if (predicates.size() > 0) {
+        if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
         } else {

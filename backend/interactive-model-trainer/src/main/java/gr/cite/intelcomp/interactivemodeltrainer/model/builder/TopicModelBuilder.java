@@ -45,7 +45,7 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
-        List<TopicModel> models = new ArrayList<>();
+        List<TopicModel> models = new ArrayList<>(100);
 
         if (data == null) return models;
         for (TopicModelEntity d : data) {
@@ -53,22 +53,33 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
             if (modelIsTraining(d)) continue;
 
             TopicModel m = new TopicModel();
-            if (fields.hasField(this.asIndexer(TopicModelEntity._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._name))) m.setName(d.getName());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._trainer))) m.setTrainer(d.getTrainer());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._corpus))) m.setCorpus(
-                    d.getCorpus()
-                            .replaceAll("^(.*)/", "")
-                            .replace("Subcorpus created from ", "")
-                            .replace(".json", "")
-            );
-            if (fields.hasField(this.asIndexer(TopicModelEntity._creator))) m.setCreator(extractUsername(d.getCreator(), users));
-            if (fields.hasField(this.asIndexer(TopicModelEntity._params))) m.setParams(d.getParams());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._location))) m.setLocation(d.getLocation());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._hierarchy_level))) m.setHierarchyLevel(d.getHierarchyLevel());
-            if (fields.hasField(this.asIndexer(TopicModelEntity._creation_date))) m.setCreation_date(d.getCreation_date());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._id)))
+                m.setId(d.getId());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._name)))
+                m.setName(d.getName());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._description)))
+                m.setDescription(d.getDescription());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._visibility)))
+                m.setVisibility(d.getVisibility());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._trainer)))
+                m.setTrainer(d.getTrainer());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._corpus)))
+                m.setCorpus(
+                        d.getCorpus()
+                                .replaceAll("^(.*)/", "")
+                                .replace("Subcorpus created from ", "")
+                                .replace(".json", "")
+                );
+            if (fields.hasField(this.asIndexer(TopicModelEntity._creator)))
+                m.setCreator(extractUsername(d.getCreator(), users));
+            if (fields.hasField(this.asIndexer(TopicModelEntity._params)))
+                m.setParams(d.getParams());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._location)))
+                m.setLocation(d.getLocation());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._hierarchy_level)))
+                m.setHierarchyLevel(d.getHierarchyLevel());
+            if (fields.hasField(this.asIndexer(TopicModelEntity._creation_date)))
+                m.setCreation_date(d.getCreation_date());
             models.add(m);
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -80,8 +91,8 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && !cache.getPayload().isEmpty()) {
             cache.getPayload().forEach((item) -> {
-                if (item.getType().equals(RunningTaskType.training) &&
-                        (item.getSubType().equals(RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING) || item.getSubType().equals(RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING)) &&
+                if (item.getType() == RunningTaskType.training &&
+                        (item.getSubType() == RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING || item.getSubType() == RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING) &&
                         item.getLabel().equals(model.getName()))
                     result.set(true);
             });
@@ -97,7 +108,7 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
     @Override
     public List<TopicModel> buildSortedByOwnerAsc(FieldSet directives, List<TopicModelEntity> data, List<UserEntity> users) {
         Comparator<TopicModel> byOwner = Comparator.comparing(TopicModel::getCreator);
-        return build(directives, data, users).stream().sorted(byOwner).collect(Collectors.toList());
+        return build(directives, data, users).stream().sorted(byOwner).toList();
     }
 
     @Override
@@ -108,6 +119,6 @@ public class TopicModelBuilder extends BaseBuilder<TopicModel, TopicModelEntity>
     @Override
     public List<TopicModel> buildSortedByOwnerDesc(FieldSet directives, List<TopicModelEntity> data, List<UserEntity> users) {
         Comparator<TopicModel> byOwner = Comparator.comparing(TopicModel::getCreator);
-        return build(directives, data, users).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
+        return build(directives, data, users).stream().sorted(byOwner.reversed()).toList();
     }
 }

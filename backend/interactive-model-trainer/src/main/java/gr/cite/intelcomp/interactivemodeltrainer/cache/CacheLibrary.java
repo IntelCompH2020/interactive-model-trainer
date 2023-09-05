@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -54,7 +55,7 @@ public class CacheLibrary extends ConcurrentHashMap<String, CachedEntity<?>> {
                 UserTasksCacheEntity cacheToBeSet = new UserTasksCacheEntity();
                 List<RunningTaskQueueItem> payload = new ArrayList<>();
                 for (RunningTaskQueueItemFull cacheItem : cache.getPayload()) {
-                    if (cacheItem.getType().equals(RunningTaskType.curating)) {
+                    if (cacheItem.getType() == RunningTaskType.curating) {
                         CuratingTaskQueueItem item = mapper.convertValue(cacheItem, CuratingTaskQueueItem.class);
                         item.setUserId(cacheItem.getUserId());
                         item.getResponse().setDocuments(cacheItem.getResponse().getDocuments());

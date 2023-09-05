@@ -1,8 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import gr.cite.intelcomp.interactivemodeltrainer.audit.AuditableAction;
-import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
@@ -10,7 +8,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.utils.EventSchedulerUtil
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.EventProcessingStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.runtraining.config.RunTrainingSchedulerEventConfig;
@@ -19,11 +16,10 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topic
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
-import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.auditing.AuditService;
-import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
+import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +28,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -51,28 +46,24 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
     private final JsonHandlingService jsonHandlingService;
     private final ApplicationContext applicationContext;
     private final RunTrainingSchedulerEventConfig config;
-    private final DockerService dockerService;
-    private final CacheLibrary cacheLibrary;
 
     @Autowired
-    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, ContainerManagementService containerManagementService, RunTrainingSchedulerEventConfig config, ScheduledEventManageService scheduledEventManageService, QueryFactory queryFactory, DockerService dockerService, CacheLibrary cacheLibrary) {
+    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, RunTrainingSchedulerEventConfig config) {
         this.jsonHandlingService = jsonHandlingService;
         this.applicationContext = applicationContext;
         this.config = config;
-        this.dockerService = dockerService;
-        this.cacheLibrary = cacheLibrary;
     }
 
     @Override
-    public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws JsonProcessingException {
+    public EventProcessingStatus handle(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         EventSchedulerUtils.initializeRunningTasksCheckEvent(applicationContext);
-        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TOPIC_TRAINING) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING))
+        if (scheduledEvent.getEventType() == ScheduledEventType.RUN_ROOT_TOPIC_TRAINING ||
+                scheduledEvent.getEventType() == ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING ||
+                scheduledEvent.getEventType() == ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING)
             return handleTraining(scheduledEvent, entityManager);
-        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RESET_TOPIC_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.FUSE_TOPIC_MODEL) ||
-                scheduledEvent.getEventType().equals(ScheduledEventType.SORT_TOPIC_MODEL))
+        else if (scheduledEvent.getEventType() == ScheduledEventType.RESET_TOPIC_MODEL ||
+                scheduledEvent.getEventType() == ScheduledEventType.FUSE_TOPIC_MODEL ||
+                scheduledEvent.getEventType() == ScheduledEventType.SORT_TOPIC_MODEL)
             return handleCuration(scheduledEvent, entityManager);
         else return EventProcessingStatus.Error;
     }
@@ -103,11 +94,11 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         .ids(trainingTaskRequestId).first();
                 try {
                     if (!EventProcessingStatus.Postponed.equals(status)) {
-                        if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_ROOT_TOPIC_TRAINING))
+                        if (scheduledEvent.getEventType() == ScheduledEventType.RUN_ROOT_TOPIC_TRAINING)
                             runRootTraining(trainingTaskRequest, entityManager);
-                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING))
+                        else if (scheduledEvent.getEventType() == ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING)
                             prepareHierarchicalTraining(trainingTaskRequest, entityManager);
-                        else if (scheduledEvent.getEventType().equals(ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING))
+                        else if (scheduledEvent.getEventType() == ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING)
                             runHierarchicalTraining(trainingTaskRequest, entityManager);
                         status = EventProcessingStatus.Success;
 
@@ -122,7 +113,6 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
                         ));
                     }
-                    //auditService.trackIdentity(AuditableAction.IdentityTracking_Action);
                 } catch (Exception e) {
                     status = EventProcessingStatus.Error;
                     logger.error(e.getLocalizedMessage());
@@ -152,11 +142,11 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         .jobName(TOPIC_MODEL_TASKS_SERVICE_NAME)
                         .ids(trainingTaskRequestId).first();
                 try {
-                    if (scheduledEvent.getEventType().equals(ScheduledEventType.RESET_TOPIC_MODEL))
+                    if (scheduledEvent.getEventType() == ScheduledEventType.RESET_TOPIC_MODEL)
                         runModelReset(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.FUSE_TOPIC_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.FUSE_TOPIC_MODEL)
                         runModelFusion(trainingTaskRequest, scheduledEvent, entityManager);
-                    else if (scheduledEvent.getEventType().equals(ScheduledEventType.SORT_TOPIC_MODEL))
+                    else if (scheduledEvent.getEventType() == ScheduledEventType.SORT_TOPIC_MODEL)
                         runModelSort(trainingTaskRequest, scheduledEvent, entityManager);
                     status = EventProcessingStatus.Success;
                 } catch (Exception e) {

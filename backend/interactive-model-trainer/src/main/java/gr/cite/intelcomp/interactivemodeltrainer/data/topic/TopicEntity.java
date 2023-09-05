@@ -38,7 +38,7 @@ public class TopicEntity {
     }
 
     public Double getSizeNumber() {
-        return Double.parseDouble(size);
+        return Double.valueOf(size);
     }
 
     @JsonProperty("Size")
@@ -72,7 +72,7 @@ public class TopicEntity {
     }
 
     public Integer getDocsActiveNumber() {
-        return Integer.parseInt(docsActive);
+        return Integer.valueOf(docsActive);
     }
 
     @JsonProperty("Ndocs Active")
@@ -86,7 +86,7 @@ public class TopicEntity {
     }
 
     public Double getTopicEntropyNumber() {
-        return Double.parseDouble(topicEntropy);
+        return Double.valueOf(topicEntropy);
     }
 
     @JsonProperty("Topics entropy")
@@ -100,7 +100,7 @@ public class TopicEntity {
     }
 
     public Double getTopicCoherenceNumber() {
-        return Double.parseDouble(topicCoherence);
+        return Double.valueOf(topicCoherence);
     }
 
     @JsonProperty("Topics coherence")

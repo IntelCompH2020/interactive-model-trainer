@@ -3,17 +3,20 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.validation;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.TrainingParametersProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.tools.logging.LoggerService;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.TrainingParametersProperties.ParameterConfiguration;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.TrainingParametersProperties.ParameterType;
@@ -21,9 +24,9 @@ import static gr.cite.intelcomp.interactivemodeltrainer.configuration.TrainingPa
 @Component
 public class TrainingTaskParameterValidator implements ConstraintValidator<ValidTrainingParameter, TrainingTaskRequestPersist> {
 
-    private String param;
-    private Map<String, ParameterConfiguration> paramsCatalog = new HashMap<>();
-    private Map<String, List<String>> paramsByTrainer = new HashMap<>();
+    private final AtomicReference<String> param = new AtomicReference<>();
+    private final AtomicReference<Map<String, ParameterConfiguration>> paramsCatalog = new AtomicReference<>();
+    private final AtomicReference<Map<String, List<String>>> paramsByTrainer = new AtomicReference<>();
 
     @Autowired
     private TrainingParametersProperties properties;
@@ -32,24 +35,24 @@ public class TrainingTaskParameterValidator implements ConstraintValidator<Valid
 
     @Override
     public void initialize(ValidTrainingParameter constraintAnnotation) {
-        this.param = constraintAnnotation.parameter();
-        this.paramsCatalog = properties.getParamsCatalog();
-        this.paramsByTrainer = properties.getParamsByTrainer();
+        this.param.set(constraintAnnotation.parameter());
+        this.paramsCatalog.set(properties.getParamsCatalog());
+        this.paramsByTrainer.set(properties.getParamsByTrainer());
     }
 
     @Override
     public boolean isValid(TrainingTaskRequestPersist trainingTaskRequestPersist, ConstraintValidatorContext constraintValidatorContext) {
         int errors = 0;
-        ParameterConfiguration validation = paramsCatalog.get(param);
+        ParameterConfiguration validation = paramsCatalog.get().get(param.get());
         if (validation == null) {
             //No validation configuration set, although annotation is set. Do not know how to validate parameter, and fail
             onValidationException(constraintValidatorContext, new RuntimeException("No validation configuration set for the parameter " + param));
             return false;
         }
-        String value = trainingTaskRequestPersist.getParameters().get(param);
-        ArrayList<String> trainerParams = (ArrayList<String>) paramsByTrainer.get(trainingTaskRequestPersist.getType());
+        String value = trainingTaskRequestPersist.getParameters().get(param.get());
+        ArrayList<String> trainerParams = (ArrayList<String>) paramsByTrainer.get().get(trainingTaskRequestPersist.getType());
         if (trainingTaskRequestPersist.getHierarchical() != null && trainingTaskRequestPersist.getHierarchical()) {
-            trainerParams.addAll(paramsByTrainer.get("hierarchical"));
+            trainerParams.addAll(paramsByTrainer.get().get("hierarchical"));
         }
         if (trainerParams.contains(validation.getName())) {
             //That parameter is used by the trainer, so it must be checked
@@ -65,11 +68,11 @@ public class TrainingTaskParameterValidator implements ConstraintValidator<Valid
                         return true;
                 } else {
                     //Parsing and checking the provided value based on the parameter type
-                    if (validation.getType().equals(ParameterType.NUMBER)) {
+                    if (validation.getType() == ParameterType.NUMBER) {
                         if (!validate(validation, Double.valueOf(value))) errors++;
-                    } else if (validation.getType().equals(ParameterType.BOOLEAN)) {
+                    } else if (validation.getType() == ParameterType.BOOLEAN) {
                         if (!validateAsBoolean(validation, value)) errors++;
-                    } else if (validation.getType().equals(ParameterType.STRING))  {
+                    } else if (validation.getType() == ParameterType.STRING) {
                         if (!validate(validation, value)) errors++;
                     } else {
                         //Unknown parameter type
@@ -110,16 +113,14 @@ public class TrainingTaskParameterValidator implements ConstraintValidator<Valid
         if (validation.getDefaultValue() != null) {
             if (validation.getSelect() != null && validation.getSelect()) {
                 return validation.getOptions() != null && validation.getOptions().contains(value);
-            } else return value != null && value.trim().length() > 0;
-        }
-        else return value == null || value.trim().length() > 0;
+            } else return value != null && !value.trim().isEmpty();
+        } else return value == null || !value.trim().isEmpty();
     }
 
     private static boolean validateAsBoolean(ParameterConfiguration validation, String value) {
         if (validation.getDefaultValue() != null) {
             return List.of("true", "false").contains(value.toLowerCase());
-        }
-        else return true;
+        } else return true;
     }
 
     private static boolean validate(ParameterConfiguration validation, Double value) {
@@ -127,8 +128,7 @@ public class TrainingTaskParameterValidator implements ConstraintValidator<Valid
             if (validation.getSelect() != null && validation.getSelect()) {
                 return validation.getOptions() != null && validation.getOptions().contains(value);
             } else return validateBetween(validation, value);
-        }
-        else return value == null || validateBetween(validation, value);
+        } else return value == null || validateBetween(validation, value);
     }
 
     private static boolean validateBetween(ParameterConfiguration validation, Double value) {

@@ -40,7 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
+
 import jakarta.persistence.EntityManager;
+
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -97,7 +99,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setFinished(false);
         item.setStartedAt(Instant.now());
         if (cache != null) {
-            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            if (cache.getPayload() == null)
+                cache.setPayload(new ArrayList<>());
             cache.getPayload().add(item);
         } else {
             UserTasksCacheEntity newCache = new UserTasksCacheEntity();
@@ -122,7 +125,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setFinished(false);
         item.setStartedAt(Instant.now());
         if (cache != null) {
-            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            if (cache.getPayload() == null)
+                cache.setPayload(new ArrayList<>());
             cache.getPayload().add(item);
         } else {
             UserTasksCacheEntity newCache = new UserTasksCacheEntity();
@@ -144,7 +148,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setFinished(false);
         item.setStartedAt(Instant.now());
         if (cache != null) {
-            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            if (cache.getPayload() == null)
+                cache.setPayload(new ArrayList<>());
             cache.getPayload().add(item);
         } else {
             UserTasksCacheEntity newCache = new UserTasksCacheEntity();
@@ -166,7 +171,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setSubType(taskType);
         item.setStartedAt(Instant.now());
         if (cache != null) {
-            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            if (cache.getPayload() == null)
+                cache.setPayload(new ArrayList<>());
             cache.getPayload().add(item);
         } else {
             UserTasksCacheEntity newCache = new UserTasksCacheEntity();
@@ -188,7 +194,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setSubType(taskType);
         item.setStartedAt(Instant.now());
         if (cache != null) {
-            if (cache.getPayload() == null) cache.setPayload(new ArrayList<>());
+            if (cache.getPayload() == null)
+                cache.setPayload(new ArrayList<>());
             cache.getPayload().add(item);
         } else {
             UserTasksCacheEntity newCache = new UserTasksCacheEntity();
@@ -270,7 +277,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         TrainingTaskRequest result = new TrainingTaskRequest();
         result.setId(requestId);
 
-        updateTrainingCache(topicModelingParametersService.getHierarchicalConfigurationFile(model.getParentName(), model.getName()), model.getParentName() , requestId);
+        updateTrainingCache(topicModelingParametersService.getHierarchicalConfigurationFile(model.getParentName(), model.getName()), model.getParentName(), requestId);
         return result;
     }
 
@@ -672,7 +679,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
                     .filter(i -> i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst()
                     .ifPresent(item -> {
-                        if (RunningTaskType.training.equals(item.getType())) {
+                        if (RunningTaskType.training == item.getType()) {
                             cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
                             cacheLibrary.setDirtyByKey(DomainModelCachedEntity.CODE);
                         }
@@ -687,8 +694,8 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
             cache.getPayload().stream()
-                    .filter(i -> i.getType().equals(type) && i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()) )
-                    .collect(Collectors.toList())
+                    .filter(i -> i.getType() == type && i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()))
+                    .toList()
                     .forEach(item -> cache.getPayload().remove(item));
             cacheLibrary.update(cache);
         }
@@ -701,14 +708,16 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         if (cache != null) {
             items = cache.getPayload();
         }
-        if (type.equals(RunningTaskType.curating)) {
-            return items.stream()
-                    .filter(item -> item.getType().equals(type))
-                    .collect(Collectors.toList());
+        if (type == RunningTaskType.curating) {
+            return items
+                    .stream()
+                    .filter(item -> item.getType() == type)
+                    .toList();
         } else {
-            return items.stream()
-                    .filter(item -> userScope.isSet() && userScope.getUserIdSafe().equals(item.getUserId()) && item.getType().equals(type))
-                    .collect(Collectors.toList());
+            return items
+                    .stream()
+                    .filter(item -> userScope.isSet() && userScope.getUserIdSafe().equals(item.getUserId()) && item.getType() == type)
+                    .toList();
         }
     }
 }

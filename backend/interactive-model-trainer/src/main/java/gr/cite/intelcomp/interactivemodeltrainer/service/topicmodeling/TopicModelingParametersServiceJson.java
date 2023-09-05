@@ -1,6 +1,7 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.math.DoubleMath;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
@@ -112,7 +113,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 logger.debug("Training configuration file for model '{}' already exists, overriding contents", config.getName());
             }
             String json = jsonHandlingService.toJsonSafe(contents);
-            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(filePath, json);
             Files.createFile(logs);
 
             return filePath;
@@ -136,7 +137,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
             contents.setDescription(description);
             contents.setVisibility(visibility);
             String json = jsonHandlingService.toJsonSafe(contents);
-            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(filePath, json);
         } catch (IOException e) {
             logger.error(e.getStackTrace());
         }
@@ -214,7 +215,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 logger.debug("Training configuration file for model '{}' already exists, overriding contents", params.getName());
             }
             String json = jsonHandlingService.toJsonSafe(contents);
-            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(filePath, json);
             Files.createFile(logs);
 
             return filePath;
@@ -238,7 +239,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
             contents.setDescription(description);
             contents.setVisibility(visibility);
             String json = jsonHandlingService.toJsonSafe(contents);
-            Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(filePath, json);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -272,7 +273,7 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
     }
 
     private static boolean isWholeNumber(Double number) {
-        return number - Math.floor(number) == 0;
+        return DoubleMath.isMathematicalInteger(number);
     }
 
     public static final class TopicModelingParametersModel {
@@ -401,17 +402,18 @@ public final class TopicModelingParametersServiceJson extends TopicModelingParam
                 this.keepN = Integer.valueOf((String) preprocParams.get("keepN"));
                 List<String> _stopwords = new ArrayList<>(List.of((String[]) preprocParams.get("stopwords")));
                 this.stopwords = _stopwords.stream()
-                        .filter(word -> word.length() > 0)
+                        .filter(word -> !word.isEmpty())
                         .map(word -> WORDLISTS_ROOT + word + ".json")
-                        .collect(Collectors.toList());
+                        .toList();
                 List<String> _equivalences = new ArrayList<>(List.of((String[]) preprocParams.get("equivalences")));
                 this.equivalences = _equivalences.stream()
-                        .filter(word -> word.length() > 0)
+                        .filter(word -> !word.isEmpty())
                         .map(word -> WORDLISTS_ROOT + word + ".json")
-                        .collect(Collectors.toList());
+                        .toList();
             }
 
-            public PreprocessingParameters() {}
+            public PreprocessingParameters() {
+            }
 
             private Integer minLemas;
             private Double noBelow;

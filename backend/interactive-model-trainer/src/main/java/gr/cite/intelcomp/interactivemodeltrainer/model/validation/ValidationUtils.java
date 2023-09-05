@@ -37,8 +37,7 @@ public class ValidationUtils {
         try {
             Class<?> clazz = Class.forName("gr.cite.intelcomp.interactivemodeltrainer.model.validation.ValidTrainingParameters");
             for (Annotation annotation : clazz.getAnnotations()) {
-                if (annotation.annotationType().getSimpleName().equals("ValidTrainingParameterList")) {
-                    ValidTrainingParameter.ValidTrainingParameterList validatorWrapper = (ValidTrainingParameter.ValidTrainingParameterList) annotation;
+                if (annotation instanceof ValidTrainingParameter.ValidTrainingParameterList validatorWrapper) {
                     logger.trace("-------------------------------------------------------------");
                     logger.trace("Validation set for the following parameters (topic modeling):");
                     logger.trace("-------------------------------------------------------------");
@@ -75,11 +74,12 @@ public class ValidationUtils {
                         update = true;
                     }
                     if (parsed.getVisibility() == null || parsed.getCreator() == null || parsed.getCreator().equals("-")) {
-                        if (Visibility.Public.equals(parsed.getVisibility())) continue;
+                        if (Visibility.Public == parsed.getVisibility())
+                            continue;
                         parsed.setVisibility(Visibility.Public);
                         update = true;
                     }
-                    String fileName = list.getName().substring(0, list.getName().lastIndexOf("."));
+                    String fileName = list.getName().substring(0, list.getName().lastIndexOf('.'));
                     if (parsed.getName() != null && !parsed.getName().equals(fileName)) {
                         parsed.setName(fileName);
                         update = true;
@@ -94,7 +94,7 @@ public class ValidationUtils {
                 }
                 logger.trace("Wordlists validated");
             }
-        }, 0, 1000 * 60 * 30);
+        }, 0, 1000L * 60 * 30);
     }
 
     public void validateLogicalCorpora() {
@@ -119,11 +119,12 @@ public class ValidationUtils {
                         update = true;
                     }
                     if (parsed.getVisibility() == null || parsed.getCreator() == null || parsed.getCreator().equals("-")) {
-                        if (Visibility.Public.equals(parsed.getVisibility())) continue;
+                        if (Visibility.Public == parsed.getVisibility())
+                            continue;
                         parsed.setVisibility(Visibility.Public);
                         update = true;
                     }
-                    String fileName = dataset.getName().substring(0, dataset.getName().lastIndexOf("."));
+                    String fileName = dataset.getName().substring(0, dataset.getName().lastIndexOf('.'));
                     if (parsed.getName() != null && !parsed.getName().equals(fileName)) {
                         parsed.setName(fileName);
                         update = true;
@@ -138,7 +139,7 @@ public class ValidationUtils {
                 }
                 logger.trace("Logical corpora validated");
             }
-        }, 0, 1000 * 60 * 30);
+        }, 0, 1000L * 60 * 30);
     }
 
 }

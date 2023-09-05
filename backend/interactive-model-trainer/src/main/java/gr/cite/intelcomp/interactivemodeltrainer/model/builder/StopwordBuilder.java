@@ -44,26 +44,34 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity> imple
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         UserScope userScope = applicationContext.getBean(UserScope.class);
 
-        List<Stopword> models = new ArrayList<>();
+        List<Stopword> models = new ArrayList<>(100);
 
         if (data == null) return models;
         for (WordListEntity d : data) {
-            if(d.getValid_for() == WordlistType.stopwords){
-                if (Visibility.Private.equals(d.getVisibility())) {
+            if (d.getValid_for() == WordlistType.stopwords) {
+                if (Visibility.Private == d.getVisibility()) {
                     if (!userScope.isSet()) continue;
                     if (d.getCreator() != null
                             && !d.getCreator().equals("-")
                             && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
                 }
                 Stopword m = new Stopword();
-                if (fields.hasField(this.asIndexer(WordListJson._id))) m.setId(d.getId());
-                if (fields.hasField(this.asIndexer(WordListJson._name))) m.setName(d.getName());
-                if (fields.hasField(this.asIndexer(WordListJson._description))) m.setDescription(d.getDescription());
-                if (fields.hasField(this.asIndexer(WordListJson._visibility))) m.setVisibility(d.getVisibility());
-                if (fields.hasField(this.asIndexer(WordListJson._creator))) m.setCreator(extractUsername(d.getCreator(), users));
-                if (fields.hasField(this.asIndexer(WordListJson._location))) m.setLocation(d.getLocation());
-                if (fields.hasField(this.asIndexer(WordListJson._wordlist))) m.setWordlist(d.getWordlist());
-                if (fields.hasField(this.asIndexer(WordListJson._creation_date))) m.setCreation_date(d.getCreation_date());
+                if (fields.hasField(this.asIndexer(WordListJson._id)))
+                    m.setId(d.getId());
+                if (fields.hasField(this.asIndexer(WordListJson._name)))
+                    m.setName(d.getName());
+                if (fields.hasField(this.asIndexer(WordListJson._description)))
+                    m.setDescription(d.getDescription());
+                if (fields.hasField(this.asIndexer(WordListJson._visibility)))
+                    m.setVisibility(d.getVisibility());
+                if (fields.hasField(this.asIndexer(WordListJson._creator)))
+                    m.setCreator(extractUsername(d.getCreator(), users));
+                if (fields.hasField(this.asIndexer(WordListJson._location)))
+                    m.setLocation(d.getLocation());
+                if (fields.hasField(this.asIndexer(WordListJson._wordlist)))
+                    m.setWordlist(d.getWordlist());
+                if (fields.hasField(this.asIndexer(WordListJson._creation_date)))
+                    m.setCreation_date(d.getCreation_date());
                 models.add(m);
             }
         }
@@ -74,12 +82,12 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity> imple
     @Override
     public List<Stopword> buildSortedByOwnerAsc(FieldSet directives, List<WordListEntity> data) {
         Comparator<Stopword> byOwner = Comparator.comparing(Stopword::getCreator);
-        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner).toList();
     }
 
     @Override
     public List<Stopword> buildSortedByOwnerDesc(FieldSet directives, List<WordListEntity> data) {
         Comparator<Stopword> byOwner = Comparator.comparing(Stopword::getCreator);
-        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner.reversed()).toList();
     }
 }

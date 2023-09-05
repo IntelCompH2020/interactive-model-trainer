@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLookup> {
@@ -71,7 +70,7 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
             List<LogicalCorpus> corpora = getAll(corpusLookup)
                     .stream()
                     .filter(c -> logicalCorpus.getId().equals(c.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
             String creatorUsername = corpora.get(0).getCreator();
             if (creatorUsername != null && !creatorUsername.equals("-")) {
                 List<UserEntity> users = applicationContext.getBean(UserQuery.class).usernames(creatorUsername).collect();
@@ -80,6 +79,7 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
             dockerService.createCorpus(corpus, false);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw e;
         }
     }
 }

@@ -107,7 +107,7 @@ public class CheckImportsTask {
                 if (success.get()) {
                     files = files.stream().filter(
                             fileStatus -> !fileStatus.getPath().getName().equals("_SUCCESS")
-                    ).collect(Collectors.toList());
+                    ).toList();
                     logger.trace("Success file found and filtered");
                     logger.trace("Found {} files", files.size());
 

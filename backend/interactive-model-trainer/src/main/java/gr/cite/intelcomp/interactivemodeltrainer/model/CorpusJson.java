@@ -3,8 +3,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
-import java.util.UUID;
-
 public class CorpusJson {
 
     public static final String _name = "name";
@@ -36,6 +34,7 @@ public class CorpusJson {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -43,6 +42,7 @@ public class CorpusJson {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -58,6 +58,7 @@ public class CorpusJson {
     public Visibility getVisibility() {
         return visibility;
     }
+
     public void setVisibility(Visibility visibility) {
         this.visibility = visibility;
     }

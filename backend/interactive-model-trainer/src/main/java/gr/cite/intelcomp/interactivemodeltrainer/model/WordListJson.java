@@ -36,9 +36,10 @@ public class WordListJson {
     public final static String _creation_date = "creation_date";
     private String creation_date;
 
-    public WordListJson(){}
+    public WordListJson() {
+    }
 
-    public WordListJson(Keyword keyword){
+    public WordListJson(Keyword keyword) {
         this.setId(keyword.getId());
         this.setName(keyword.getName());
         this.setDescription(keyword.getDescription());
@@ -49,7 +50,7 @@ public class WordListJson {
         this.setValid_for(WordlistType.keywords);
     }
 
-    public WordListJson(Stopword stopword){
+    public WordListJson(Stopword stopword) {
         this.setId(stopword.getId());
         this.setName(stopword.getName());
         this.setDescription(stopword.getDescription());
@@ -60,20 +61,21 @@ public class WordListJson {
         this.setValid_for(WordlistType.stopwords);
     }
 
-    public WordListJson(Equivalence equivalence){
+    public WordListJson(Equivalence equivalence) {
         this.setId(equivalence.getId());
         this.setName(equivalence.getName());
         this.setDescription(equivalence.getDescription());
         this.setVisibility(equivalence.getVisibility());
         this.setCreator(equivalence.getCreator());
         this.setLocation(equivalence.getLocation());
-        this.setWordlist(equivalence.getWordlist().stream().map(w -> w.getTerm()+":"+w.getEquivalence()).collect(Collectors.toList()));
+        this.setWordlist(equivalence.getWordlist().stream().map(w -> w.getTerm() + ":" + w.getEquivalence()).collect(Collectors.toList()));
         this.setValid_for(WordlistType.equivalences);
     }
 
     public UUID getId() {
         return id;
     }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -81,6 +83,7 @@ public class WordListJson {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -88,6 +91,7 @@ public class WordListJson {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -95,6 +99,7 @@ public class WordListJson {
     public WordlistType getValid_for() {
         return valid_for;
     }
+
     public void setValid_for(WordlistType valid_for) {
         this.valid_for = valid_for;
     }
@@ -102,6 +107,7 @@ public class WordListJson {
     public Visibility getVisibility() {
         return visibility;
     }
+
     public void setVisibility(Visibility visibility) {
         this.visibility = visibility;
     }
@@ -125,6 +131,7 @@ public class WordListJson {
     public List<String> getWordlist() {
         return wordlist;
     }
+
     public void setWordlist(List<String> wordlist) {
         this.wordlist = wordlist;
     }
@@ -132,6 +139,7 @@ public class WordListJson {
     public String getCreation_date() {
         return creation_date;
     }
+
     public void setCreation_date(String creation_date) {
         this.creation_date = creation_date;
     }

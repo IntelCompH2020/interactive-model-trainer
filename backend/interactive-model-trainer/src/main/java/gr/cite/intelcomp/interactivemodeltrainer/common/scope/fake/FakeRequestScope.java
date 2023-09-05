@@ -6,35 +6,35 @@ import org.springframework.web.context.request.RequestContextHolder;
 import java.io.Closeable;
 
 public class FakeRequestScope implements Closeable {
-	private RequestAttributes initialRequestAttributes = null;
-	private FakeRequestAttributes currentRequestAttributes = null;
-	boolean isInUse = false;
+    private RequestAttributes initialRequestAttributes = null;
+    private FakeRequestAttributes currentRequestAttributes = null;
+    boolean isInUse = false;
 
-	public FakeRequestScope() {
-		this.reset();
-	}
+    public FakeRequestScope() {
+        this.reset();
+    }
 
-	public void reset() {
-		this.close();
-		this.isInUse = true;
+    public final void reset() {
+        this.close();
+        this.isInUse = true;
 
-		this.initialRequestAttributes = RequestContextHolder.getRequestAttributes();
-		this.currentRequestAttributes = new FakeRequestAttributes();
-		RequestContextHolder.setRequestAttributes(this.currentRequestAttributes);
-	}
+        this.initialRequestAttributes = RequestContextHolder.getRequestAttributes();
+        this.currentRequestAttributes = new FakeRequestAttributes();
+        RequestContextHolder.setRequestAttributes(this.currentRequestAttributes);
+    }
 
-	@Override
-	public void close() {
-		if (!this.isInUse) return;
-		this.isInUse = false;
+    @Override
+    public void close() {
+        if (!this.isInUse) return;
+        this.isInUse = false;
 
-		if (initialRequestAttributes != null) RequestContextHolder.setRequestAttributes(initialRequestAttributes);
-		else RequestContextHolder.resetRequestAttributes();
+        if (initialRequestAttributes != null) RequestContextHolder.setRequestAttributes(initialRequestAttributes);
+        else RequestContextHolder.resetRequestAttributes();
 
-		if (currentRequestAttributes != null) currentRequestAttributes.requestCompleted();
+        if (currentRequestAttributes != null) currentRequestAttributes.requestCompleted();
 
-		this.initialRequestAttributes = null;
-		this.currentRequestAttributes = null;
-	}
+        this.initialRequestAttributes = null;
+        this.currentRequestAttributes = null;
+    }
 
 }

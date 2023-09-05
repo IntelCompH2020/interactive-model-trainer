@@ -41,6 +41,7 @@ import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
 
 import jakarta.annotation.PreDestroy;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -58,8 +59,6 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DockerContainerManagementServiceImpl.class));
 
     private final DockerProperties dockerProperties;
-    private final DockerClientConfig dockerClientConfig;
-    private final DockerHttpClient dockerHttpClient;
     private final DockerClient dockerClient;
     private final HashMap<String, String> syncContainerIds;
     private final CacheLibrary cacheLibrary;
@@ -69,22 +68,28 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
 
 
     @Autowired
-    public DockerContainerManagementServiceImpl(DockerProperties dockerProperties, UserScope userScope, ExecutionService executionService, CacheLibrary cacheLibrary, ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService, ObjectMapper objectMapper){
+    public DockerContainerManagementServiceImpl(DockerProperties dockerProperties, UserScope userScope, ExecutionService executionService, CacheLibrary cacheLibrary, ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService, ObjectMapper objectMapper) {
         super(userScope, executionService);
         this.dockerProperties = dockerProperties;
         this.cacheLibrary = cacheLibrary;
         this.containerServicesProperties = containerServicesProperties;
         this.jsonHandlingService = jsonHandlingService;
         this.objectMapper = objectMapper;
-        this.dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerHost(this.dockerProperties.getHost()).build();
-        this.dockerHttpClient = new ApacheDockerHttpClient.Builder().dockerHost(this.dockerClientConfig.getDockerHost()).build();
-        this.dockerClient = DockerClientImpl.getInstance(this.dockerClientConfig, this.dockerHttpClient);
+        DockerClientConfig dockerClientConfig = DefaultDockerClientConfig
+                .createDefaultConfigBuilder()
+                .withDockerHost(this.dockerProperties.getHost())
+                .build();
+        DockerHttpClient dockerHttpClient = new ApacheDockerHttpClient.Builder()
+                .dockerHost(dockerClientConfig.getDockerHost())
+                .build();
+        this.dockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient);
         this.syncContainerIds = new HashMap<>();
     }
 
     @PreDestroy
     public void destroy() {
-        if (syncContainerIds.isEmpty()) return;
+        if (syncContainerIds.isEmpty())
+            return;
         logger.info("Removing dynamically invoked containers...");
         for (String executionId : syncContainerIds.values()) {
             this.removeContainer(new DockerContainerKeyImpl(executionId));
@@ -94,13 +99,19 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         UserTasksCacheEntityFull cacheToWrite = objectMapper.convertValue(cache, UserTasksCacheEntityFull.class);
         for (RunningTaskQueueItemFull item : cacheToWrite.getPayload()) {
-            RunningTaskQueueItem cacheItem = cache.getPayload().stream().filter(i -> i.getTask().equals(item.getTask())).collect(Collectors.toList()).get(0);
-            item.setUserId(cacheItem.getUserId());
-            RunningTaskResponseFull response = new RunningTaskResponseFull();
-            response.setLogs(cacheItem.getResponse().getLogs());
-            response.setDocuments(cacheItem.getResponse().getDocuments());
-            response.setPuScores(cacheItem.getResponse().getPuScores());
-            item.setResponse(response);
+            Optional<RunningTaskQueueItem> cacheItemOptional = cache.getPayload()
+                    .stream()
+                    .filter(i -> i.getTask().equals(item.getTask()))
+                    .findFirst();
+            if (cacheItemOptional.isPresent()) {
+                RunningTaskQueueItem cacheItem = cacheItemOptional.get();
+                item.setUserId(cacheItem.getUserId());
+                RunningTaskResponseFull response = new RunningTaskResponseFull();
+                response.setLogs(cacheItem.getResponse().getLogs());
+                response.setDocuments(cacheItem.getResponse().getDocuments());
+                response.setPuScores(cacheItem.getResponse().getPuScores());
+                item.setResponse(response);
+            }
         }
         File file = new File(Path.of(
                 containerServicesProperties.getTopicTrainingService().getTempFolder(),
@@ -117,30 +128,35 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
     @Override
     public String runJob(ExecutionParams executionParams) {
         HostConfig config = HostConfig.newHostConfig();
-//        if (dockerProperties.getJobs().get(executionParams.getJobName()).getVolumeBinding() != null && dockerProperties.getServices().get(executionParams.getJobName()).getVolumeBinding().length > 0){
-        if (dockerProperties.getJobs().get(executionParams.getJobName()).getVolumeBinding() != null){
-            List<Bind> binds = Arrays.stream(dockerProperties.getJobs().get(executionParams.getJobName()).getVolumeBinding()).map(Bind::parse).collect(Collectors.toList());
+        if (dockerProperties.getJobs().get(executionParams.getJobName()).getVolumeBinding() != null) {
+            List<Bind> binds = Arrays
+                    .stream(dockerProperties.getJobs().get(executionParams.getJobName()).getVolumeBinding())
+                    .map(Bind::parse)
+                    .toList();
             config = config.withBinds(binds);
         }
         String containerName = executionParams.getJobId();
-        CreateContainerCmd createContainerCmd = this.dockerClient.createContainerCmd(this.dockerProperties.getJobs().get(executionParams.getJobName()).getImage()).withHostConfig(config)
-                .withName(containerName).withTty(true).withAttachStdout(true);
-                
-        if (executionParams.getContainersParams() != null){
+        CreateContainerCmd createContainerCmd = this.dockerClient
+                .createContainerCmd(this.dockerProperties.getJobs().get(executionParams.getJobName()).getImage())
+                .withHostConfig(config)
+                .withName(containerName)
+                .withTty(true)
+                .withAttachStdout(true);
+
+        if (executionParams.getContainersParams() != null) {
             for (ExecutionContainerParams executionContainerParams : executionParams.getContainersParams()) {
-                if (executionContainerParams.getEnvMapping() != null) {
-                    ArrayList<String> params = new ArrayList<>();
-                    for (String envName : executionParams.getEnvMapping().keySet()) {
-                        params.add(envName+"="+executionParams.getEnvMapping().get(envName));
-                    }
-                    createContainerCmd.withEnv(params);
+                if (executionContainerParams.getEnvMapping() == null) continue;
+                ArrayList<String> params = new ArrayList<>();
+                for (String envName : executionParams.getEnvMapping().keySet()) {
+                    params.add(envName + "=" + executionParams.getEnvMapping().get(envName));
                 }
+                createContainerCmd.withEnv(params);
             }
         }
-        if (executionParams.getEnvMapping() != null && executionParams.getEnvMapping().size() > 0){
+        if (executionParams.getEnvMapping() != null && !executionParams.getEnvMapping().isEmpty()) {
             ArrayList<String> params = new ArrayList<>();
             for (String envName : executionParams.getEnvMapping().keySet()) {
-                params.add(envName+"="+executionParams.getEnvMapping().get(envName));
+                params.add(envName + "=" + executionParams.getEnvMapping().get(envName));
             }
             createContainerCmd.withEnv(params);
         }
@@ -162,64 +178,81 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
 
     @Override
     public ContainerKey ensureAvailableService(String service) {
-        if(this.syncContainerIds.get(service) != null) return this.getServiceContainerKey(service);
-        
+        if (this.syncContainerIds.get(service) != null)
+            return this.getServiceContainerKey(service);
+
         HostConfig config = HostConfig.newHostConfig();
         if (dockerProperties.getServices().get(service).getVolumeBinding() != null && dockerProperties.getServices().get(service).getVolumeBinding().length > 0) {
-            List<Bind> binds = Arrays.stream(dockerProperties.getServices().get(service).getVolumeBinding()).map(Bind::parse).collect(Collectors.toList());
+            List<Bind> binds = Arrays
+                    .stream(dockerProperties.getServices().get(service).getVolumeBinding())
+                    .map(Bind::parse)
+                    .toList();
             config = config.withBinds(binds);
         }
-        
-        String containerName = "imt_" + service + "_" + new SecureRandom().nextInt();
-        CreateContainerResponse c = this.dockerClient.createContainerCmd(this.dockerProperties.getServices().get(service).getImage()).withHostConfig(config)
-                .withName(containerName).withTty(true).withAttachStdout(true).exec();
-        
+
+        SecureRandom random = new SecureRandom();
+        String containerName = "imt_" + service + "_" + random.nextInt();
+        CreateContainerResponse c = this.dockerClient
+                .createContainerCmd(this.dockerProperties.getServices().get(service).getImage())
+                .withHostConfig(config)
+                .withName(containerName)
+                .withTty(true)
+                .withAttachStdout(true)
+                .exec();
+
         this.dockerClient.startContainerCmd(c.getId()).exec();
         this.syncContainerIds.put(service, c.getId());
         return this.getServiceContainerKey(service);
     }
 
     private ContainerKey getServiceContainerKey(String service) {
-        if(this.syncContainerIds.get(service) == null) this.ensureAvailableService(service);
+        if (this.syncContainerIds.get(service) == null)
+            this.ensureAvailableService(service);
         return new DockerContainerKeyImpl(this.syncContainerIds.get(service));
     }
-    
+
     @Override
     public String execCommand(CommandType type, List<String> command, ContainerKey executionKey) throws InterruptedException {
         logger.debug("Executing docker command -> {}", command.stream().reduce("", (result, element) -> result + " " + element).trim());
-        ExecCreateCmdResponse execCreate = this.dockerClient.execCreateCmd(((DockerContainerKeyImpl)executionKey).getContainerId()).withAttachStdout(true)
-                .withAttachStderr(true).withAttachStdin(true).withTty(true).withCmd(command.toArray(new String[0])).exec();
+        ExecCreateCmdResponse execCreate = this.dockerClient
+                .execCreateCmd(((DockerContainerKeyImpl) executionKey).getContainerId())
+                .withAttachStdout(true)
+                .withAttachStderr(true)
+                .withAttachStdin(true)
+                .withTty(true)
+                .withCmd(command.toArray(new String[0]))
+                .exec();
 
         FrameConsumerResultCallback callback = new FrameConsumerResultCallback();
         ToStringConsumer result = new ToStringConsumer();
         callback.addConsumer(OutputFrame.OutputType.STDOUT, result);
 
-//        ExecutionEntity executionEntity = this.initializeExecution(type, String.join(" ", command));
-        this.dockerClient.execStartCmd(execCreate.getId()).withDetach(false)
-//                .withStdIn(new ByteArrayInputStream("test".getBytes(Charset.defaultCharset())))
-                .exec(callback).awaitCompletion();
+        this.dockerClient
+                .execStartCmd(execCreate.getId())
+                .withDetach(false)
+                .exec(callback)
+                .awaitCompletion();
         String collectedResult = result.toUtf8String();
-//        this.finishAndUpdateExecution(executionEntity, collectedResult);
         logger.debug(collectedResult);
         return collectedResult;
     }
 
-    private void removeContainer(ContainerKey executionKey) {
-        DockerContainerKeyImpl singleDockerContainerKey = (DockerContainerKeyImpl)executionKey;
-        JobStatus status = null;
+    private void removeContainer(DockerContainerKeyImpl executionKey) {
+        JobStatus status;
         try {
-            status = this.getJobStatus(singleDockerContainerKey.getContainerId());
+            status = this.getJobStatus(executionKey.getContainerId());
         } catch (Exception e) {
             status = JobStatus.FINISHED;
         }
-        if(status.equals(JobStatus.RUNNING))
-            this.dockerClient.stopContainerCmd(singleDockerContainerKey.getContainerId()).exec();
-        this.dockerClient.removeContainerCmd(singleDockerContainerKey.getContainerId()).exec();
+        if (status == JobStatus.RUNNING)
+            this.dockerClient.stopContainerCmd(executionKey.getContainerId()).exec();
+        this.dockerClient.removeContainerCmd(executionKey.getContainerId()).exec();
     }
 
     @Override
     public void removeService(String service) {
-        if(this.syncContainerIds.get(service) != null) return;
+        if (this.syncContainerIds.get(service) != null)
+            return;
         this.removeContainer(new DockerContainerKeyImpl(this.syncContainerIds.get(service)));
         this.syncContainerIds.remove(service);
     }

@@ -35,19 +35,26 @@ public class RawCorpusBuilder extends BaseBuilder<RawCorpus, RawCorpusEntity> {
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || fields.isEmpty()) return new ArrayList<>();
 
-        List<RawCorpus> models = new ArrayList<>();
+        List<RawCorpus> models = new ArrayList<>(100);
 
         if (data == null) return models;
         for (RawCorpusEntity d : data) {
             if (CorpusType.RAW != d.getType()) continue;
             RawCorpus m = new RawCorpus();
-            if (fields.hasField(this.asIndexer(RawCorpusJson._name))) m.setName(d.getName());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._records))) m.setRecords(d.getRecords());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._schema))) m.setSchema(d.getSchema());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._download_date))) m.setDownload_date(d.getDownload_date());
-            if (fields.hasField(this.asIndexer(RawCorpusJson._source))) m.setSource(d.getSource());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._name)))
+                m.setName(d.getName());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._description)))
+                m.setDescription(d.getDescription());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._visibility)))
+                m.setVisibility(d.getVisibility());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._records)))
+                m.setRecords(d.getRecords());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._schema)))
+                m.setSchema(d.getSchema());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._download_date)))
+                m.setDownload_date(d.getDownload_date());
+            if (fields.hasField(this.asIndexer(RawCorpusJson._source)))
+                m.setSource(d.getSource());
             models.add(m);
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));

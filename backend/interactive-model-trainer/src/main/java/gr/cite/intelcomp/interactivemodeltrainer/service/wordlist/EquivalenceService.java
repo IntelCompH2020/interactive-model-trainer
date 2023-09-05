@@ -65,7 +65,7 @@ public class EquivalenceService extends WordlistService<Equivalence, WordListLoo
             List<Equivalence> corpora = getAll(wordListLookup)
                     .stream()
                     .filter(c -> word.getId().equals(c.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
             String creatorUsername = corpora.get(0).getCreator();
             if (creatorUsername != null && !creatorUsername.equals("-")) {
                 List<UserEntity> users = applicationContext.getBean(UserQuery.class).usernames(creatorUsername).collect();
@@ -74,6 +74,7 @@ public class EquivalenceService extends WordlistService<Equivalence, WordListLoo
             dockerService.createWordList(wordList, false);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            throw e;
         }
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+
 import java.time.Instant;
 import java.util.*;
 
@@ -93,8 +94,7 @@ public class TrainingTaskRequestQuery extends QueryBase<TrainingTaskRequestEntit
 
     @Override
     protected Boolean isFalseQuery() {
-//        return this.isEmpty(this.ids) || this.isEmpty(this.isActives) || this.isEmpty(this.status);
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
@@ -126,7 +126,7 @@ public class TrainingTaskRequestQuery extends QueryBase<TrainingTaskRequestEntit
             predicates.add(inClause);
         }
 
-        if (predicates.size() > 0) {
+        if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
         } else {
@@ -136,19 +136,30 @@ public class TrainingTaskRequestQuery extends QueryBase<TrainingTaskRequestEntit
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(TrainingTaskRequestEntity._id)) return TrainingTaskRequestEntity._id;
-        else if (item.match(TrainingTaskRequestEntity._creatorId)) return TrainingTaskRequestEntity._creatorId;
-        else if (item.match(TrainingTaskRequestEntity._jobId)) return TrainingTaskRequestEntity._jobId;
-        else if (item.match(TrainingTaskRequestEntity._jobName)) return TrainingTaskRequestEntity._jobName;
-        else if (item.match(TrainingTaskRequestEntity._config)) return TrainingTaskRequestEntity._config;
-        else if (item.match(TrainingTaskRequestEntity._creatorId)) return TrainingTaskRequestEntity._creatorId;
-        else if (item.match(TrainingTaskRequestEntity._status)) return TrainingTaskRequestEntity._status;
-        else if (item.match(TrainingTaskRequestEntity._isActive)) return TrainingTaskRequestEntity._isActive;
-        else if (item.match(TrainingTaskRequestEntity._createdAt)) return TrainingTaskRequestEntity._createdAt;
-        else if (item.match(TrainingTaskRequestEntity._startedAt)) return TrainingTaskRequestEntity._startedAt;
-        else if (item.match(TrainingTaskRequestEntity._finishedAt)) return TrainingTaskRequestEntity._finishedAt;
-        else if (item.match(TrainingTaskRequestEntity._canceledAt)) return TrainingTaskRequestEntity._canceledAt;
-        else return null;
+        if (item.match(TrainingTaskRequestEntity._id))
+            return TrainingTaskRequestEntity._id;
+        else if (item.match(TrainingTaskRequestEntity._creatorId))
+            return TrainingTaskRequestEntity._creatorId;
+        else if (item.match(TrainingTaskRequestEntity._jobId))
+            return TrainingTaskRequestEntity._jobId;
+        else if (item.match(TrainingTaskRequestEntity._jobName))
+            return TrainingTaskRequestEntity._jobName;
+        else if (item.match(TrainingTaskRequestEntity._config))
+            return TrainingTaskRequestEntity._config;
+        else if (item.match(TrainingTaskRequestEntity._status))
+            return TrainingTaskRequestEntity._status;
+        else if (item.match(TrainingTaskRequestEntity._isActive))
+            return TrainingTaskRequestEntity._isActive;
+        else if (item.match(TrainingTaskRequestEntity._createdAt))
+            return TrainingTaskRequestEntity._createdAt;
+        else if (item.match(TrainingTaskRequestEntity._startedAt))
+            return TrainingTaskRequestEntity._startedAt;
+        else if (item.match(TrainingTaskRequestEntity._finishedAt))
+            return TrainingTaskRequestEntity._finishedAt;
+        else if (item.match(TrainingTaskRequestEntity._canceledAt))
+            return TrainingTaskRequestEntity._canceledAt;
+        else
+            return null;
     }
 
     @Override

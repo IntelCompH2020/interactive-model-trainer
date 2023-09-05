@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+
 import java.util.*;
 
 @Component
@@ -41,7 +42,7 @@ public class WordListQuery extends QueryBase<WordListEntity> {
 
     @Override
     protected Boolean isFalseQuery() {
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class WordListQuery extends QueryBase<WordListEntity> {
             for (Visibility item : this.visibilities) inClause.value(item);
             predicates.add(inClause);
         }
-        if (predicates.size() > 0) {
+        if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
         } else {
@@ -77,13 +78,20 @@ public class WordListQuery extends QueryBase<WordListEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(WordListJson._id)) return WordListEntity._id;
-        else if (item.match(WordListJson._name)) return WordListEntity._name;
-        else if (item.match(WordListJson._description)) return WordListEntity._description;
-        else if (item.match(WordListJson._valid_for)) return WordListEntity._valid_for;
-        else if (item.match(WordListJson._visibility)) return WordListEntity._visibility;
-        else if (item.match(WordListJson._wordlist)) return WordListEntity._wordlist;
-        else return null;
+        if (item.match(WordListJson._id))
+            return WordListEntity._id;
+        else if (item.match(WordListJson._name))
+            return WordListEntity._name;
+        else if (item.match(WordListJson._description))
+            return WordListEntity._description;
+        else if (item.match(WordListJson._valid_for))
+            return WordListEntity._valid_for;
+        else if (item.match(WordListJson._visibility))
+            return WordListEntity._visibility;
+        else if (item.match(WordListJson._wordlist))
+            return WordListEntity._wordlist;
+        else
+            return null;
     }
 
     @Override

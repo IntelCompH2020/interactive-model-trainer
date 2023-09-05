@@ -45,26 +45,34 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         UserScope userScope = applicationContext.getBean(UserScope.class);
 
-        List<LogicalCorpus> models = new ArrayList<>();
+        List<LogicalCorpus> models = new ArrayList<>(100);
 
         if (data == null) return models;
         for (LogicalCorpusEntity d : data) {
             if (CorpusType.LOGICAL != d.getType()) continue;
-            if (Visibility.Private.equals(d.getVisibility())) {
+            if (Visibility.Private == d.getVisibility()) {
                 if (!userScope.isSet()) continue;
                 if (d.getCreator() != null
                         && !d.getCreator().equals("-")
                         && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
             }
             LogicalCorpus m = new LogicalCorpus();
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._name))) m.setName(d.getName());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._visibility))) m.setVisibility(d.getVisibility());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._dtsets))) m.setDtsets(d.getDatasets());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._valid_for))) m.setValid_for(d.getValid_for());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._creation_date))) m.setCreation_date(d.getCreation_date());
-            if (fields.hasField(this.asIndexer(LogicalCorpusJson._creator))) m.setCreator(extractUsername(d.getCreator(), users));
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._id)))
+                m.setId(d.getId());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._name)))
+                m.setName(d.getName());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._description)))
+                m.setDescription(d.getDescription());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._visibility)))
+                m.setVisibility(d.getVisibility());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._dtsets)))
+                m.setDtsets(d.getDatasets());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._valid_for)))
+                m.setValid_for(d.getValid_for());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._creation_date)))
+                m.setCreation_date(d.getCreation_date());
+            if (fields.hasField(this.asIndexer(LogicalCorpusJson._creator)))
+                m.setCreator(extractUsername(d.getCreator(), users));
             models.add(m);
         }
         this.logger.trace("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -74,12 +82,12 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
     @Override
     public List<LogicalCorpus> buildSortedByOwnerAsc(FieldSet directives, List<LogicalCorpusEntity> data) {
         Comparator<LogicalCorpus> byOwner = Comparator.comparing(LogicalCorpus::getCreator);
-        return build(directives, data).stream().sorted(byOwner).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner).toList();
     }
 
     @Override
     public List<LogicalCorpus> buildSortedByOwnerDesc(FieldSet directives, List<LogicalCorpusEntity> data) {
         Comparator<LogicalCorpus> byOwner = Comparator.comparing(LogicalCorpus::getCreator);
-        return build(directives, data).stream().sorted(byOwner.reversed()).collect(Collectors.toList());
+        return build(directives, data).stream().sorted(byOwner.reversed()).toList();
     }
 }

@@ -3,7 +3,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusValidFor;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -48,7 +47,7 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setCategoryfld(dataset.getCategoryfld());
             d.setFilter(dataset.getFilter());
             return d;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     public UUID getId() {
