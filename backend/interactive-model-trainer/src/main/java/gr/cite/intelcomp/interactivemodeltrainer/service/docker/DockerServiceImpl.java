@@ -377,7 +377,7 @@ public class DockerServiceImpl implements DockerService {
         }
 
         if (lookup.getPage() != null) {
-            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).toList();
+            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).collect(Collectors.toList());
             List<TopicModelEntity> collectedSubmodels = result.stream().filter(entity -> entity.getHierarchyLevel() > 0).toList();
             collectedModels = collectedModels.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), collectedModels.size()));
             for (TopicModelEntity submodel : collectedSubmodels) {
