@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 
 @Component
 @EnableTransactionManagement
@@ -42,7 +41,7 @@ public class TrainingTaskHierarchicalValidator implements ConstraintValidator<Va
         }
         else {
             if (value.getHierarchical()) {
-                if (value.getParentName() != null && value.getParentName().trim().length() > 0) {
+                if (value.getParentName() != null && !value.getParentName().trim().isEmpty()) {
                     Path path = Path.of(servicesProperties.getTopicTrainingService().getModelsFolder(ContainerServicesProperties.ManageTopicModels.class), value.getParentName().trim());
                     File directory = new File(String.valueOf(path));
                     try {
@@ -64,7 +63,7 @@ public class TrainingTaskHierarchicalValidator implements ConstraintValidator<Va
                     errors++;
                 }
             } else {
-                if (!(value.getCorpusId() != null && value.getCorpusId().trim().length() > 0)) {
+                if (!(value.getCorpusId() != null && !value.getCorpusId().trim().isEmpty())) {
                     onValidationViolation(context, "corpusId", value.getCorpusId());
                     errors++;
                 } else {

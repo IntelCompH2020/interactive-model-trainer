@@ -3,17 +3,14 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.validation;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.TrainingParametersProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.tools.logging.LoggerService;
-import org.checkerframework.checker.units.qual.A;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;

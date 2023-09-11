@@ -19,6 +19,8 @@ import org.springframework.context.ApplicationContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
+
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -124,10 +126,10 @@ public class EventSchedulerTask {
             int pastAccumulateRetry = 0;
             EventSchedulerProperties.Task.Processor.Options options = properties.getTask().getProcessor().getOptions();
             for (int i = 1; i <= scheduledEventEntity.getRetryCount() + 1; i += 1)
-                accumulatedRetry += (i * options.getRetryThreshold());
+                accumulatedRetry += (int) (i * options.getRetryThreshold());
             for (int i = 1; i <= scheduledEventEntity.getRetryCount(); i += 1)
-                pastAccumulateRetry += (i * options.getRetryThreshold());
-            int randAccumulatedRetry = ThreadLocalRandom.current().nextInt((int) (accumulatedRetry / 2), accumulatedRetry + 1);
+                pastAccumulateRetry += (int) (i * options.getRetryThreshold());
+            int randAccumulatedRetry = new SecureRandom(UUID.randomUUID().toString().getBytes()).nextInt(accumulatedRetry / 2, accumulatedRetry + 1);
             long additionalTime = randAccumulatedRetry > options.getMaxRetryDelaySeconds() ? options.getMaxRetryDelaySeconds() : randAccumulatedRetry;
             long retry = pastAccumulateRetry + additionalTime;
 
@@ -178,23 +180,18 @@ public class EventSchedulerTask {
         EventProcessingStatus status = this.process(scheduledEvent, entityManager);
         scheduledEvent = entityManager.find(ScheduledEventEntity.class, scheduledEvent.getId());
         switch (status) {
-            case Success: {
+            case Success -> {
                 scheduledEvent.setStatus(ScheduledEventStatus.SUCCESSFUL);
-                break;
             }
-            case Postponed: {
+            case Postponed -> {
                 scheduledEvent.setStatus(ScheduledEventStatus.PENDING);
-                break;
             }
-            case Error: {
+            case Error -> {
                 scheduledEvent.setStatus(ScheduledEventStatus.ERROR);
                 scheduledEvent.setRetryCount(scheduledEvent.getRetryCount() + 1);
-                break;
             }
-            case Discard:
-            default: {
+            default -> {
                 scheduledEvent.setStatus(ScheduledEventStatus.DISCARD);
-                break;
             }
         }
 
@@ -208,27 +205,14 @@ public class EventSchedulerTask {
         try {
             ScheduledEventHandler handler;
             switch (scheduledEventMessage.getEventType()) {
-                case RUN_ROOT_TOPIC_TRAINING:
-                case PREPARE_HIERARCHICAL_TOPIC_TRAINING:
-                case RUN_HIERARCHICAL_TOPIC_TRAINING:
-                case RESET_TOPIC_MODEL:
-                case FUSE_TOPIC_MODEL:
-                case SORT_TOPIC_MODEL:
-                    handler = applicationContext.getBean(RunTrainingScheduledEventHandler.class);
-                    break;
-                case RUN_ROOT_DOMAIN_TRAINING:
-                case RETRAIN_DOMAIN_MODEL:
-                case CLASSIFY_DOMAIN_MODEL:
-                case EVALUATE_DOMAIN_MODEL:
-                case SAMPLE_DOMAIN_MODEL:
-                case GIVE_FEEDBACK_DOMAIN_MODEL:
-                    handler = applicationContext.getBean(RunDomainTrainingScheduledEventHandler.class);
-                    break;
-                case CHECK_RUNNING_TASKS:
-                    handler = applicationContext.getBean(CheckTasksScheduledEventHandler.class);
-                    break;
-                default:
+                case RUN_ROOT_TOPIC_TRAINING, PREPARE_HIERARCHICAL_TOPIC_TRAINING, RUN_HIERARCHICAL_TOPIC_TRAINING, RESET_TOPIC_MODEL, FUSE_TOPIC_MODEL, SORT_TOPIC_MODEL ->
+                        handler = applicationContext.getBean(RunTrainingScheduledEventHandler.class);
+                case RUN_ROOT_DOMAIN_TRAINING, RETRAIN_DOMAIN_MODEL, CLASSIFY_DOMAIN_MODEL, EVALUATE_DOMAIN_MODEL, SAMPLE_DOMAIN_MODEL, GIVE_FEEDBACK_DOMAIN_MODEL ->
+                        handler = applicationContext.getBean(RunDomainTrainingScheduledEventHandler.class);
+                case CHECK_RUNNING_TASKS -> handler = applicationContext.getBean(CheckTasksScheduledEventHandler.class);
+                default -> {
                     return EventProcessingStatus.Discard;
+                }
             }
 
             return handler.handle(scheduledEventMessage, entityManager);
