@@ -1,0 +1,8 @@
+event-scheduler:
+  events:
+    check-for-imports:
+      enabled: true
+      checkIntervalInSeconds: 60
+      hdfsDataPath: "ΧΧΧΧΧ"
+      hdfsServiceUrl: "ΧΧΧΧΧ"
+      fileSizeThresholdInMB: 0

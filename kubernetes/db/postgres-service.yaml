@@ -5,11 +5,8 @@ metadata:
   labels:
     app: postgres # Defines app to create service for
 spec:
-  externalIPs:  
-    - ΧΧΧΧΧ
   type: NodePort # Sets the service type
   ports:
     - port: 5432 # Sets the port to run the postgres application
-      nodePort: 30046
   selector:
     app: postgres

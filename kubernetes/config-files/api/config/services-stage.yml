@@ -2,14 +2,28 @@ services:
   services:
     manageLists:
       volumeConfiguration:
-        temp_folder: /data/wordlist/temp
+        temp_folder: /data/wordlists/temp
+        wordlists_folder: /data/wordlists
     manageCorpus:
       volumeConfiguration:
+        datasets_folder: /data/datasets
         temp_folder: /data/corpus/temp
     manageModels:
       volumeConfiguration:
-        temp_folder: /data/models/temp
+        temp_folder: /data/topic-modeling/temp
     training:
       volumeConfiguration:
-        models_folder: /data/models/data
+        tm_models_folder: /data/TMmodels
         temp_folder: /data/topic-modeling/temp
+    domainTraining:
+      volumeConfiguration:
+        dc_models_folder: /data/dc-models/metadata
+        dc_models_inner_folder: /data/dc-models/metadata
+        temp_folder: /data/dc-models/temp
+        output_folder: /data/dc-models/{project_name}_classification/output
+        documents_folder: /data/dc-models/{project_name}_classification/datasets/temp
+        zero_shot_folder: /data/dc-models/zero-shot
+    resetTM:
+      volumeConfiguration:
+        models_folder: /data/models/data
+        temp_folder: /data/models/temp

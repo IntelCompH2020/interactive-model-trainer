@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: imt-backend-api
-          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-api:0.0.11
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-api:0.0.42
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 8080
@@ -39,15 +39,19 @@ spec:
               mountPath: "/management-config"
               subPath: "."
             - name: imt-mng-wordlist-data
-              mountPath: /data/wordlist/temp
+              mountPath: /data/wordlists
             - name: imt-mng-corpus-data
               mountPath: /data/corpus/temp
             - name: imt-mng-models-data
               mountPath: /data/models/temp
             - name: imt-mng-models-data
-              mountPath: /data/models/data
+              mountPath: /data/TMmodels
             - name: imt-mng-topic-modeling-data
               mountPath: /data/topic-modeling/temp
+            - name: imt-mng-dc-models-data
+              mountPath: /data/dc-models
+            - name: imt-mng-corpus-data
+              mountPath: /data/datasets
             - name: logs
               mountPath: "/logs"
               subPathExpr: $(POD_NAME)_$(POD_UID)/api
@@ -67,6 +71,9 @@ spec:
         - name: imt-mng-models-data
           persistentVolumeClaim:
             claimName: imt-models-volume-claim
+        - name: imt-mng-dc-models-data
+          persistentVolumeClaim:
+            claimName: imt-dc-models-volume-claim
         - name: imt-mng-topic-modeling-data
           persistentVolumeClaim:
             claimName: imt-topic-modeling-volume-claim

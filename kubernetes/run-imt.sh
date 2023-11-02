@@ -18,6 +18,8 @@ kubectl apply -f logs-pvc.yaml --namespace=modeltrainer
 kubectl apply -f wordlists-pvc.yaml --namespace=modeltrainer
 kubectl apply -f corpus-pvc.yaml --namespace=modeltrainer
 kubectl apply -f models-pvc.yaml --namespace=modeltrainer
+kubectl apply -f models-dc-pvc.yaml --namespace=modeltrainer
+kubectl apply -f models-dc-zero-shot-pvc.yaml --namespace=modeltrainer
 kubectl apply -f topic-modeling-pvc.yaml --namespace=modeltrainer
 
 kubectl delete service imt-backend-apis --namespace=modeltrainer

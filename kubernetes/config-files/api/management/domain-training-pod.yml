@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: imt-train
+  name: imt-domain-training
   labels:
-    app: imt-train
+    app: imt-domain-training
 spec:
   containers:
-    - name: imt-train-models
-      image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-topic-modeling-api:0.0.40
+    - name: imp-train-domain-models
+      image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-domain-modeling-api:0.0.40
       imagePullPolicy: "IfNotPresent"
 #      command: [ "/bin/bash", "-c", "--" ]
 #      args: [ "while true; do sleep 30; done;" ]
@@ -15,14 +15,12 @@ spec:
 #        allowPrivilegeEscalation: false
 #        runAsUser: 0
       volumeMounts:
-        - name: imt-mng-models-data
-          mountPath: /data/TMmodels
+        - name: imt-mng-dc-models-data
+          mountPath: /data/dc-models
         - name: imt-mng-corpus-data
           mountPath: /data/datasets
         - name: imt-mng-wordlist-data
           mountPath: /data/wordlists
-        - name: imt-mng-topic-modeling-data
-          mountPath: /data/topic-modeling
   restartPolicy: Never
   volumes:
     - name: imt-mng-wordlist-data
@@ -31,11 +29,8 @@ spec:
     - name: imt-mng-corpus-data
       persistentVolumeClaim:
         claimName: imt-corpus-volume-claim
-    - name: imt-mng-models-data
+    - name: imt-mng-dc-models-data
       persistentVolumeClaim:
-        claimName: imt-models-volume-claim
-    - name: imt-mng-topic-modeling-data
-      persistentVolumeClaim:
-        claimName: imt-topic-modeling-volume-claim
+        claimName: imt-dc-models-volume-claim
   imagePullSecrets:
     - name: bsc-docker-reg-credentials

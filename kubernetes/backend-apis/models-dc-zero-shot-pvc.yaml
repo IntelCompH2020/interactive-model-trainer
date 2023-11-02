@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim # Create PVC
 metadata:
-  name: imt-corpus-volume-claim # Sets PVC's name
+  name: imt-mng-dc-models-zero-shot-volume-claim # Sets PVC's name
   labels:
-    app: imt-corpus # Defines app to create PVC for
+    app: imt-models # Defines app to create PVC for
 spec:
   storageClassName: "nfs-client"
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1024Gi # Sets PVC's size
+      storage: 50Gi # Sets PVC's size

@@ -14,6 +14,12 @@ kubernetes:
     trainModels:
       jobName: training
       containerName: imt-train-models
+    resetModel:
+      jobName: resetTM
+      containerName: imt-reset-model
+    trainDomainModels:
+      jobName: domainTraining
+      containerName: imp-train-domain-models
   deployments:
     management:
       path: /management-config/management-deployment.yml
@@ -23,3 +29,9 @@ kubernetes:
     training:
       path: /management-config/topic-modeling-pod.yml
       podLabelSelector: app=imt-train
+    resetTM:
+      path: /management-config/reset-topic-modeling-pod.yml
+      podLabelSelector: app=imt-resetTM
+    domainTraining:
+      path: /management-config/domain-training-pod.yml
+      podLabelSelector: app=imt-domain-training

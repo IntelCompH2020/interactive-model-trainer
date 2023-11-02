@@ -11,9 +11,9 @@
 		"enabled": true,
 		"address": "ΧΧΧΧΧ",
 		"realm": "ΧΧΧΧΧ",
-		"flow": "ΧΧΧΧΧ",
+		"flow": "hybrid",
 		"clientId": "ΧΧΧΧΧ",
-		"redirectUri": "ΧΧΧΧΧ",
+		"redirectUri": "<fronend-root-address>/login/post",
 		"scope": "ΧΧΧΧΧ"
 	},
 	"notification_service": {

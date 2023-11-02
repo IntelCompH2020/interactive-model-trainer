@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: imt-mng-wordlist
-          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-wordlists-api:0.0.9
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-wordlists-api:0.0.40
           command: ["tail", "-f", "/dev/null" ]
           imagePullPolicy: "IfNotPresent"
           volumeMounts:
@@ -25,7 +25,7 @@ spec:
             - name: imt-mng-wordlist-data
               mountPath: /data/temp
         - name: imt-mng-corpus
-          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-corpus-api:0.0.9
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-corpus-api:0.0.40
           command: ["tail", "-f", "/dev/null" ]
           imagePullPolicy: "IfNotPresent"
           volumeMounts:
@@ -34,14 +34,16 @@ spec:
             - name: imt-mng-corpus-data
               mountPath: /data/temp
         - name: imt-mng-models
-          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-models-api:0.0.9
+          image: registry.gitlab.bsc.es/support/intelcomp/ic-interactive-model-trainer-models-api:0.0.40
           command: ["tail", "-f", "/dev/null" ]
           imagePullPolicy: "IfNotPresent"
           volumeMounts:
             - name: imt-mng-models-data
-              mountPath: /data/models
-            - name: imt-mng-models-data
-              mountPath: /data/temp
+              mountPath: /data/TMmodels
+            - name: imt-mng-dc-models-data
+              mountPath: /data/dc-models
+            - name: imt-mng-topic-modeling-data
+              mountPath: /data/topic-modeling
       volumes:
         - name: imt-mng-wordlist-data
           persistentVolumeClaim:
@@ -52,5 +54,11 @@ spec:
         - name: imt-mng-models-data
           persistentVolumeClaim:
             claimName: imt-models-volume-claim
+        - name: imt-mng-dc-models-data
+          persistentVolumeClaim:
+            claimName: imt-dc-models-volume-claim
+        - name: imt-mng-topic-modeling-data
+          persistentVolumeClaim:
+            claimName: imt-topic-modeling-volume-claim
       imagePullSecrets:
         - name: bsc-docker-reg-credentials
