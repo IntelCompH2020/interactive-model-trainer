@@ -1,8 +1,11 @@
 # Parameters for Project folder path.
 # Used for the IMT only. In general, the project folder and the dataset
 # can be specified as args of the command running the application
-project_folder_path: /data/dc-models
-dataset_path: /data/datasets 
+project_folder_path: /data/DCmodels     
+dataset_path: /data/datasets            
+# For debug mode, the following can be used:
+# project_folder_path: ../projects/debug_imt
+# dataset_path: ../datasets
 
 # Parameters for the corpus loaders
 corpus:
@@ -16,14 +19,16 @@ corpus:
 
 # Parameter for the keyword-based document selector
 keywords:
-  # Selection method: 'embedding' or 'count'
+  # Selection method: 'embedding' or 'count'. If 'count' (faster), documents
+  # are scored according to word counts. If 'embedding' (slower), scores are
+  # based on transformer embeddings.
   method: 'count'
   # Weight of the title. A word in the title is equivalent to wt repetitions
   # of the word in the description. (For method='count' only)
   wt: 1 
   # Maximum number of documents to be selected.
   n_max: 50000
-  # Minimum score. Only docs scored strictly above s_min are selected
+  # Minimum score. Only docs with higher scores are selected
   s_min: 0.6
   # Name of the SBERT model. Available pretrained models can be found in 
   # https://www.sbert.net/docs/pretrained_models.html
@@ -33,15 +38,22 @@ keywords:
 zeroshot:
   # Maximum number of documents to be selected.
   n_max: 4000
-  # Minimum score. Only docs scored strictly above s_min are selected
+  # Minimum score. Only docs with higher scores are selected
   s_min: 0.6
 
 # Parameter for the topic-based document selector
 topics:
   # Maximum number of documents to be selected.
   n_max: 4000
-  # Minimum score. Only docs scored strictly above s_min are selected
+  # Minimum score. Only docs with higher scores are selected
   s_min: 0.2
+
+# Parameter for the document selection based on available scores
+score_based_selection:
+  # Maximum number of documents to be selected.
+  n_max: 50000
+  # Minimum score. Only docs with higher scores are selected
+  s_min: 0.5
 
 # Parameters for the classifier
 classifier:
@@ -55,7 +67,7 @@ classifier:
   # Maximum number of documents in the training set.
   nmax: 400
   # If True, the embedding layer is fixed, and not fine-tuned.
-  # During learning, only the layers aftert the encoder of the sentence
+  # During learning, only the layers after the encoder of the sentence
   # transformer are updated.
   freeze_encoder: True
   # Number of epochs

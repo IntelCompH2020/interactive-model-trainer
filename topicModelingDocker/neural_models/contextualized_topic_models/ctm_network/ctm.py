@@ -22,7 +22,31 @@ class CTM(object):
     This is the more general class, so in order to create one of the CTM models, the subclasses ZeroShotTM and CombinedTM should be used.
     """
 
-    def __init__(self, logger, input_size, contextual_size,inference_type="combined", n_components=10, model_type='prodLDA', hidden_sizes=(100, 100), activation='softplus', dropout=0.2, learn_priors=True, batch_size=64, lr=2e-3, momentum=0.99, solver='adam', num_epochs=100, num_samples=10, reduce_on_plateau=False, topic_prior_mean=0.0, topic_prior_variance=None, num_data_loader_workers=mp.cpu_count(), label_size=0, loss_weights=None, verbose=True):
+    def __init__(self,
+                 logger,
+                 input_size,
+                 contextual_size,
+                 inference_type="combined",
+                 n_components=10,
+                 model_type='prodLDA',
+                 hidden_sizes=(100, 100),
+                 activation='softplus',
+                 dropout_in=0.2,
+                 dropout_out=0.2,
+                 learn_priors=True,
+                 batch_size=64,
+                 lr=2e-3,
+                 momentum=0.99,
+                 solver='adam',
+                 num_epochs=100,
+                 num_samples=10,
+                 reduce_on_plateau=False,
+                 topic_prior_mean=0.0,
+                 topic_prior_variance=None,
+                 num_data_loader_workers=mp.cpu_count(),
+                 label_size=0,
+                 loss_weights=None,
+                 verbose=True):
 
         """
         Sets the main attributes to create a specific CTM model.
@@ -90,7 +114,8 @@ class CTM(object):
                               'rrelu', 'elu', 'selu'], \
             "activation must be 'softplus', 'relu', 'sigmoid', 'swish', 'leakyrelu'," \
             " 'rrelu', 'elu', 'selu' or 'tanh'."
-        assert dropout >= 0, "dropout must be >= 0."
+        assert dropout_in >= 0, "dropout must be >= 0."
+        assert dropout_out >= 0, "dropout must be >= 0."
         assert isinstance(batch_size, int) and batch_size > 0, \
             "batch_size must be int > 0."
         assert lr > 0, "lr must be > 0."
@@ -116,7 +141,8 @@ class CTM(object):
         self.model_type = model_type
         self.hidden_sizes = hidden_sizes
         self.activation = activation
-        self.dropout = dropout
+        self.dropout_in = dropout_in
+        self.dropout_out = dropout_out
         self.learn_priors = learn_priors
         self.batch_size = batch_size
         self.lr = lr
@@ -149,8 +175,17 @@ class CTM(object):
 
         # Initialize inference avitm network
         self.model = DecoderNetwork(
-            input_size, self.contextual_size, inference_type, n_components, model_type, hidden_sizes, activation,
-            dropout, learn_priors, label_size=label_size)
+            input_size,
+            self.contextual_size,
+            inference_type,
+            n_components,
+            model_type, 
+            hidden_sizes,
+            activation,
+            dropout_in,
+            dropout_out,
+            learn_priors,
+            label_size=label_size)
 
         # Initialize Early Stopping method to stop the training if validation loss doesn't improve after a given patience.
         self.early_stopping = EarlyStopping(patience=5, verbose=False)
@@ -400,7 +435,8 @@ class CTM(object):
                    Model Type: {}\n\
                    Hidden Sizes: {}\n\
                    Activation: {}\n\
-                   Dropout: {}\n\
+                   Dropout in : {}\n\
+                   Dropout out : {}\n\
                    Learn Priors: {}\n\
                    Learning Rate: {}\n\
                    Momentum: {}\n\
@@ -408,7 +444,7 @@ class CTM(object):
                    Save Dir: {}".format(
                 self.n_components, self.topic_prior_mean,
                 self.topic_prior_variance, self.model_type,
-                self.hidden_sizes, self.activation, self.dropout, self.learn_priors,
+                self.hidden_sizes, self.activation, self.dropout_in, self.dropout_out, self.learn_priors,
                 self.lr, self.momentum, self.reduce_on_plateau, save_dir))
 
         self.model_dir = save_dir
@@ -691,7 +727,7 @@ class CTM(object):
         model_dir = "contextualized_topic_model_nc_{}_tpm_{}_tpv_{}_hs_{}_ac_{}_do_{}_lr_{}_mo_{}_rp_{}". \
             format(self.n_components, 0.0, 1 - (1. / self.n_components),
                    self.model_type, self.hidden_sizes, self.activation,
-                   self.dropout, self.lr, self.momentum,
+                   self.dropout_in, self.lr, self.momentum,
                    self.reduce_on_plateau)
         return model_dir
 

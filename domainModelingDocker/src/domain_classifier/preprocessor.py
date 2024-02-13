@@ -684,7 +684,8 @@ class CorpusDFProcessor(object):
             Name of the SBERT transformer model
         method : str in {'embedding', 'count'}
             - If 'count', documents are scored according to word counts
-            - If 'embedding', scores are based on neural embeddings
+            - If 'embedding', scores are based on transformer embeddings
+            The count method is much faster.
 
         Returns
         -------
@@ -695,6 +696,34 @@ class CorpusDFProcessor(object):
         """
 
         scores = self.score_by_keywords(keywords, wt, model_name, method)
+        ids = self.get_top_scores(scores, n_max=n_max, s_min=s_min)
+
+        return ids, scores
+
+    def filter_by_scores(self, col='scores', n_max=1e100, s_min=0.5):
+        """
+        Select documents from a given set of keywords
+
+        Parameters
+        ----------
+        col : str, optional (default='scores')
+            Name of the column containing the scores
+        n_max: int or None, optional (defaul=1e100)
+            Maximum number of elements in the output list. The default is
+            a huge number that, in practice, means there is no limit
+        s_min: float, optional (default=0.5)
+            Minimum score. Only elements strictly above s_min are selected
+
+        Returns
+        -------
+        ids : list
+            List of ids of the selected documents
+        scores : list of float
+            List of scores, one per documents in corpus
+        """
+
+        # Check if embeddings have been provided
+        scores = np.array(self.df_corpus[col])
         ids = self.get_top_scores(scores, n_max=n_max, s_min=s_min)
 
         return ids, scores

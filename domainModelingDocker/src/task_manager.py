@@ -312,7 +312,7 @@ class TaskManager(baseTaskManager):
             return self.keywords
         else:
             # Transform string into list of keywords
-            keywords = keywords.replace("_", "").split(",")
+            keywords = keywords.split(",")
             # Clean extra blank spaces keyword-by-keyword
             keywords = [" ".join(k.split()) for k in keywords]
 
@@ -487,7 +487,7 @@ class TaskManager(baseTaskManager):
 
         return y, df_stats, kf_stats
 
-    def get_labels_by_keywords(self, wt: float = 2.0, n_max: int = 10_000,
+    def get_labels_by_keywords(self, wt: float = 2.0, n_max: int = 50_000,
                                s_min: float = 1.0, tag: str = "kwds",
                                method: str = 'count', keywords: str = ""):
         """
@@ -498,7 +498,7 @@ class TaskManager(baseTaskManager):
         wt : float, optional (default=2)
             Weighting factor for the title components. Keywords in the title
             are weighted by this factor
-        n_max: int or None, optional (default=10_000)
+        n_max: int or None, optional (default=50_000)
             Maximum number of elements in the output list.
         s_min: float, optional (default=1)
             Minimum score. Only elements strictly above s_min are selected
@@ -674,6 +674,57 @@ class TaskManager(baseTaskManager):
             'doc_selection': {
                 'method': 'filter by topics',
                 'topic_weights': topic_weights,
+                'n_max': n_max,
+                's_min': s_min}}
+
+        self._save_metadata()
+
+        return msg
+
+    def get_labels_from_scores(self, n_max: int = 50_000, s_min: float = 1.0,
+                               col: str = "scores", tag: str = "oracle"):
+        """
+        Get a set of positive labels using a column of scores available at
+        the corpus dataframe
+
+        Parameters
+        ----------
+        n_max : int or None, optional (default=50_000)
+            Maximum number of elements in the output list.
+        s_min : float, optional (default=1)
+            Minimum score. Only elements strictly above s_min are selected
+        col : str, optional (default="scores")
+            Name of the column containing the scores in the corpus dataframe
+        tag : str, optional (default='oracle')
+            Name of the output label set.
+        """
+
+        # Check if corpus has been loaded
+        if not self._is_corpus():
+            return "No corpus has been loaded"
+
+        # Find the documents with the highest scores given the keywords
+        ids, scores = self.CorpusProc.filter_by_scores(
+            col=col, n_max=n_max, s_min=s_min)
+
+        # Set the working class
+        self.class_name = tag
+        # Generate dataset dataframe
+        self.df_dataset = self.CorpusProc.make_PU_dataset(ids, scores)
+
+        # ############
+        # Save dataset
+        # (note that we do not call self._save_dataset() here, because we
+        #  are saving self.df_dataset, and not self.dc.df_dataset (the
+        #  classifier object has not been created yet))
+        msg = self.DM.save_dataset(
+            self.df_dataset, tag=self.class_name, save_csv=True)
+
+        # ################################
+        # Save parameters in metadata file
+        self.metadata[tag] = {
+            'doc_selection': {
+                'method': 'Imported from data files',
                 'n_max': n_max,
                 's_min': s_min}}
 
@@ -881,26 +932,32 @@ class TaskManager(baseTaskManager):
 
         # ['id', 'text', 'base_scores', 'PUlabels', 'labels', 'train_test']
         # Train the model using simpletransformers
-        self.dc.train_model(epochs=epochs, validate=True,
-                            freeze_encoder=freeze_encoder, tag="PU",
-                            batch_size=batch_size)
+        train_ok = self.dc.train_model(
+            epochs=epochs, validate=True, freeze_encoder=freeze_encoder,
+            tag="PU", batch_size=batch_size)
 
-        # Update status.
-        # Since training takes much time, we store the classification results
-        # in files
-        self._save_dataset()
-        self.state['trained_model'] = True
+        if train_ok:
+            # Update status.
+            # Since training takes much time, we store the classification
+            # results in files
+            self._save_dataset()
+            self.state['trained_model'] = True
 
-        self.metadata[self.class_name]['PU_training'] = {
-            'model_type': model_type,
-            'model_name': model_name,
-            'freeze_encoder': freeze_encoder,
-            'max_imbalance': max_imbalance,
-            'nmax': nmax,
-            'epochs': epochs,
-            'best_epoch': self.dc.best_epoch}
-        self._save_metadata()
+            self.metadata[self.class_name]['PU_training'] = {
+                'model_type': model_type,
+                'model_name': model_name,
+                'freeze_encoder': freeze_encoder,
+                'max_imbalance': max_imbalance,
+                'nmax': nmax,
+                'epochs': epochs,
+                'best_epoch': self.dc.best_epoch}
+            self._save_metadata()
 
+        else:
+            logging.warning(
+                "-- The model could not be trained. Maybe you can make a "
+                "feasible dataset by get more documents from the positive "
+                "class")
         return
 
     def evaluate_PUmodel(self, samples: str = "train_test"):
@@ -1009,6 +1066,12 @@ class TaskManager(baseTaskManager):
         """
         Compute all performance metrics for the PU model, based on the data
         available at the current dataset
+
+        This methods compares three types of labels/predictions:
+
+        PUlabels:    Labels produced by the document selection process
+        PU:          Predictions from the model trained with the PUlabels
+        Annotations: Ground-truth labels, typically annotated by the user.
         """
 
         # Check if a classifier object exists
@@ -1028,6 +1091,10 @@ class TaskManager(baseTaskManager):
             self._performance_metrics("PU", ANNOTATIONS, "unused")
             self._performance_metrics("PU", ANNOTATIONS, "all")
 
+            # Test PU predictions against annotations
+            self._label2label_metrics("PUlabels", ANNOTATIONS, "test")
+            self._label2label_metrics("PUlabels", ANNOTATIONS, "unused")
+            self._label2label_metrics("PUlabels", ANNOTATIONS, "all")
         return
 
     def performance_metrics_PN(self):
@@ -1201,6 +1268,10 @@ class TaskManager(baseTaskManager):
                 print(f"PREDICTED CLASS: {doc.prediction}")
             if 'prob_pred' in doc:
                 print(f"SCORE: {doc.prob_pred}")
+            if 'PUlabels' in doc:
+                print(f"PUlabel: {doc.PUlabels}")
+            if 'labels' in doc:
+                print(f"Label: {doc.labels}")
 
             labels.append(QM.ask_label())
             print(width * "=")
@@ -1359,6 +1430,29 @@ class TaskManager(baseTaskManager):
         # Extract label dataframe from the dataset.
         logging.info("-- Saving annotations in source folder")
         self.DM.export_annotations(df_annotations, domain_name)
+
+        return
+
+    def export_subcorpus(self):
+        """
+        Exports the list of IDs corresponding to documents from the positive
+        class
+        """
+
+        if self.df_dataset is None:
+            logging.warning("-- No model is loaded. "
+                            "You must load or create a set of labels first")
+            return
+
+        subcorpus = self.df_dataset[self.df_dataset.PU_prediction == 1]
+
+        # Save ids only
+        path2parquet = (
+            self.path2output / f'subcorpus_{self.class_name}.parquet')
+        path2csv = (
+            self.path2output / f'subcorpus_{self.class_name}.csv')
+        subcorpus[['id']].to_parquet(path2parquet)
+        subcorpus[['id']].to_csv(path2csv)
 
         return
 
@@ -1528,7 +1622,7 @@ class TaskManagerCMD(TaskManager):
         elif method == 'c':
             method = 'count'
 
-        # Get keywords and labels
+        # Get keywords and a label name
         self.keywords = self._ask_keywords()
         tag = self._ask_label_tag()
 
@@ -1612,6 +1706,36 @@ class TaskManagerCMD(TaskManager):
             topic_weights, n_max=n_max, s_min=s_min, tag=tag)
 
         return msg
+
+    def get_labels_from_scores(self):
+        """
+        Get a set of positive labels using a column of scores available at
+        the corpus dataframe
+        """
+
+        # ##############
+        # Get parameters
+
+        # Get weight parameter (weight of title word wrt description words)
+        n_max = self.QM.ask_value(
+            query=("Set maximum number of returned documents"),
+            convert_to=int,
+            default=self.global_parameters['score_based_selection']['n_max'])
+
+        # Get score threshold
+        s_min = self.QM.ask_value(
+            query=("Set score_threshold"),
+            convert_to=float,
+            default=self.global_parameters['score_based_selection']['s_min'])
+
+        # As a name for the new labels
+        tag = self._ask_label_tag()
+
+        # ##########
+        # Get labels
+        super().get_labels_from_scores(n_max=n_max, s_min=s_min, tag=tag)
+
+        return
 
     def export_annotations(self):
 
@@ -1910,7 +2034,7 @@ class TaskManagerIMT(TaskManager):
                  'statistical machine translation', 'pytorch']
                 + self.DM.get_keywords_list())
         if keyword_list == '':
-            self.keywords = np.array(keywords.replace("_", "").split(','))
+            self.keywords = np.array(keywords.split(','))
 
         self.get_labels_by_keywords(wt, n_max, s_min, tag, method, keywords)
         self.train_PUmodel(

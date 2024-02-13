@@ -196,6 +196,13 @@ class CorpusClassifier(object):
         l1 = sum(self.df_dataset['labels'])
         l0 = len(self.df_dataset) - l1
 
+        if l1 == 0:
+            logging.warning(
+                "-- -- There are no samples from the positive class")
+        if l0 == 0:
+            logging.warning(
+                "-- -- There are no samples from the negative class")
+
         # Selected dataset for training and testing. By default, it is equal
         # to the original dataset, but it might be reduced for balancing or
         # simplification purposes
@@ -218,14 +225,20 @@ class CorpusClassifier(object):
         if nmax is not None and nmax < l0 + l1:
             df_subset = df_subset.sample(n=nmax)
 
-        df_train, df_test = model_selection.train_test_split(
-            df_subset, train_size=train_size, random_state=random_state,
-            shuffle=True, stratify=None)
-
-        # Marc train and test samples in the dataset.
+        # Create columns to mark train and test samples
         self.df_dataset['train_test'] = UNUSED
-        self.df_dataset.loc[df_train.index, 'train_test'] = TRAIN
-        self.df_dataset.loc[df_test.index, 'train_test'] = TEST
+
+        if l0 + l1 > 0:
+            df_train, df_test = model_selection.train_test_split(
+                df_subset, train_size=train_size, random_state=random_state,
+                shuffle=True, stratify=None)
+
+            # Mark train and test samples in the dataset.
+            self.df_dataset.loc[df_train.index, 'train_test'] = TRAIN
+            self.df_dataset.loc[df_test.index, 'train_test'] = TEST
+
+        else:
+            logging.warning("-- -- Empty train and test sets.")
 
         return
 
@@ -437,8 +450,32 @@ class CorpusClassifier(object):
             predictions) saved in the dataset dataframe
         batch_size : int, optiona (default=8)
             Batch size
+
+        Returns
+        -------
+        train_success: boolean
+            True if the model has been succesfully trained. False otherwise.
         """
+
         logging.info("-- Training model...")
+
+        # ###################
+        # Check training data
+        if 'train_test' not in self.df_dataset:
+            # Make partition if not available
+            logging.warning(
+                "-- -- Train test partition not available. A partition with "
+                "default parameters will be generated")
+            self.train_test_split()
+        elif sum(self.df_dataset['train_test'] == TRAIN) == 0:
+            # No training data in the
+            logging.warning(
+                "-- -- There are no training data in the dataset. "
+                "No model can be trained")
+            train_success = False
+            return train_success
+
+        self.df_dataset["sample_weight"] = 1
 
         # ###############################
         # Initialize classification model
@@ -453,24 +490,15 @@ class CorpusClassifier(object):
         self.model = CustomModel(self.config, self.path2transformers,
                                  self.model_type, self.model_name)
 
-        # #################
-        # Get training data
-        if 'train_test' not in self.df_dataset:
-            # Make partition if not available
-            logging.warning(
-                "-- -- Train test partition not available. A partition with "
-                "default parameters will be generated")
-            self.train_test_split()
-        self.df_dataset["sample_weight"] = 1
-
         # #####
         # Train
 
         self._train_model(
             epochs=epochs, validate=validate, freeze_encoder=freeze_encoder,
             tag=tag, batch_size=batch_size)
+        train_success = True
 
-        return
+        return train_success
 
     def eval_model(self, samples="train_test", tag="", batch_size=8):
         """
@@ -940,20 +968,37 @@ class CorpusClassifier(object):
 
         elif sampler == 'full_rs':
 
-            # Compute sampling probabilities
-            n_half = n_samples // 2
-            p_selected = 1 / len(selected_docs)
-            p_unused = 1 / len(unused_docs)
+            # Take the number of documents from the train-test split
+            # (selected_docs) and the number of other docs (unused)
+            n_selected = len(selected_docs)
+            n_unused = len(unused_docs)
+            # This condition should not happen, but just in case
+            if n_samples > n_selected + n_unused:
+                n_samples = n_selected + n_unused
+
+            # We take half documents from the selected_docs and the rest from
+            # the unused docs...
+            n2sample = n_samples // 2
+            # ... but, if there are not enough documents from one type, we take
+            # more from the other
+            if n_selected < n2sample:
+                n2sample = n_selected
+            elif n_unused < n_samples - n2sample:
+                n2sample = n_samples - n_unused
 
             # Sample docs
-            if len(selected_docs) > n_half:
-                selected_docs = selected_docs.sample(n_half)
-            if len(unused_docs) > n_samples - n_half:
-                unused_docs = unused_docs.sample(n_samples - n_half)
+            if n_selected > n2sample:
+                selected_docs = selected_docs.sample(n2sample)
+            if n_unused > n_samples - n2sample:
+                unused_docs = unused_docs.sample(n_samples - n2sample)
 
             # Assign sampling probabilities
-            selected_docs['sampling_prob'] = p_selected
-            unused_docs['sampling_prob'] = p_unused
+            if n_selected > 0:
+                p_selected = 1 / n_selected
+                selected_docs['sampling_prob'] = p_selected
+            if n_unused > 0:
+                p_unused = 1 / n_unused
+                unused_docs['sampling_prob'] = p_unused
 
             # Join samples from the train-test and the unused subdatasets
             selected_docs = pd.concat((selected_docs, unused_docs))

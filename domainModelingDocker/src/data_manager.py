@@ -25,6 +25,7 @@ import json
 
 # import gc
 
+# Local imports
 from .manage_corpus import CorpusManager
 
 
@@ -138,21 +139,63 @@ class DataManager(object):
 
         return
 
-    #    def __update_metadata(self):
-    #
-    #        path2metadata = self.path2corpus / 'metadata.yaml'
-    #        with open(path2metadata, 'w') as f:
-    #            yaml.dump(self.metadata, f)
-    #
-    #        return
+    # def __update_metadata(self):
+    #     path2metadata = self.path2corpus / 'metadata.yaml'
+    #     with open(path2metadata, 'w') as f:
+    #         yaml.dump(self.metadata, f)
+    #     return
 
-    #    def __determineCorpusHasEmbeddings(self, columns):
-    #
-    #        self.metadata["corpus_has_embeddings"] = bool(
-    #            (np.array(columns) == 'embeddings').sum() > 0)
-    #        self.__update_metadata()
-    #
-    #        return
+    # def __determineCorpusHasEmbeddings(self, columns):
+    #     self.metadata["corpus_has_embeddings"] = bool(
+    #         (np.array(columns) == 'embeddings').sum() > 0)
+    #     self.__update_metadata()
+    #     return
+
+    def _load_parquet(self, path2texts, columns, mapping):
+        """
+        Loads a corpus from a set of parquet files
+
+        Parameters
+        ----------
+        path2texts : pathlib.Path
+            Path to the folder containing the parquet files. All parquet files
+            below this folder will be loaded and appended to the output
+            dataframe
+        columns : list of str
+            List of names of the columns to load from the parquet files
+        mapping : dict
+            Names of the corresponding columns in the output dataframe
+
+        Returns
+        -------
+        df_corpus : pandas.DataFrame
+            Output corpus.
+        """
+
+        fpaths = [f for f in path2texts.glob('**/*')
+                  if f.is_file() and f.suffix == '.parquet']
+        n_files = len(fpaths)
+
+        # ###########
+        # Load corpus
+
+        for k, path_k in enumerate(fpaths):
+            print(f"-- -- Loading file {k + 1} out of {n_files}  \r", end="")
+            dfk = pd.read_parquet(path_k)
+
+            # Original fields are:
+            dfk = dfk[columns]
+
+            if k == 0:
+                df_corpus = dfk
+            else:
+                # df_corpus0 = df_corpus.append(dfk, ignore_index=True)
+                df_corpus = pd.concat([df_corpus, dfk])
+
+        # Map column names to normalized names
+        df_corpus.rename(columns=mapping, inplace=True)
+
+        return df_corpus
 
     def get_metadata(self):
         """
@@ -325,6 +368,7 @@ class DataManager(object):
         # #################################################
         # Load corpus data from feather file (if it exists)
         if path2feather.is_file():
+
             logging.info(f'-- -- Feather file {path2feather} found...')
             df_corpus = pd.read_feather(path2feather)
 
@@ -334,6 +378,12 @@ class DataManager(object):
 
             # self.__determineCorpusHasEmbeddings(df_corpus.columns)
 
+            # Convert the id column, which might be int, into string
+            # This should be not necessary with the current version of the sw,
+            # but it is included for compatibility with feather files generated
+            # from older versions
+            df_corpus['id'] = df_corpus['id'].astype(str)
+
             return df_corpus
 
         # #########################################
@@ -341,12 +391,12 @@ class DataManager(object):
 
         # By default, neither corpus cleaning nor language filtering are done
         clean_corpus = corpus_name in {
-            'SemanticScholar', 'SemanticScholar_emb',
-            'patstat', 'patstat_emb',
-            'AEI_projects', 'CORDIS.parquet', 'S2CS.parquet'}
+            'SemanticScholar', 'SemanticScholar_emb', 'patstat', 'patstat_emb',
+            'AEI_projects', 'CORDIS.parquet', 'S2CS.parquet',
+            'cordis_evoc_vs_all', 'OA_AIkwds_3vs1', 'cordis_AIkwds_3vs1',
+            'patstat_AIkwds_3vs1', 'patstat_intersection_vs_all'}
         remove_non_en = corpus_name in {
-            'SemanticScholar', 'SemanticScholar_emb',
-            'patstat', 'patstat_emb'}
+            'SemanticScholar', 'SemanticScholar_emb', 'patstat', 'patstat_emb'}
 
         if corpus_name == 'EU_projects':
 
@@ -448,86 +498,231 @@ class DataManager(object):
 
         elif corpus_name == 'CORDIS.parquet':
 
-            # ####################
-            # Paths and file names
-
+            # Load data from parquet files
             path2texts = self.path2corpus / 'corpus'
-            fpaths = [f for f in path2texts.glob('**/*')
-                      if f.is_file() and f.suffix == '.parquet']
-            n_files = len(fpaths)
-
-            # ###########
-            # Load corpus
-
-            for k, path_k in enumerate(fpaths):
-                print(f"-- -- Loading file {k + 1} out of {n_files}  \r",
-                      end="")
-                dfk = pd.read_parquet(path_k)
-
-                # Original fields are:
-                #   'id', 'title', 'objective', 'startDate',
-                #   'ecMaxContribution', 'euroSciVocCode', 'rawtext', 'lemmas'
-                dfk = dfk[['id', 'title', 'objective', 'euroSciVocCode']]
-
-                if k == 0:
-                    df_corpus = dfk
-                else:
-                    # df_corpus0 = df_corpus.append(dfk, ignore_index=True)
-                    df_corpus = pd.concat([df_corpus, dfk])
-
-            logging.info(f'-- -- Raw corpus {corpus_name} read with '
-                         f'{len(dfk)} documents')
-
-            # Map column names to normalized names
-            # We use "Referencia", renamed as "id", as the project id.
+            # Original fields are:
+            #    'id', 'title', 'objective', 'startDate', 'ecMaxContribution',
+            #    'euroSciVocCode', 'rawtext', 'lemmas'
+            columns = ['id', 'title', 'objective', 'euroSciVocCode']
             mapping = {'objective': 'description'}
-            df_corpus.rename(columns=mapping, inplace=True)
+            df_corpus = self._load_parquet(path2texts, columns, mapping)
 
             # Map list of euroSciVoc codes to a string (otherwise, no
             # feather file can be saved)
-            col = 'euroSciVocCode'  # Just to abbreviate
+            col = 'euroSciVocCode'   # Just to abbreviate
             if col in df_corpus:
                 df_corpus[col] = df_corpus[col].apply(
                     lambda x: ','.join(
                         x.astype(str)) if x is not None else '')
 
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
         elif corpus_name == 'S2CS.parquet':
 
-            # ####################
-            # Paths and file names
-
+            # Load data from parquet files
             path2texts = self.path2corpus / 'corpus'
-            fpaths = [f for f in path2texts.glob('**/*')
-                      if f.is_file() and f.suffix == '.parquet']
-            n_files = len(fpaths)
-
-            # ###########
-            # Load corpus
-
-            for k, path_k in enumerate(fpaths):
-                print(f"-- -- Loading file {k + 1} out of {n_files}  \r",
-                      end="")
-                dfk = pd.read_parquet(path_k)
-
-                # Original fields are:
-                #   'id', 'title', 'paperAbstract', 'doi', 'year',
-                #   'fieldsOfStudy', 'rawtext', 'lemmas'
-                dfk = dfk[['id', 'title', 'paperAbstract', 'fieldsOfStudy']]
-
-                if k == 0:
-                    df_corpus = dfk
-                else:
-                    # df_corpus = df_corpus.append(dfk, ignore_index=True)
-                    df_corpus = pd.concat([df_corpus, dfk])
-
-            logging.info(f'-- -- Raw corpus {corpus_name} read with '
-                         f'{len(dfk)} documents')
-
+            # Original fields are:
+            #   'id', 'title', 'paperAbstract', 'doi', 'year',
+            #   'fieldsOfStudy', 'rawtext', 'lemmas'
+            columns = ['id', 'title', 'paperAbstract', 'fieldsOfStudy']
             # Map column names to normalized names
             mapping = {'paperAbstract': 'description',
                        'fieldsOfStudy': 'keywords'}
 
-            df_corpus.rename(columns=mapping, inplace=True)
+            df_corpus = self._load_parquet(path2texts, columns, mapping)
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
+        elif corpus_name == 'cordis_evoc_vs_all':
+
+            # Original fields are:
+            #   'projectID', 'acronym', 'status', 'title', 'startDate',
+            #   'endDate', 'totalCost', 'ecMaxContribution', 'ecSignatureDate',
+            #   'frameworkProgramme', 'masterCall', 'subCall', 'fundingScheme',
+            #   'nature', 'objective', 'contentUpdateDate', 'rcn', 'grantDoi',
+            #   'topic', 'topic_title', 'countryContr', 'orgContr',
+            #   'coordinatorCountry', 'coordinatorOrg', 'euroSciVocCode',
+            #   'publicationID', 'patentID'
+
+            # Load data from parquet files
+            columns = ['projectID', 'title', 'objective', 'euroSciVocCode']
+            mapping = {'projectID': 'id', 'objective': 'description'}
+
+            path2texts = self.path2corpus / 'corpus'
+            path2_c1 = path2texts / 'cordis_evoc_Cancer.parquet'
+            path2_c0 = path2texts / 'cordis_all_Cancer.parquet'
+            df_c1 = self._load_parquet(path2_c1, columns, mapping)
+            df_corpus = self._load_parquet(path2_c0, columns, mapping)
+
+            # All items in df_c1 should be in df_corpus. Check it
+            id1 = set(df_c1.id)
+            id0 = set(df_corpus.id)
+            n_notinall = len(id1 - id0)
+            if len(id1 - id0) > 0:
+                logging.warning(
+                    f"-- {n_notinall} items in the subcorpus files are not in "
+                    "the complete dataset and will be ignored")
+                id1 = id1.setintersection(id0)
+
+            # Create column of given scores. For this dataset, scores are 0/1
+            df_corpus['scores'] = df_corpus['id'].isin(id1).astype(float)
+
+            # Map list of euroSciVoc codes to a string (otherwise, no
+            # feather file can be saved)
+            col = 'euroSciVocCode'   # Just to abbreviate
+            if col in df_corpus:
+                df_corpus[col] = df_corpus[col].apply(
+                    lambda x: ','.join(
+                        x.astype(str)) if x is not None else '')
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
+        elif corpus_name == 'cordis_AIkwds_3vs1':
+
+            # Original fields are:
+            #   'id', 'title', 'description', 'Kwd_count'
+            #   'projectID', 'acronym', 'status', 'title', 'startDate',
+            #   'endDate', 'totalCost', 'ecMaxContribution', 'ecSignatureDate',
+            #   'frameworkProgramme', 'masterCall', 'subCall', 'fundingScheme',
+            #   'nature', 'objective', 'contentUpdateDate', 'rcn', 'grantDoi',
+            #   'topic', 'topic_title', 'countryContr', 'orgContr',
+            #   'coordinatorCountry', 'coordinatorOrg', 'euroSciVocCode',
+            #   'publicationID', 'patentID', 'Kwd_count'
+
+            # Load data from parquet files
+            columns = ['projectID', 'title', 'objective', 'Kwd_count']
+            mapping = {'projectID': 'id', 'objective': 'description'}
+
+            path2texts = self.path2corpus / 'corpus'
+            path2_c1 = path2texts / 'cordis_Kwds3_AI.parquet'
+            path2_c0 = path2texts / 'cordis_Kwds_AI.parquet'
+
+            df_c1 = self._load_parquet(path2_c1, columns, mapping)
+            df_corpus = self._load_parquet(path2_c0, columns, mapping)
+
+            # All items in df_c1 should be in df_corpus. Check it
+            id1 = set(df_c1.id)
+            id0 = set(df_corpus.id)
+            n_notinall = len(id1 - id0)
+            if len(id1 - id0) > 0:
+                logging.warning(
+                    f"-- {n_notinall} items in the subcorpus files are not in "
+                    "the complete dataset and will be ignored")
+                id1 = id1.setintersection(id0)
+
+            # Create column of given scores. For this dataset, scores are 0/1
+            df_corpus['scores'] = df_corpus['id'].isin(id1).astype(float)
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
+        elif corpus_name == 'patstat_AIkwds_3vs1':
+
+            # Original fields are:
+            #   'appln_id', 'docdb_family_id', 'appln_title', 'appln_title_lg',
+            #   'appln_abstract', 'appln_abstract_lg', 'appln_filing_year',
+            #   'earliest_filing_year', 'granted', 'appln_auth',
+            #   'receiving_office', 'ipr_type', 'Kwd_count'
+
+            # Load data from parquet files
+            columns = ['appln_id', 'appln_title', 'appln_abstract',
+                       'Kwd_count']
+            mapping = {'appln_id': 'id', 'appln_title': 'title',
+                       'appln_abstract': 'description'}
+
+            path2texts = self.path2corpus / 'corpus'
+            path2_c1 = path2texts / 'PATSTAT_Kwds3_AI.parquet'
+            path2_c0 = path2texts / 'PATSTAT_Kwds_AI.parquet'
+
+            df_c1 = self._load_parquet(path2_c1, columns, mapping)
+            df_corpus = self._load_parquet(path2_c0, columns, mapping)
+
+            # All items in df_c1 should be in df_corpus. Check it
+            id1 = set(df_c1.id)
+            id0 = set(df_corpus.id)
+            n_notinall = len(id1 - id0)
+            if len(id1 - id0) > 0:
+                logging.warning(
+                    f"-- {n_notinall} items in the subcorpus files are not in "
+                    "the complete dataset and will be ignored")
+                id1 = id1.setintersection(id0)
+
+            # Create column of given scores. For this dataset, scores are 0/1
+            df_corpus['scores'] = df_corpus['id'].isin(id1).astype(float)
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
+        elif corpus_name == 'OA_AIkwds_3vs1':
+
+            # Original fields are:
+            #   'id', 'title', 'description', 'Kwd_count'
+
+            # Load data from parquet files
+            columns = ['id', 'title', 'description', 'Kwd_count']
+            mapping = {'projectID': 'id', 'objective': 'description'}
+
+            path2texts = self.path2corpus / 'corpus'
+            path2_c1 = path2texts / 'OA_Kwds3_AI.parquet'
+            path2_c0 = path2texts / 'OA_Kwds_AI.parquet'
+
+            df_c1 = self._load_parquet(path2_c1, columns, mapping)
+            df_corpus = self._load_parquet(path2_c0, columns, mapping)
+
+            # All items in df_c1 should be in df_corpus. Check it
+            id1 = set(df_c1.id)
+            id0 = set(df_corpus.id)
+            n_notinall = len(id1 - id0)
+            if len(id1 - id0) > 0:
+                logging.warning(
+                    f"-- {n_notinall} items in the subcorpus files are not in "
+                    "the complete dataset and will be ignored")
+                id1 = id1.setintersection(id0)
+
+            # Create column of given scores. For this dataset, scores are 0/1
+            df_corpus['scores'] = df_corpus['id'].isin(id1).astype(float)
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
+
+        elif corpus_name == 'patstat_intersection_vs_all':
+
+            # Original fields are:
+            #   'appln_id', 'docdb_family_id', 'appln_title', 'appln_title_lg',
+            #   'appln_abstract', 'appln_abstract_lg', 'appln_filing_year',
+            #   'earliest_filing_year', 'granted', 'appln_auth',
+            #   'receiving_office', 'ipr_type'
+
+            # Load data from parquet files
+            columns = ['appln_id', 'appln_title', 'appln_abstract']
+            mapping = {'appln_id': 'id', 'appln_title': 'title',
+                       'appln_abstract': 'description'}
+
+            path2texts = self.path2corpus / 'corpus'
+            path2_c1 = path2texts / 'PATSTAT_intersection_Cancer.parquet'
+            path2_c0 = path2texts / 'PATSTAT_all_Cancer.parquet'
+
+            df_c1 = self._load_parquet(path2_c1, columns, mapping)
+            df_corpus = self._load_parquet(path2_c0, columns, mapping)
+
+            # All items in df_c1 should be in df_corpus. Check it
+            id1 = set(df_c1.id)
+            id0 = set(df_corpus.id)
+            n_notinall = len(id1 - id0)
+            if len(id1 - id0) > 0:
+                logging.warning(
+                    f"-- {n_notinall} items in the intersection files are not "
+                    "in the complete dataset and will be ignored")
+                id1 = id1.setintersection(id0)
+
+            # Create column of given scores. For this dataset, scores are 0/1
+            df_corpus['scores'] = df_corpus['id'].isin(id1).astype(float)
+
+            logging.info(f'-- -- Raw corpus {corpus_name} read with '
+                         f'{len(df_corpus)} documents')
 
         elif corpus_name in {'SemanticScholar', 'SemanticScholar_emb'}:
             path2metadata = self.path2corpus / 'metadata.yaml'
@@ -569,9 +764,10 @@ class DataManager(object):
 
             # Map list of keywords to a string (otherwise, no feather file can
             # be saved)
-            col = 'keywords'  # Just to abbreviate
+            col = 'keywords'   # Just to abbreviate
             df_corpus[col] = df_corpus[col].apply(
                 lambda x: ','.join(x.astype(str)) if x is not None else '')
+
         elif corpus_name in {'patstat', 'patstat_emb'}:
 
             path2metadata = self.path2corpus / 'metadata.yaml'
@@ -644,6 +840,9 @@ class DataManager(object):
         # Reset the index and drop the old index
         df_corpus = df_corpus.reset_index(drop=True)
 
+        # Convert the id column, which might be int, into string
+        df_corpus['id'] = df_corpus['id'].astype(str)
+
         # ############
         # Log and save
         logging.info(f"-- -- Corpus {corpus_name} with {len(df_corpus)} "
@@ -655,6 +854,7 @@ class DataManager(object):
     def _get_corpus_from_feather(self, sampling_factor, corpus_name):
         t0 = time()
         path2feather = self._get_path2feather(sampling_factor)
+
         if not path2feather.is_file():
             logging.info(f'-- -- Feather file {path2feather} not found...')
             return None
@@ -672,6 +872,26 @@ class DataManager(object):
         logging.info(f"-- -- Corpus saved in feather file {path2feather}")
 
     def _clean_corpus(self, df_corpus):
+        """
+        Cleans the corpus by:
+
+        - Removing duplicates, if any
+        - Removing documents with missing data, if any
+        - Filling nan cells with empty strings
+        - Removing documents with zero-length title or description
+        - Removing some special characters
+        - Uniformize the data type in the "keywords" column, if it exists
+
+        Parameters
+        ----------
+        df_corpus : pandas.DataFrame
+            Corpus
+
+        Returns
+        -------
+        df_corpus : pandas.DataFrame
+            Cleaned corpus
+        """
 
         l0 = len(df_corpus)
         logging.info(f"-- -- {l0} base documents loaded")
@@ -840,7 +1060,9 @@ class DataManager(object):
         else:
             # Rename path to load a csv file.
             path2dataset = self.path2datasets / csv_fname
-            df_dataset = pd.read_csv(path2dataset)
+            # dtype is required because to_csv may have converted the ids to
+            # to integers automatically (when all ids are strings of integers)
+            df_dataset = pd.read_csv(path2dataset, dtype={'id': str})
 
         msg = (f"-- -- Dataset with {len(df_dataset)} samples loaded from "
                f"{path2dataset} in {time() - t0} secs.")
@@ -969,7 +1191,9 @@ class DataManager(object):
         if fmt == 'csv':
             # Below, index_col=0 is used to use the first column as indices.
             # Otherwise, an additional index colums would be used.
-            df = pd.read_csv(fpath, index_col=0)
+            # Also, dtype is required because to_csv may have converted the ids
+            # to integers automatically (when all ids are strings of integers)
+            df = pd.read_csv(fpath, index_col=0, dtype={'id': str})
         elif fmt == 'json':
             df = pd.read_json(fpath)
 
@@ -999,6 +1223,7 @@ class DataManager(object):
         if fmt == 'csv':
             df_docs.to_csv(fpath)
         elif fmt == 'json':
+            # Preventing data type conversion is not needed using json.
             df_docs.to_json(fpath)
 
         return
@@ -1178,7 +1403,7 @@ class DataManager(object):
             "description": description,
             "visibility": visibility,  # "Private" or "Public"
             "type": model_type,  # "Keyword-based", "Zero-shot-based",
-            # "TM-based", "Source-based",
+                                 # "TM-based", "Source-based",
             "corpus": str(self.path2corpus),
             "tag": tag,
             "path_to_config": str(self.path2models / 'dc_config.json'),
@@ -1209,17 +1434,20 @@ class LogicalDataManager(DataManager):
     def load_corpus(self, corpus_name, sampling_factor=1):
         """
         Loads a dataframe of documents from a given corpus.
+
         When available, the names of the relevant dataframe components are
         mapped to normalized names: id, title, description, keywords and
         target_xxx
+
         Parameters
         ----------
         corpus_name : str
             Name of the corpus. It should be the name of a folder in
             self.path2source
+
         sampling_factor : float, optional (default=1)
             Fraction of documents to be taken from the original corpus.
-        (Used for SemanticScholar and Patstat only)
+            (Used for SemanticScholar and Patstat only)
         """
 
         logging.info(f'-- Loading corpus {corpus_name}')
@@ -1242,7 +1470,6 @@ class LogicalDataManager(DataManager):
     def __get_metadata_from_json(self, corpus_name):
 
         path2json = Path(self.tm.global_parameters["dataset_path"])
-        logging.info(f'-- Trying to load metadata for corpus {corpus_name} from {path2json}')
         datasets = np.array(list(
             self.corpus_manager.listTrDtsets(path2json).keys()))
         idx = np.where(self.get_corpus_list() == corpus_name)[0][0]
@@ -1268,16 +1495,16 @@ class LogicalDataManager(DataManager):
             with ProgressBar():
                 df_corpus = dfsmall.compute()
 
-            if dataset['categoryfld'] == "":
+            if 'categoryfld' not in dataset or dataset['categoryfld'] == "":
                 selected_cols = np.array([dataset['idfld'],
                                           dataset['titlefld'],
-                                          dataset['textfld'][0]])
+                                          dataset['textfld']])
                 df_corpus = df_corpus[selected_cols]
                 df_corpus.columns = np.array(['id', 'title', 'description'])
             else:
                 selected_cols = np.array([dataset['idfld'],
                                           dataset['titlefld'],
-                                          dataset['textfld'][0],
+                                          dataset['textfld'],
                                           dataset['categoryfld']])
                 df_corpus = df_corpus[selected_cols]
                 df_corpus.columns = np.array(

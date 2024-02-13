@@ -21,11 +21,14 @@ class CorpusManager(object):
 
     def listDownloaded(self, path_parquet):
         """
-        Returns a dictionary with all datasets downloaded from the Data Catalogue 
+        Returns a dictionary with all datasets downloaded from the Data
+        Catalogue
+
         Parameters
         ----------
         path_parquet : pathlib.Path
             Path to the folder hosting the parquet datasets
+
         Returns
         -------
         allDtsets : Dictionary (path -> dictionary)
@@ -33,21 +36,26 @@ class CorpusManager(object):
             key is the absolute path to the dataset
             value is a dictionary with metadata
         """
+
         metafile = path_parquet.joinpath('datasetMeta.json')
         with open(metafile, 'r', encoding='utf8') as fin:
             allDtsets = json.load(fin)
-        allDtsets = {path_parquet.joinpath(Dts).resolve().as_posix(): allDtsets[Dts]
-                        for Dts in allDtsets.keys()}
+        allDtsets = {
+            path_parquet.joinpath(Dts).resolve().as_posix(): allDtsets[Dts]
+            for Dts in allDtsets.keys()}
 
         return allDtsets
 
     def listTrDtsets(self, path_dataset):
         """
-        Returns a dictionary with all datasets downloaded from the Data Catalogue 
+        Returns a dictionary with all datasets downloaded from the Data
+        Catalogue
+
         Parameters
         ----------
         path_dataset : pathlib.Path
             Path to the folder hosting the training datasets
+
         Returns
         -------
         allTrDtsets : Dictionary (path -> dictionary)
@@ -55,8 +63,10 @@ class CorpusManager(object):
             key is the absolute path to the dataset
             value is a dictionary with metadata
         """
+
         allTrDtsets = {}
-        jsonfiles = [el for el in path_dataset.iterdir() if el.suffix == '.json']
+        jsonfiles = [el for el in path_dataset.iterdir()
+                     if el.suffix == '.json']
 
         for TrDts in jsonfiles:
             with open(TrDts, 'r', encoding='utf8') as fin:
@@ -66,13 +76,15 @@ class CorpusManager(object):
 
     def saveTrDtset(self, path_datasets, Dtset):
         """
-        Saves a (logical) training dataset in the indicated dataset folder 
+        Saves a (logical) training dataset in the indicated dataset folder
+
         Parameters
         ----------
         path_dataset : pathlib.Path
             Path to the folder hosting the training datasets
         Dtset :
             Dictionary with Training Dataset information
+
         Returns
         -------
         status: int
@@ -92,20 +104,24 @@ class CorpusManager(object):
                 path_old = path_datasets.joinpath(Dtset['name'] + '.json.old')
                 shutil.move(path_Dtset, path_old)
                 with path_Dtset.open('w', encoding='utf-8') as fout:
-                    json.dump(Dtset, fout, ensure_ascii=False, indent=2, default=str)
+                    json.dump(
+                        Dtset, fout, ensure_ascii=False, indent=2, default=str)
                 return 2
             else:
                 with path_Dtset.open('w', encoding='utf-8') as fout:
-                    json.dump(Dtset, fout, ensure_ascii=False, indent=2, default=str)
+                    json.dump(
+                        Dtset, fout, ensure_ascii=False, indent=2, default=str)
                 return 1
 
     def deleteTrDtset(self, path_TrDtset):
         """
-        Deletes a (logical) training dataset 
+        Deletes a (logical) training dataset
+
         Parameters
         ----------
         path_TrDtset : pathlib.Path
             Path to the json file with the training dataset information
+
         Returns
         -------
         status : int
@@ -119,7 +135,7 @@ class CorpusManager(object):
             try:
                 path_TrDtset.unlink()
                 return 1
-            except:
+            except Exception:
                 return 0
 
     def renameTrDtset(self, name: Path, new_name: Path):
@@ -142,18 +158,19 @@ class CorpusManager(object):
             print(f"File '{name.as_posix()}' does not exist.")
             return 0
         if new_name.is_file():
-            print(
-                f"File '{new_name.as_posix()}' already exists. Rename or delete it first.")
+            print(f"File '{new_name.as_posix()}' already exists. Rename or "
+                  "delete it first.")
             return 0
         try:
             with name.open("r", encoding="utf8") as fin:
                 Dtset = json.load(fin)
             Dtset["name"] = new_name.stem
             with new_name.open("w", encoding="utf-8") as fout:
-                json.dump(Dtset, fout, ensure_ascii=False, indent=2, default=str)
+                json.dump(
+                    Dtset, fout, ensure_ascii=False, indent=2, default=str)
             name.unlink()
             return 1
-        except:
+        except Exception:
             return 0
 
     def copyTrDtset(self, name: Path):
@@ -180,36 +197,42 @@ class CorpusManager(object):
                 Dtset = json.load(fin)
             Dtset["name"] = path_copy.stem
             with path_copy.open("w", encoding="utf-8") as fout:
-                json.dump(Dtset, fout, ensure_ascii=False, indent=2, default=str)
+                json.dump(
+                    Dtset, fout, ensure_ascii=False, indent=2, default=str)
             return 1
-        except:
+        except Exception:
             return 0
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Scripts for Corpus Management Service')
-    parser.add_argument("--path_downloaded", type=str, default=None, required=True,
-                        metavar=("path_to_datasets"),
-                        help="path to downloaded datasets")
-    parser.add_argument("--path_datasets", type=str, default=None, required=True,
-                        metavar=("path_to_datasets"),
-                        help="path to training datasets")
-    parser.add_argument('--listDownloaded', action='store_true', default=False,
-                        help='List datasets downloaded from HDFS with metadata.')
-    parser.add_argument('--saveTrDtset', action='store_true', default=False,
-                        help='Save Training Dataset')
-    parser.add_argument('--listTrDtsets', action='store_true', default=False,
-                        help='List Training Datasets')
-    parser.add_argument('--deleteTrDtset', type=str, default=None,
-                        metavar=("filename"),
-                        help='Delete a Training Dataset')
-    parser.add_argument("--renameTrDtset", type=str, default=None, nargs=2,
-                        metavar=("filename", "new_filename"),
-                        help="Rename wordlist with selected name to new name")
-    parser.add_argument("--copyTrDtset", type=str, default=None,
-                        metavar=("filename"),
-                        help="Make a copy of wordlist with selected name")
+    parser = argparse.ArgumentParser(
+        description='Scripts for Corpus Management Service')
+    parser.add_argument(
+        "--path_downloaded", type=str, default=None, required=True,
+        metavar=("path_to_datasets"), help="path to downloaded datasets")
+    parser.add_argument(
+        "--path_datasets", type=str, default=None, required=True,
+        metavar=("path_to_datasets"), help="path to training datasets")
+    parser.add_argument(
+        '--listDownloaded', action='store_true', default=False,
+        help='List datasets downloaded from HDFS with metadata.')
+    parser.add_argument(
+        '--saveTrDtset', action='store_true', default=False,
+        help='Save Training Dataset')
+    parser.add_argument(
+        '--listTrDtsets', action='store_true', default=False,
+        help='List Training Datasets')
+    parser.add_argument(
+        '--deleteTrDtset', type=str, default=None, metavar=("filename"),
+        help='Delete a Training Dataset')
+    parser.add_argument(
+        "--renameTrDtset", type=str, default=None, nargs=2,
+        metavar=("filename", "new_filename"),
+        help="Rename wordlist with selected name to new name")
+    parser.add_argument(
+        "--copyTrDtset", type=str, default=None, metavar=("filename"),
+        help="Make a copy of wordlist with selected name")
     args = parser.parse_args()
 
     cm = CorpusManager()
@@ -233,9 +256,10 @@ if __name__ == "__main__":
         sys.stdout.write(json.dumps(allTrDtsets))
 
     if args.deleteTrDtset:
-        status = cm.deleteTrDtset(trds_path.joinpath(f"{args.deleteTrDtset}.json"))
+        status = cm.deleteTrDtset(
+            trds_path.joinpath(f"{args.deleteTrDtset}.json"))
         sys.stdout.write(str(status))
-    
+
     if args.renameTrDtset:
         status = cm.renameTrDtset(
             trds_path.joinpath(f"{args.renameTrDtset[0]}.json"),

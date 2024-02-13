@@ -15,17 +15,18 @@ Provides several classes for Topic Modeling
     - HierarchicalTMManager: Manages the creation of the corpus associated with a 2nd level hierarchical topic model
 """
 import argparse
+import gzip
 import json
 import os
 import sys
 from abc import abstractmethod
 from pathlib import Path
 
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-import dask.dataframe as dd
-                
+
 
 class textPreproc(object):
     """
@@ -183,6 +184,10 @@ class textPreproc(object):
                     # replacement of equivalent words
                     cleantext = [self._equivalents[el] if el in self._equivalents else el
                                  for el in cleantext]
+                    # remove stopwords again, in case equivalences introduced new stopwords
+                    cleantext = [
+                        el for el in cleantext if el not in self._stopwords]
+
                 return cleantext
 
             # Compute tokens, clean them, and filter out documents
@@ -199,10 +204,11 @@ class textPreproc(object):
 
             with ProgressBar():
                 DFtokens = trDF[['final_tokens']]
-                if nw>0:
-                    DFtokens = DFtokens.compute(scheduler='processes', num_workers=nw)
+                if nw > 0:
+                    DFtokens = DFtokens.compute(
+                        scheduler='processes', num_workers=nw)
                 else:
-                    #Use Dask default (i.e., number of available cores)
+                    # Use Dask default (i.e., number of available cores)
                     DFtokens = DFtokens.compute(scheduler='processes')
             self._GensimDict = corpora.Dictionary(
                 DFtokens['final_tokens'].values.tolist())
@@ -371,7 +377,7 @@ class textPreproc(object):
                 lemmasstr: str
                     Clean text including only the lemmas in the dictionary
                 """
-                #bow = self._GensimDict.doc2bow(tokens)
+                # bow = self._GensimDict.doc2bow(tokens)
                 # return ''.join([el[1] * (self._GensimDict[el[0]]+ ' ') for el in bow])
                 return ' '.join([el for el in tokens if el in vocabulary])
 
@@ -388,15 +394,15 @@ class textPreproc(object):
                     str, meta=('id', 'str')) + " 0 " + trDF['cleantext']
 
                 with ProgressBar():
-                    #trDF = trDF.persist(scheduler='processes')
+                    # trDF = trDF.persist(scheduler='processes')
                     DFmallet = trDF[['2mallet']]
-                    if nw>0:
+                    if nw > 0:
                         DFmallet.to_csv(outFile, index=False, header=False, single_file=True,
-                                    compute_kwargs={'scheduler': 'processes', 'num_workers': nw})
+                                        compute_kwargs={'scheduler': 'processes', 'num_workers': nw})
                     else:
-                        #Use Dask default number of workers (i.e., number of cores)
+                        # Use Dask default number of workers (i.e., number of cores)
                         DFmallet.to_csv(outFile, index=False, header=False, single_file=True,
-                                    compute_kwargs={'scheduler': 'processes'})
+                                        compute_kwargs={'scheduler': 'processes'})
 
             elif tmTrainer == 'sparkLDA':
                 self._logger.error(
@@ -412,13 +418,13 @@ class textPreproc(object):
                 with ProgressBar():
                     DFparquet = trDF[['id', 'cleantext']].rename(
                         columns={"cleantext": "bow_text"})
-                    if nw>0:
+                    if nw > 0:
                         DFparquet.to_parquet(outFile, write_index=False, compute_kwargs={
-                                         'scheduler': 'processes', 'num_workers': nw})
+                            'scheduler': 'processes', 'num_workers': nw})
                     else:
-                        #Use Dask default number of workers (i.e., number of cores)
+                        # Use Dask default number of workers (i.e., number of cores)
                         DFparquet.to_parquet(outFile, write_index=False, compute_kwargs={
-                                         'scheduler': 'processes'})
+                            'scheduler': 'processes'})
 
             elif tmTrainer == "ctm":
                 outFile = dirpath.joinpath('corpus.parquet')
@@ -433,15 +439,16 @@ class textPreproc(object):
                     schema = pa.schema([
                         ('id', pa.int64()),
                         ('bow_text', pa.string()),
-                        ('embeddings', pa.list_(pa.float64()))
+                        ('embeddings', pa.string())
+                        # ('embeddings', pa.list_(pa.float64()))
                     ])
-                    if nw>0:
+                    if nw > 0:
                         DFparquet.to_parquet(outFile, write_index=False, schema=schema, compute_kwargs={
-                                         'scheduler': 'processes', 'num_workers': nw})
+                            'scheduler': 'processes', 'num_workers': nw})
                     else:
-                        #Use Dask default number of workers (i.e., number of cores)
+                        # Use Dask default number of workers (i.e., number of cores)
                         DFparquet.to_parquet(outFile, write_index=False, schema=schema, compute_kwargs={
-                                         'scheduler': 'processes'})
+                            'scheduler': 'processes'})
 
         else:
             # Spark dataframe
@@ -469,7 +476,7 @@ class textPreproc(object):
                 # but this is failing repeatedly, so I avoid coalescing in Spark and
                 # instead concatenate all files after creation
                 tempFolder = dirpath.joinpath('tempFolder')
-                #malletDF.coalesce(1).write.format("text").option("header", "false").save(f"file://{tempFolder.as_posix()}")
+                # malletDF.coalesce(1).write.format("text").option("header", "false").save(f"file://{tempFolder.as_posix()}")
                 malletDF.write.format("text").option("header", "false").save(
                     f"file://{tempFolder.as_posix()}")
                 # Concatenate all text files
@@ -579,6 +586,7 @@ class Trainer(object):
 
         pass
 
+
 class MalletTrainer(Trainer):
     """
     Wrapper for the Mallet Topic Model Training. Implements the
@@ -590,7 +598,7 @@ class MalletTrainer(Trainer):
 
     """
 
-    def __init__(self, mallet_path, ntopics=25, alpha=5.0, optimize_interval=10, num_threads=4, num_iterations=1000, doc_topic_thr=0.0, thetas_thr=0.003, token_regexp=None, labels=None, logger=None):
+    def __init__(self, mallet_path, ntopics=25, alpha=5.0, optimize_interval=10, num_threads=4, num_iterations=1000, doc_topic_thr=0.0, thetas_thr=0.003, token_regexp=None, labels=None, get_sims=False, logger=None):
         """
         Initilization Method
 
@@ -616,6 +624,8 @@ class MalletTrainer(Trainer):
             Regular expression for mallet topic model trainer (java type)
         labels: list(str)
             Lists of labels to assign to topics
+        get_sims: boolean
+            Flag to detect if similarities are going to be calculated or not.
         logger: Logger object
             To log object activity
         """
@@ -632,6 +642,7 @@ class MalletTrainer(Trainer):
         self._thetas_thr = thetas_thr
         self._token_regexp = token_regexp
         self._labels = labels
+        self._get_sims = get_sims
 
         if not self._mallet_path.is_file():
             self._logger.error(
@@ -709,7 +720,8 @@ class MalletTrainer(Trainer):
             with Path(lblFile).open('r', encoding='utf8') as fin:
                 labels += json.load(fin)['wordlist']
 
-        tm = TMmodel(modelFolder.parent.joinpath('TMmodel'))
+        tm = TMmodel(TMfolder=modelFolder.parent.joinpath('TMmodel'),
+                     get_sims=self._get_sims)
         tm.create(betas=betas, thetas=thetas32, alphas=alphas,
                   vocab=vocab, labels=labels)
 
@@ -717,7 +729,7 @@ class MalletTrainer(Trainer):
         thetas_file.unlink()
 
         return tm
-    
+
     def _extract_pipe(self, modelFolder):
         """
         Creates a pipe based on a small amount of the training data to ensure that the holdout data that may be later inferred is compatible with the training data
@@ -731,7 +743,8 @@ class MalletTrainer(Trainer):
         # Get corpus file
         path_corpus = modelFolder.joinpath('corpus.mallet')
         if not path_corpus.is_file():
-            self._logger.error('-- Pipe extraction: Could not locate corpus file')
+            self._logger.error(
+                '-- Pipe extraction: Could not locate corpus file')
             return
 
         # Create auxiliary file with only first line from the original corpus file
@@ -745,9 +758,9 @@ class MalletTrainer(Trainer):
         # We perform the import with the only goal to keep a small file containing the pipe
         self._logger.info('-- Extracting pipeline')
         path_pipe = modelFolder.joinpath('import.pipe')
-        
+
         cmd = self._mallet_path.as_posix() + \
-            ' import-file --use-pipe-from %s --input %s --output %s'   
+            ' import-file --use-pipe-from %s --input %s --output %s'
         cmd = cmd % (path_corpus, path_aux, path_pipe)
 
         try:
@@ -814,7 +827,8 @@ class MalletTrainer(Trainer):
             fout.write('num-iterations = ' + str(self._num_iterations) + '\n')
             fout.write('doc-topics-threshold = ' +
                        str(self._doc_topic_thr) + '\n')
-            # fout.write('output-state = ' + os.path.join(self._outputFolder, 'topic-state.gz') + '\n')
+            fout.write('output-state = ' +
+                       modelFolder.joinpath('topic-state.gz').resolve().as_posix() + '\n')
             fout.write('output-doc-topics = ' +
                        modelFolder.joinpath('doc-topics.txt').resolve().as_posix() + '\n')
             fout.write('word-topic-counts-file = ' +
@@ -852,7 +866,8 @@ class MalletTrainer(Trainer):
         self._extract_pipe(modelFolder)
 
         return
-    
+
+
 class sparkLDATrainer(Trainer):
     """
     Wrapper for the Spark LDA Topic Model Training. Implements the
@@ -863,7 +878,7 @@ class sparkLDATrainer(Trainer):
 
     def __init__(self, ntopics=25, alpha=5.0, maxIter=20, optimizer='online',
                  optimizeDocConcentration=True, subsamplingRate=0.05, thetas_thr=0.003,
-                 labels=None, logger=None):
+                 labels=None, get_sims=False, logger=None):
         """
         Initilization Method
 
@@ -885,6 +900,8 @@ class sparkLDATrainer(Trainer):
             Min value for sparsification of topic proportions after training
         labels: list(str)
             Lists of labels to assign to topics
+        get_sims: boolean
+            Flag to detect if similarities are going to be calculated or not.
         logger: Logger object
             To log object activity
         """
@@ -899,6 +916,7 @@ class sparkLDATrainer(Trainer):
         self._subsamplingRate = subsamplingRate
         self._thetas_thr = thetas_thr
         self._labels = labels
+        self._get_sims = get_sims
 
     def _createTMmodel(self, modelFolder, ldaModel, df):
         """Creates an object of class TMmodel hosting the topic model
@@ -960,7 +978,8 @@ class sparkLDATrainer(Trainer):
             with Path(lblFile).open('r', encoding='utf8') as fin:
                 labels += json.load(fin)['wordlist']
 
-        tm = TMmodel(modelFolder.parent.joinpath('TMmodel'))
+        tm = TMmodel(modelFolder.parent.joinpath(
+            'TMmodel'), get_sims=self._get_sims)
         tm.create(betas=betas, thetas=thetas32, alphas=alphas,
                   vocab=vocab, labels=labels)
 
@@ -1032,7 +1051,7 @@ class ProdLDATrainer(Trainer):
                  solver='adam', num_epochs=100, reduce_on_plateau=False,
                  topic_prior_mean=0.0, topic_prior_variance=None, num_samples=10,
                  num_data_loader_workers=0, thetas_thr=0.003,
-                 labels=None, logger=None):
+                 labels=None, get_sims=False, logger=None):
         """
         Initilization Method
 
@@ -1077,6 +1096,8 @@ class ProdLDATrainer(Trainer):
             Min value for sparsification of topic proportions after training
         labels: list(str)
             Lists of labels to assign to topics
+        get_sims: boolean
+            Flag to detect if similarities are going to be calculated or not.
         logger: Logger object
             To log object activity
         """
@@ -1101,6 +1122,7 @@ class ProdLDATrainer(Trainer):
         self._num_data_loader_workers = num_data_loader_workers
         self._thetas_thr = thetas_thr
         self._labels = labels
+        self._get_sims = get_sims
 
         return
 
@@ -1152,7 +1174,8 @@ class ProdLDATrainer(Trainer):
                 labels += json.load(fin)['wordlist']
 
         # Create TMmodel
-        tm = TMmodel(modelFolder.parent.joinpath('TMmodel'))
+        tm = TMmodel(modelFolder.parent.joinpath(
+            'TMmodel'), get_sims=self._get_sims)
         tm.create(betas=betas, thetas=thetas32, alphas=alphas,
                   vocab=vocab, labels=labels)
 
@@ -1218,12 +1241,14 @@ class ProdLDATrainer(Trainer):
 
         avitm.fit(self._train_dataset, self._val_dataset)
 
-        # Save avitm model for future inference
-        model_file = modelFolder.joinpath('model.pickle')
-        pickler(model_file, avitm)
-
         # Create TMmodel object
         tm = self._createTMmodel(modelFolder, avitm)
+
+        # Save avitm model for future inference
+        model_file = modelFolder.joinpath('model.pickle')
+        pickler_avitm_for_ewb_inferencer(
+            path_model_infer=model_file,
+            avitm_model=avitm)
 
         return
 
@@ -1239,13 +1264,33 @@ class CTMTrainer(Trainer):
 
     """
 
-    def __init__(self, n_components=10, ctm_model_type='CombinedTM', model_type='prodLDA',
-                 hidden_sizes=(100, 100), activation='softplus', dropout=0.2,
-                 learn_priors=True, batch_size=64, lr=2e-3, momentum=0.99, solver='adam',
-                 num_epochs=100, num_samples=10, reduce_on_plateau=False, topic_prior_mean=0.0,
-                 topic_prior_variance=None, num_data_loader_workers=0, label_size=0,
-                 loss_weights=None, thetas_thr=0.003, sbert_model_to_load='paraphrase-distilroberta-base-v1',
-                 labels=None, logger=None):
+    def __init__(self,
+                 n_components=10,
+                 contextual_size=768,
+                 ctm_model_type='CombinedTM',
+                 model_type='prodLDA',
+                 hidden_sizes=(100, 100),
+                 activation='softplus',
+                 dropout_in=0.2,
+                 dropout_out=0.2,
+                 learn_priors=True,
+                 batch_size=64,
+                 lr=2e-3,
+                 momentum=0.99,
+                 solver='adam',
+                 num_epochs=100,
+                 num_samples=10,
+                 reduce_on_plateau=False,
+                 topic_prior_mean=0.0,
+                 topic_prior_variance=None,
+                 num_data_loader_workers=0,
+                 label_size=0,
+                 loss_weights=None,
+                 thetas_thr=0.003, sbert_model_to_load='paraphrase-distilroberta-base-v1',
+                 labels=None,
+                 get_sims=False,
+                 max_features=None,
+                 logger=None):
         """
         Initilization Method
 
@@ -1295,20 +1340,23 @@ class CTMTrainer(Trainer):
             Model to be used for calculating the embeddings
         labels: list(str)
             Lists of labels to assign to topics
+        get_sims: boolean
+            Flag to detect if similarities are going to be calculated or not.
         logger: Logger object
             To log object activity
         """
 
         super().__init__(logger)
-
         self._n_components = n_components
         self._model_type = model_type
         self._ctm_model_type = ctm_model_type
         self._hidden_sizes = hidden_sizes
         self._activation = activation
-        self._dropout = dropout
+        self._dropout_in = dropout_in
+        self._dropout_out = dropout_out
         self._learn_priors = learn_priors
         self._batch_size = batch_size
+        self._contextual_size = contextual_size
         self._lr = lr
         self._momentum = momentum
         self._solver = solver
@@ -1323,6 +1371,8 @@ class CTMTrainer(Trainer):
         self._loss_weights = loss_weights
         self._thetas_thr = thetas_thr
         self._labels = labels
+        self._get_sims = get_sims
+        self._max_features = max_features
 
         return
 
@@ -1382,7 +1432,8 @@ class CTMTrainer(Trainer):
         vis.save_html(ctm_pd, file)
 
         # Create TMmodel
-        tm = TMmodel(modelFolder.parent.joinpath('TMmodel'))
+        tm = TMmodel(modelFolder.parent.joinpath(
+            'TMmodel'), get_sims=self._get_sims)
         tm.create(betas=betas, thetas=thetas32, alphas=alphas,
                   vocab=vocab, labels=labels)
 
@@ -1423,6 +1474,9 @@ class CTMTrainer(Trainer):
                 self._embeddings = None
             else:
                 self._embeddings = df.embeddings.values
+                if isinstance(self._embeddings[0], str):
+                    self._embeddings = np.array(
+                        [np.array(el.split(), dtype=np.float32) for el in self._embeddings])
                 self._unpreprocessed_corpus = None
         else:
             if not embeddingsFile.is_file():
@@ -1437,7 +1491,8 @@ class CTMTrainer(Trainer):
             prepare_ctm_dataset(corpus=self._corpus,
                                 unpreprocessed_corpus=self._unpreprocessed_corpus,
                                 custom_embeddings=self._embeddings,
-                                sbert_model_to_load=self._sbert_model_to_load)
+                                sbert_model_to_load=self._sbert_model_to_load,
+                                max_features=self._max_features)
 
         # Save embeddings
         embeddings_file = modelFolder.joinpath('embeddings.npy')
@@ -1455,43 +1510,39 @@ class CTMTrainer(Trainer):
             ctm = ZeroShotTM(
                 logger=self._logger,
                 input_size=self._input_size,
-                contextual_size=768,
+                contextual_size=self._contextual_size,
                 n_components=self._n_components,
                 model_type=self._model_type,
                 hidden_sizes=self._hidden_sizes,
                 activation=self._activation,
-                dropout=self._dropout,
+                dropout_in=self._dropout_in,
+                dropout_out=self._dropout_out,
                 learn_priors=self._learn_priors,
                 batch_size=self._batch_size,
                 lr=self._lr,
                 momentum=self._momentum,
                 solver=self._solver,
                 num_epochs=self._num_epochs,
-                num_samples=self._num_samples,
                 reduce_on_plateau=self._reduce_on_plateau,
-                topic_prior_mean=self._topic_prior_mean,
-                topic_prior_variance=self._topic_prior_variance,
                 num_data_loader_workers=self._num_data_loader_workers)
         else:
             ctm = CombinedTM(
                 logger=self._logger,
                 input_size=self._input_size,
-                contextual_size=768,
+                contextual_size=self._contextual_size,
                 n_components=self._n_components,
                 model_type=self._model_type,
                 hidden_sizes=self._hidden_sizes,
                 activation=self._activation,
-                dropout=self._dropout,
+                dropout_in=self._dropout_in,
+                dropout_out=self._dropout_out,
                 learn_priors=self._learn_priors,
                 batch_size=self._batch_size,
                 lr=self._lr,
                 momentum=self._momentum,
                 solver=self._solver,
                 num_epochs=self._num_epochs,
-                num_samples=self._num_samples,
                 reduce_on_plateau=self._reduce_on_plateau,
-                topic_prior_mean=self._topic_prior_mean,
-                topic_prior_variance=self._topic_prior_variance,
                 num_data_loader_workers=self._num_data_loader_workers,
                 label_size=self._label_size,
                 loss_weights=self._loss_weights)
@@ -1555,7 +1606,7 @@ class HierarchicalTMManager(object):
             tr_config_c = json.load(fin)
 
         # Get father model's trainin corpus as dask dataframe
-        if tr_config_f['trainer'] in ["ctm", "prodLDA"]:
+        if tr_config_f['trainer'] == "ctm":
             corpusFile = configFile_f.parent.joinpath('modelFiles/corpus.txt')
         else:
             corpusFile = configFile_f.parent.joinpath('corpus.txt')
@@ -1563,6 +1614,13 @@ class HierarchicalTMManager(object):
             corpusFile, encoding="utf-8").readlines()]
         tr_data_df = pd.DataFrame(data=corpus, columns=['doc'])
         tr_data_df['id'] = range(1, len(tr_data_df) + 1)
+
+        w_assignFile = configFile_f.parent.joinpath('w_assign.txt')
+        if tr_config_c['htm-version'] == "htm-ws" and w_assignFile.is_file():
+            w_assign = [line.strip() for line in open(
+                w_assignFile, encoding="utf-8").readlines()]
+            tr_data_df['w_assign'] = w_assign
+
         tr_data_ddf = dd.from_pandas(tr_data_df, npartitions=2)
 
         # Get embeddings if the trainer is CTM
@@ -1584,7 +1642,7 @@ class HierarchicalTMManager(object):
             self._logger.info(
                 '-- -- -- Creating training corpus according to HTM-WS.')
 
-            def get_htm_ws_corpus(row, thetas, betas, vocab_id2w, vocab_w2id, exp_tpc):
+            def get_htm_ws_corpus_base(row, thetas, betas, vocab_id2w, vocab_w2id, exp_tpc):
                 """Function to carry out the selection of words according to HTM-WS.
 
                 Parameters
@@ -1615,26 +1673,82 @@ class HierarchicalTMManager(object):
                                  for word in doc if word in vocab_w2id]
 
                 # ids of words in d assigned to exp_tpc
-                words_exp_idx = []
+                assignments = []
                 for idx_w in words_doc_idx:
                     p_z = np.multiply(thetas_d, betas[:, idx_w])
                     p_z_args = np.argsort(p_z)
                     if p_z[p_z_args[-1]] > 20*p_z[p_z_args[-2]]:
-                        if p_z_args[-1] == exp_tpc:
-                            words_exp_idx.append(idx_w)
+                        assignments.append(p_z_args[-1])
                     else:
-                        if int(np.nonzero(np.random.multinomial(len(betas), np.multiply(thetas_d, betas[:, idx_w])))[0][0]) == exp_tpc:
-                            words_exp_idx.append(idx_w)
+                        sampling = np.random.multinomial(1, np.multiply(
+                            thetas_d, betas[:, idx_w])/np.sum(np.multiply(thetas_d, betas[:, idx_w])))
+                        assignments.append(int(np.nonzero(sampling)[0][0]))
 
-                # Only words generated by exp_tpc are kept
-                reduced_doc = [vocab_id2w[str(id_word)]
-                               for id_word in words_exp_idx]
+                assignments_str = ' '.join([str(el) for el in assignments])
+
+                return assignments_str
+
+            def get_htm_ws_corpus_from_zs(row, thetas, betas, vocab_id2w, vocab_w2id, exp_tpc):
+
+                doc = row["doc"].split()
+                w_assign = row["w_assign"].split()
+
+                reduced_doc = [el[0] for el in zip(
+                    doc, w_assign) if el[1] == str(exp_tpc)]
+
                 reduced_doc_str = ' '.join([el for el in reduced_doc])
 
                 return reduced_doc_str
 
-            tr_data_ddf['reduced_doc'] = tr_data_ddf.apply(
-                get_htm_ws_corpus, axis=1, meta=('x', 'object'), args=(thetas, betas, vocab_id2w, vocab_w2id, exp_tpc))
+            if tr_config_c['trainer'] == "ctm":
+
+                if not w_assignFile.is_file():
+                    print("Generating assignments file...")
+                    tr_data_ddf['w_assign'] = tr_data_ddf.apply(
+                        get_htm_ws_corpus_base, axis=1, meta=('x', 'object'), args=(thetas, betas, vocab_id2w, vocab_w2id, exp_tpc))
+
+                    with ProgressBar():
+                        DFmallet = tr_data_ddf[['w_assign']]
+                        DFmallet.to_csv(
+                            w_assignFile, index=False,
+                            header=False, single_file=True,
+                            compute_kwargs={'scheduler': 'processes'})
+                    print("Saved assignments file")
+
+                tr_data_ddf['reduced_doc'] = tr_data_ddf.apply(
+                    get_htm_ws_corpus_from_zs, axis=1, meta=('x', 'object'), args=(thetas, betas, vocab_id2w, vocab_w2id, exp_tpc))
+
+            elif tr_config_c['trainer'] == "mallet":
+                topic_state_model = configFile_f.parent.joinpath(
+                    'modelFiles/topic-state.gz').as_posix()
+
+                # 0 = document's id
+                # 1 = document's name
+                # 3
+                # 4 = word
+                # 5 = topic to which the word belongs
+
+                with gzip.open(topic_state_model) as fin:
+                    topic_state_df = pd.read_csv(fin, delim_whitespace=True,
+                                                 names=['docid', 'NA1', 'NA2',
+                                                        'NA3', 'word', 'tpc'],
+                                                 header=None, skiprows=3)
+
+                # Read the dictionary from the JSON file
+                with open(configFile_f.parent.joinpath(
+                        'TMmodel/corr.json').as_posix(), 'r') as json_file:
+                    corr = json.load(json_file)
+                corr = {np.int64(key): value for key, value in corr.items()}
+
+                # Map Mallet topics to the new ID given by the TMmodel ordering
+                topic_state_df['tpc'] = topic_state_df['tpc'].map(corr)
+
+                topic_state_df.word.replace('nan', np.nan, inplace=True)
+                topic_state_df.fillna('nan_value', inplace=True)
+
+                topic_state_df_tpc = topic_state_df[topic_state_df['tpc'] == exp_tpc]
+                topic_to_corpus = topic_state_df_tpc.groupby(
+                    'docid')['word'].apply(list).reset_index(name='new')
 
             if tr_config_c['trainer'] == "mallet":
 
@@ -1642,21 +1756,11 @@ class HierarchicalTMManager(object):
                 if outFile.is_file():
                     outFile.unlink()
 
-                tr_data_ddf['2mallet'] = tr_data_ddf['id'].apply(
-                    str, meta=('id', 'str')) + " 0 " + tr_data_ddf['reduced_doc']
+                with open(outFile, 'w', encoding='utf-8') as fout:
+                    for el in topic_to_corpus.values.tolist():
+                        fout.write(str(el[0]) + ' 0 ' + ' '.join(el[1]) + '\n')
 
-                with ProgressBar():
-                    DFmallet = tr_data_ddf[['2mallet']]
-                    DFmallet.to_csv(
-                        outFile, index=False,
-                        header=False, single_file=True,
-                        compute_kwargs={'scheduler': 'processes'})
-
-            elif tr_config_c['trainer'] == 'sparkLDA':
-                pass
-
-            elif tr_config_c['trainer'] == "prodLDA" or tr_config_c['trainer'] == "ctm":
-
+            elif tr_config_c['trainer'] == "ctm":
                 outFile = configFile_c.parent.joinpath('corpus.parquet')
                 if outFile.is_file():
                     outFile.unlink()
@@ -1679,7 +1783,7 @@ class HierarchicalTMManager(object):
                  if thetas[idx, exp_tpc] > thr]
 
             # Keep selected documents from the father's corpus
-            tr_data_ddf = tr_data_ddf.loc[doc_ids_to_keep, :]
+            tr_data_ddf = tr_data_ddf.loc[doc_ids_to_keep]
 
             # Save corpus file in the format required by each trainer
             if tr_config_c['trainer'] == "mallet":
@@ -1696,10 +1800,7 @@ class HierarchicalTMManager(object):
                     DFmallet.to_csv(outFile, index=False, header=False, single_file=True, compute_kwargs={
                                     'scheduler': 'processes'})
 
-            elif tr_config_c['trainer'] == 'sparkLDA':
-                pass
-
-            elif tr_config_c['trainer'] == "prodLDA" or tr_config_c['trainer'] == "ctm":
+            elif tr_config_c['trainer'] == "ctm":
 
                 outFile = configFile_c.parent.joinpath('corpus.parquet')
                 if outFile.is_file():
@@ -1713,7 +1814,7 @@ class HierarchicalTMManager(object):
                         compute_kwargs={'scheduler': 'processes'})
 
             if tr_config_c['trainer'] == "ctm":
-                embeddings = embeddings[doc_ids_to_keep, :]
+                embeddings = embeddings[doc_ids_to_keep]
 
         else:
             self._logger.error(
@@ -1866,6 +1967,7 @@ if __name__ == "__main__":
                         pass
                     # Concatenate text fields
                     for idx2, col in enumerate(DtSet['lemmasfld']):
+                        df = df.rename(columns={DtSet['idfld']: 'id'})
                         if idx2 == 0:
                             df["all_lemmas"] = df[col]
                         else:
@@ -1879,7 +1981,7 @@ if __name__ == "__main__":
                     else:
                         trDF = dd.concat([trDF, df])
 
-                #trDF = trDF.drop_duplicates(subset=["id"], ignore_index=True)
+                # trDF = trDF.drop_duplicates(subset=["id"], ignore_index=True)
                 # We preprocess the data and save the Gensim Model used to obtain the BoW
                 trDF = tPreproc.preprocBOW(trDF, nw=args.nw)
                 tPreproc.saveGensimDict(configFile.parent.resolve())
@@ -1889,6 +1991,10 @@ if __name__ == "__main__":
                     # We get full df containing the embeddings
                     for idx, DtSet in enumerate(trDtSet['Dtsets']):
                         df = dd.read_parquet(DtSet['parquet']).fillna("")
+
+                        # Rename id column to "id"
+                        df = df.rename(columns={DtSet['idfld']: 'id'})
+
                         df = df[["id", "embeddings"]]
 
                         # Concatenate dataframes
@@ -1922,10 +2028,12 @@ if __name__ == "__main__":
         from tm_utils import file_lines
 
         configFile = Path(args.config)
-        sys.stdout.write(args.config)
         if configFile.is_file():
             with configFile.open('r', encoding='utf8') as fin:
                 train_config = json.load(fin)
+
+                get_sims = train_config['TMparam']["get_sims"] if "get_sims" in train_config['TMparam'].keys(
+                ) else False
 
                 if train_config['trainer'] == 'mallet':
 
@@ -1943,7 +2051,8 @@ if __name__ == "__main__":
                         doc_topic_thr=train_config['TMparam']['doc_topic_thr'],
                         thetas_thr=train_config['TMparam']['thetas_thr'],
                         token_regexp=train_config['TMparam']['token_regexp'],
-                        labels=train_config['TMparam']['labels'])
+                        labels=train_config['TMparam']['labels'],
+                        get_sims=get_sims)
 
                     # Train the Mallet topic model with the specified corpus
                     MallTr.fit(
@@ -1951,7 +2060,7 @@ if __name__ == "__main__":
 
                 elif train_config['trainer'] == 'sparkLDA':
                     if not args.spark:
-                        sys.stdout.write(
+                        sys.stodout.write(
                             "You need access to a spark cluster to run sparkLDA")
                         sys.exit(
                             "You need access to a spark cluster to run sparkLDA")
@@ -1964,7 +2073,8 @@ if __name__ == "__main__":
                         optimizeDocConcentration=train_config['TMparam']['optimizeDocConcentration'],
                         subsamplingRate=train_config['TMparam']['subsamplingRate'],
                         thetas_thr=train_config['TMparam']['thetas_thr'],
-                        labels=train_config['TMparam']['labels'])
+                        labels=train_config['TMparam']['labels'],
+                        get_sims=get_sims)
 
                     sparkLDATr.fit(
                         corpusFile=configFile.parent.joinpath('corpus.parquet'))
@@ -1976,7 +2086,7 @@ if __name__ == "__main__":
                         AVITM
                     from neural_models.pytorchavitm.utils.data_preparation import \
                         prepare_dataset
-                    from tm_utils import pickler
+                    from tm_utils import pickler, pickler_avitm_for_ewb_inferencer
 
                     # Create a ProdLDATrainer object with the parameters specified in the configuration file
                     ProdLDATr = ProdLDATrainer(
@@ -1998,7 +2108,8 @@ if __name__ == "__main__":
                         num_samples=train_config['TMparam']['num_samples'],
                         num_data_loader_workers=train_config['TMparam']['num_data_loader_workers'],
                         thetas_thr=train_config['TMparam']['thetas_thr'],
-                        labels=train_config['TMparam']['labels'])
+                        labels=train_config['TMparam']['labels'],
+                        get_sims=get_sims)
 
                     # Train the ProdLDA topic model with the specified corpus
                     ProdLDATr.fit(
@@ -2014,13 +2125,24 @@ if __name__ == "__main__":
                     from tm_utils import pickler
 
                     # Create a CTMTrainer object with the parameters specified in the configuration file
+                    if 'dropout_in' in train_config['TMparam'].keys() and 'dropout_out' in train_config['TMparam'].keys():
+                        dropout_in_ = train_config['TMparam']['dropout_in']
+                        dropout_out_ = train_config['TMparam']['dropout_out']
+                    elif 'dropout' in train_config['TMparam'].keys():
+                        dropout_in_ = dropout_out_ = train_config['TMparam']['dropout']
+                    else:
+                        dropout_in_ = dropout_out_ = 0.2
+                    max_features = int(train_config['TMparam']['max_features']) if 'max_features' in train_config['TMparam'].keys(
+                    ) else None
                     CTMr = CTMTrainer(
                         n_components=train_config['TMparam']['ntopics'],
+                        contextual_size=train_config['TMparam']['contextual_size'],
                         model_type=train_config['TMparam']['model_type'],
                         hidden_sizes=tuple(
                             train_config['TMparam']['hidden_sizes']),
                         activation=train_config['TMparam']['activation'],
-                        dropout=train_config['TMparam']['dropout'],
+                        dropout_in=dropout_in_,
+                        dropout_out=dropout_out_,
                         learn_priors=train_config['TMparam']['learn_priors'],
                         batch_size=train_config['TMparam']['batch_size'],
                         lr=train_config['TMparam']['lr'],
@@ -2033,12 +2155,13 @@ if __name__ == "__main__":
                         topic_prior_variance=train_config['TMparam']['topic_prior_variance'],
                         num_data_loader_workers=train_config['TMparam']['num_data_loader_workers'],
                         thetas_thr=train_config['TMparam']['thetas_thr'],
-                        sbert_model_to_load=train_config['TMparam']['sbert_model_to_load'],
-                        labels=train_config['TMparam']['labels'])
+                        labels=train_config['TMparam']['labels'],
+                        get_sims=get_sims,
+                        max_features=max_features)
 
                     # Train the CTM topic model with the specified corpus
                     corpusFile = configFile.parent.joinpath('corpus.parquet')
-                    if not corpusFile.is_dir():
+                    if not corpusFile.is_dir() and not corpusFile.is_file():
                         sys.exit(
                             "The corpus file 'corpus.parquet' does not exist.")
                     else:
