@@ -67,7 +67,6 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   protected getRawCorpusLookup(): RawCorpusLookup {
     const lookup = new RawCorpusLookup();
     lookup.metadata = { countAll: true };
-    lookup.page = { offset: 0, size: 10 };
     lookup.isActive = [IsActive.Active];
     lookup.order = { items: ['-' + nameof<RawCorpus>(x => x.download_date)] };
 

@@ -52,6 +52,14 @@ export class RawCorpusListingComponent extends BaseListingComponent<RawCorpus, R
 
   @Output() onCorpusSelect = new EventEmitter<RawCorpus>();
 
+  get limit(): number {
+    return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
+  }
+
+  get count(): number {
+    return this.totalElements;
+  }
+
   SelectionType = SelectionType;
 
   defaultSort = ["-download_date"];

@@ -48,6 +48,14 @@ export class LogicalCorpusListingComponent extends BaseListingComponent<LogicalC
   @Output()
   onCorpusSelect = new EventEmitter<LogicalCorpus>();
 
+  get limit(): number {
+    return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
+  }
+
+  get count(): number {
+    return this.totalElements;
+  }
+
   SelectionType = SelectionType;
 
   defaultSort = ["-creation_date"];

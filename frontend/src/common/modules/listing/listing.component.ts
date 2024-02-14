@@ -97,6 +97,10 @@ export class ListingComponent extends BaseComponent implements OnInit, OnChanges
 
 	}
 
+	onFooterPage(event: any) {
+		this.table.onFooterPage(event);
+	}
+
 	private setTableMessages() {
 		this.messages = {
 			emptyMessage: this.language.instant('COMMONS.LISTING-COMPONENT.MESSAGE.EMPTY'),

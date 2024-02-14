@@ -72,11 +72,12 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
   }
 
   get limit(): number {
-    return Math.max(this.gridRows.length, 10);
+    return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
+    // return this.ITEMS_PER_PAGE;
   }
 
   get count(): number {
-    return this.limit * this.pagesCount;
+    return this.countOverride;
   }
 
   selectedModel: BehaviorSubject<TopicModel> = new BehaviorSubject(undefined);

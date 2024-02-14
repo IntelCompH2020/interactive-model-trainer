@@ -35,8 +35,7 @@
                                     update
                                 </mat-icon>
                             </button>
-                            <button mat-icon-button (click)="onDelete()"
-                                [disabled]="selectedCorpusType == CorpusType.Raw"
+                            <button *ngIf="selectedCorpusType == CorpusType.Logical" mat-icon-button (click)="onDelete()"
                                 [matTooltip]="language.instant('APP.COMMONS.TOOLTIP.DELETE')">
                                 <mat-icon>
                                     delete

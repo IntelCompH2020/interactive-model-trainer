@@ -48,5 +48,5 @@
 </div>
 
 <app-listing #listing [selectionType]="SelectionType.single" (rowActivated)="onRowActivated($event)" [rows]="gridRows"
-    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [defaultSort]="defaultSort"
+    [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="count" [limit]="limit" [defaultSort]="defaultSort"
     [externalSorting]="true" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"></app-listing>

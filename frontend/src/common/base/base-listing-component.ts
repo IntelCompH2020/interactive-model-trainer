@@ -80,7 +80,7 @@ export abstract class BaseListingComponent<ItemModel, LookupModel extends Lookup
 				this.items_loading = false;
 				this._currentPageNumber = this.lookup.page.offset / this.lookup.page.size;
 				this.gridRows = data.items;
-				this._totalElements = data.countOverride ? data.countOverride : data.count;
+				this._totalElements = data.count;
 				this._isNoResults = data.items.length === 0 ? true : false;
 				this._latestLoadedResults$.next(data);
 			},

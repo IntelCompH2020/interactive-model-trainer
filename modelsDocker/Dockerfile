@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     python3-distutils \
     python3-pip \
     python3-apt
-RUN pip install numpy scipy gensim pyLDAvis
+RUN pip install numpy scipy gensim pyLDAvis rbo sparse_dot_topn openai
 
 RUN apt install python-is-python3
 

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     python3-distutils \
     python3-pip \
     python3-apt
-RUN pip install numpy scipy gensim
+RUN pip install numpy scipy gensim rbo sparse_dot_topn openai
 RUN pip3 install pyldavis pandas==1.5.3
 
 RUN apt install python-is-python3
