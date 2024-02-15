@@ -19,12 +19,12 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class KeywordService extends WordlistService<Keyword, WordListLookup> {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(KeywordService.class));
+
     private final ApplicationContext applicationContext;
 
     @Autowired
@@ -36,18 +36,27 @@ public class KeywordService extends WordlistService<Keyword, WordListLookup> {
     @Override
     public List<Keyword> getAll(WordListLookup lookup) throws IOException, InterruptedException, ApiException {
         List<WordListEntity> data = dockerService.listWordLists(lookup);
+        List<Keyword> result;
         if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
-            return builderFactory.builder(KeywordBuilder.class).build(lookup.getProject(), data);
-        }
-        String orderItem = lookup.getOrder().getItems().get(0);
-        if (orderItem.endsWith("creator")) {
-            if (orderItem.startsWith("-")) {
-                return builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+            result = builderFactory.builder(KeywordBuilder.class).build(lookup.getProject(), data);
+        } else {
+            String orderItem = lookup.getOrder().getItems().get(0);
+            if (orderItem.endsWith("creator")) {
+                if (orderItem.startsWith("-")) {
+                    result = builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerDesc(lookup.getProject(), data);
+                } else {
+                    result = builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+                }
             } else {
-                return builderFactory.builder(KeywordBuilder.class).buildSortedByOwnerAsc(lookup.getProject(), data);
+                result = builderFactory.builder(KeywordBuilder.class).build(lookup.getProject(), data);
             }
         }
-        return builderFactory.builder(KeywordBuilder.class).build(lookup.getProject(), data);
+
+        if (lookup.getPage() != null) {
+            result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
+        }
+
+        return result;
     }
 
     @Override
@@ -69,7 +78,8 @@ public class KeywordService extends WordlistService<Keyword, WordListLookup> {
             String creatorUsername = corpora.get(0).getCreator();
             if (creatorUsername != null && !creatorUsername.equals("-")) {
                 List<UserEntity> users = applicationContext.getBean(UserQuery.class).usernames(creatorUsername).collect();
-                if (!users.isEmpty()) wordList.setCreator(users.get(0).getId().toString());
+                if (!users.isEmpty())
+                    wordList.setCreator(users.get(0).getId().toString());
             }
             dockerService.createWordList(wordList, false);
         } catch (Exception e) {

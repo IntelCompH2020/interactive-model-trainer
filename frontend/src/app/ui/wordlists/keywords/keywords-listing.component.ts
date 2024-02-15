@@ -69,6 +69,14 @@ export class KeywordsListingComponent extends BaseListingComponent<Keyword, Keyw
 
   defaultSort = ["-creation_date"];
 
+  get limit(): number {
+    return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
+  }
+
+  get count(): number {
+    return this.totalElements;
+  }
+
   @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<Keyword>> {

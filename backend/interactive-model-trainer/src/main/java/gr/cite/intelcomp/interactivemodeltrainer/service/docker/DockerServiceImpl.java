@@ -172,9 +172,6 @@ public class DockerServiceImpl implements DockerService {
             }
         }
 
-        if (lookup.getPage() != null) {
-            result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
-        }
         return result;
     }
 

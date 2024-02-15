@@ -102,10 +102,12 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
         return dockerService.getSimilarTopics(name, pairs);
     }
 
+    @Deprecated
     public void fuseTopics(String name, ArrayList<Integer> topics) throws IOException, InterruptedException, ApiException {
         dockerService.fuseTopics(name, topics);
     }
 
+    @Deprecated
     public void sortTopics(String name) throws IOException, InterruptedException, ApiException {
         dockerService.sortTopics(name);
     }

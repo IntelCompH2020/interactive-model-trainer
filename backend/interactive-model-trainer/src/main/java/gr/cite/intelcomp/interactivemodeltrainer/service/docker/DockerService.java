@@ -68,8 +68,10 @@ public interface DockerService {
 
     void setTopicLabels(String name, ArrayList<String> labels) throws IOException, ApiException, InterruptedException;
 
+    @Deprecated
     void fuseTopics(String name, ArrayList<Integer> topics) throws IOException, ApiException, InterruptedException;
 
+    @Deprecated
     void sortTopics(String name) throws IOException, ApiException, InterruptedException;
 
     void deleteTopics(String name, ArrayList<Integer> topics) throws IOException, ApiException, InterruptedException;
