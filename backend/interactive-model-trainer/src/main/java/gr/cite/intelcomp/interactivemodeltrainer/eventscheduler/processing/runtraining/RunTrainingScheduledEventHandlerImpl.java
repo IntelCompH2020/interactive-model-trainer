@@ -43,8 +43,11 @@ import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerS
 public class RunTrainingScheduledEventHandlerImpl implements RunTrainingScheduledEventHandler {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(RunTrainingScheduledEventHandlerImpl.class));
+
     private final JsonHandlingService jsonHandlingService;
+
     private final ApplicationContext applicationContext;
+
     private final RunTrainingSchedulerEventConfig config;
 
     @Autowired
@@ -65,12 +68,14 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                 scheduledEvent.getEventType() == ScheduledEventType.FUSE_TOPIC_MODEL ||
                 scheduledEvent.getEventType() == ScheduledEventType.SORT_TOPIC_MODEL)
             return handleCuration(scheduledEvent, entityManager);
-        else return EventProcessingStatus.Error;
+        else
+            return EventProcessingStatus.Error;
     }
 
     private EventProcessingStatus handleTraining(@NotNull ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         UUID trainingTaskRequestId = extractRequestIdFromEventData(scheduledEvent);
-        if (trainingTaskRequestId == null) return EventProcessingStatus.Error;
+        if (trainingTaskRequestId == null)
+            return EventProcessingStatus.Error;
         EventProcessingStatus status = null;
 
         try {
@@ -129,7 +134,8 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
     private EventProcessingStatus handleCuration(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
         UUID trainingTaskRequestId = extractRequestIdFromEventData(scheduledEvent);
-        if (trainingTaskRequestId == null) return EventProcessingStatus.Error;
+        if (trainingTaskRequestId == null)
+            return EventProcessingStatus.Error;
         EventProcessingStatus status;
 
         try {
@@ -223,7 +229,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         entityManager.flush();
     }
 
-    private void runModelReset(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+    private void runModelReset(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws IOException, ApiException {
         TopicModelTaskScheduledEventData eventData = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
 
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
@@ -251,7 +257,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         entityManager.flush();
     }
 
-    private void runModelFusion(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+    private void runModelFusion(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws IOException, ApiException {
         FuseModelScheduledEventData eventData = jsonHandlingService.fromJsonSafe(FuseModelScheduledEventData.class, scheduledEvent.getData());
 
         String topics = jsonHandlingService.toJsonSafe(eventData.getTopics());
@@ -284,7 +290,7 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         entityManager.flush();
     }
 
-    private void runModelSort(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent , EntityManager entityManager) throws IOException, ApiException {
+    private void runModelSort(TrainingTaskRequestEntity trainingTaskRequest, ScheduledEventEntity scheduledEvent, EntityManager entityManager) throws IOException, ApiException {
         TopicModelTaskScheduledEventData eventData = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
 
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
@@ -313,16 +319,24 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
     }
 
     private UUID extractRequestIdFromEventData(ScheduledEventEntity scheduledEvent) {
-        RunTrainingScheduledEventData eventData1 = jsonHandlingService.fromJsonSafe(RunTrainingScheduledEventData.class, scheduledEvent.getData());
-        if (eventData1 != null) return eventData1.getTrainingTaskRequestId();
-        PrepareHierarchicalTrainingEventData eventData2 = jsonHandlingService.fromJsonSafe(PrepareHierarchicalTrainingEventData.class, scheduledEvent.getData());
-        if (eventData2 != null) return eventData2.getTrainingTaskRequestId();
-        FuseModelScheduledEventData eventData3 = jsonHandlingService.fromJsonSafe(FuseModelScheduledEventData.class, scheduledEvent.getData());
-        if (eventData3 != null) return eventData3.getRequestId();
-        TopicModelTaskScheduledEventData eventData4 = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData());
-        if (eventData4 != null) return eventData4.getRequestId();
-        logger.error("Unable to extract training task request id from the event data...");
-        return null;
+        UUID trainingId = null;
+        if (scheduledEvent.getEventType() == ScheduledEventType.RUN_ROOT_TOPIC_TRAINING)
+            trainingId = jsonHandlingService.fromJsonSafe(RunTrainingScheduledEventData.class, scheduledEvent.getData()).getTrainingTaskRequestId();
+        else if (scheduledEvent.getEventType() == ScheduledEventType.PREPARE_HIERARCHICAL_TOPIC_TRAINING)
+            trainingId = jsonHandlingService.fromJsonSafe(PrepareHierarchicalTrainingEventData.class, scheduledEvent.getData()).getTrainingTaskRequestId();
+        else if (scheduledEvent.getEventType() == ScheduledEventType.RUN_HIERARCHICAL_TOPIC_TRAINING)
+            trainingId = jsonHandlingService.fromJsonSafe(RunTrainingScheduledEventData.class, scheduledEvent.getData()).getTrainingTaskRequestId();
+        else if (scheduledEvent.getEventType() == ScheduledEventType.FUSE_TOPIC_MODEL)
+            trainingId = jsonHandlingService.fromJsonSafe(FuseModelScheduledEventData.class, scheduledEvent.getData()).getRequestId();
+        else if (scheduledEvent.getEventType() == ScheduledEventType.RESET_TOPIC_MODEL)
+            trainingId = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData()).getRequestId();
+        else if (scheduledEvent.getEventType() == ScheduledEventType.SORT_TOPIC_MODEL)
+            trainingId = jsonHandlingService.fromJsonSafe(TopicModelTaskScheduledEventData.class, scheduledEvent.getData()).getRequestId();
+        if (trainingId == null) {
+            logger.error("Unable to extract training task request id from the event data...");
+            return null;
+        } else
+            return trainingId;
     }
 
 }
