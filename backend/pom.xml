@@ -113,19 +113,7 @@
 	</build>-->
 
 	<profiles>
-		<profile>
-			<id>cite-dev</id>
-			<repositories>
-				<repository>
-					<id>cite-maven</id>
-					<name>CITE Maven Repository</name>
-					<url>https://crepo.cite.gr/repository/cite-maven/</url>
-				</repository>
-			</repositories>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-		</profile>
+		
 	</profiles>
 
 </project>
