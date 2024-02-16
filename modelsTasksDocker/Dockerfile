@@ -26,6 +26,7 @@ COPY . .
 
 ARG COMMANDS
 ARG INPUT_REDIRECTION
+ARG LOG_FILE
 
 # Execution
-CMD ["bash", "-c", "${COMMANDS} < ${INPUT_REDIRECTION}"]
+CMD ["bash", "-c", "${COMMANDS} < ${INPUT_REDIRECTION} >> ${LOG_FILE} 2>&1"]

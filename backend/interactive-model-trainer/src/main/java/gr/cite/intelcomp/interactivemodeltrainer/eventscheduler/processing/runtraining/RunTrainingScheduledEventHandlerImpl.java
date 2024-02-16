@@ -249,6 +249,8 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         paramMap.put(
                 "INPUT_REDIRECTION", "/dev/null"
         );
+		String log_file = "model_task_log_" + new SecureRandom().nextInt();
+		paramMap.put("LOG_FILE", "/data/temp/" + log_file);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
@@ -287,6 +289,8 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                 pythonCommand
         );
         paramMap.put("INPUT_REDIRECTION", "/data/temp/" + tmp_file);
+        String log_file = "model_task_log_" + new SecureRandom().nextInt();
+		paramMap.put("LOG_FILE", "/data/temp/" + log_file);
         logger.debug(paramMap.get("COMMANDS"));
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
@@ -319,6 +323,8 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         paramMap.put(
                 "INPUT_REDIRECTION", "/dev/null"
         );
+		String log_file = "model_task_log_" + new SecureRandom().nextInt();
+		paramMap.put("LOG_FILE", "/data/temp/" + log_file);
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
