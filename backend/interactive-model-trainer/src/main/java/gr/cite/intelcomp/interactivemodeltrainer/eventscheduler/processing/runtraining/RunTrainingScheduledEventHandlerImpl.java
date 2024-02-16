@@ -16,6 +16,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.topic
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
+import gr.cite.intelcomp.interactivemodeltrainer.service.docker.DockerService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
@@ -29,11 +30,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODEL_CONFIG_FILE_NAME;
@@ -50,11 +49,14 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
 
     private final RunTrainingSchedulerEventConfig config;
 
+    private final DockerService dockerService;
+
     @Autowired
-    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, RunTrainingSchedulerEventConfig config) {
+    public RunTrainingScheduledEventHandlerImpl(JsonHandlingService jsonHandlingService, ApplicationContext applicationContext, RunTrainingSchedulerEventConfig config, DockerService dockerService) {
         this.jsonHandlingService = jsonHandlingService;
         this.applicationContext = applicationContext;
         this.config = config;
+        this.dockerService = dockerService;
     }
 
     @Override
@@ -244,6 +246,9 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         eventData.getModelName()
                 )
         );
+        paramMap.put(
+                "INPUT_REDIRECTION", "/dev/null"
+        );
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         String containerId = containerManagementService.runJob(executionParams);
@@ -263,19 +268,25 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
         String topics = jsonHandlingService.toJsonSafe(eventData.getTopics());
 
         ExecutionParams executionParams = new ExecutionParams(trainingTaskRequest.getJobName(), trainingTaskRequest.getJobId());
+
+        //Create temporary input file
+        String tmp_file = "generated_" + new SecureRandom().nextInt();
+        String contents = jsonHandlingService.toJsonSafe(topics).replaceAll("\"", "");
+        dockerService.createInputFileInTempFolder(tmp_file, contents, DockerService.MANAGE_MODELS);
+
         Map<String, String> paramMap = new HashMap<>();
+        String pythonCommand = String.join(
+                " ",
+                "python", "manageModels.py",
+                ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
+                ContainerServicesProperties.ManageTopicModels.FUSE_TOPICS_CMD,
+                eventData.getModelName()
+        );
         paramMap.put(
                 "COMMANDS",
-                String.join(
-                        " ",
-                        "python", "manageModels.py",
-                        ContainerServicesProperties.ManageTopicModels.PATH_TM_MODELS,
-                        ContainerServicesProperties.ManageTopicModels.FUSE_TOPICS_CMD,
-                        eventData.getModelName(),
-                        ContainerServicesProperties.ManageTopicModels.TOPICS,
-                        topics
-                )
+                pythonCommand
         );
+        paramMap.put("INPUT_REDIRECTION", "/data/temp/" + tmp_file);
         logger.debug(paramMap.get("COMMANDS"));
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
@@ -304,6 +315,9 @@ public class RunTrainingScheduledEventHandlerImpl implements RunTrainingSchedule
                         ContainerServicesProperties.ManageTopicModels.SORT_TOPICS_CMD,
                         eventData.getModelName()
                 )
+        );
+        paramMap.put(
+                "INPUT_REDIRECTION", "/dev/null"
         );
         executionParams.setEnvMapping(paramMap);
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);

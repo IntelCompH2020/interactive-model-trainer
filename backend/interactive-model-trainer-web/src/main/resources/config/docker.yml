@@ -28,7 +28,8 @@ docker:
     modelTasks:
       image: mng-mdls-tasks
       volumeConfiguration:
-        volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels
+        volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels,
+          ${DOCKER_WORKSPACE}\models_docker\temp:/data/temp
     trainDomainModels:
       image: domainclassification
       volumeConfiguration:

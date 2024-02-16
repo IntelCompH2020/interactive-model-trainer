@@ -25,7 +25,7 @@ RUN mkdir -p /data/TMmodels
 COPY . .
 
 ARG COMMANDS
-ENV COMMANDS ${COMMANDS}
+ARG INPUT_REDIRECTION
 
 # Execution
-CMD ${COMMANDS}
+CMD ["bash", "-c", "${COMMANDS} < ${INPUT_REDIRECTION}"]
