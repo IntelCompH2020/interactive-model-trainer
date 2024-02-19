@@ -69,7 +69,13 @@ public class LogicalCorpusService extends CorpusService<LogicalCorpus, CorpusLoo
             corpusLookup.setProject(new BaseFieldSet("id", "creator"));
             List<LogicalCorpus> corpora = getAll(corpusLookup)
                     .stream()
-                    .filter(c -> logicalCorpus.getId().equals(c.getId()))
+                    .filter(c -> {
+                        if (logicalCorpus.getId() == null) {
+                            logger.warn("Logical corpus with a null id was found during update.");
+                            return false;
+                        }
+                        return logicalCorpus.getId().equals(c.getId());
+                    })
                     .toList();
             String creatorUsername = corpora.get(0).getCreator();
             if (creatorUsername != null && !creatorUsername.equals("-")) {

@@ -25,6 +25,7 @@ public class InteractiveModelTrainer {
         validationUtils.tapTopicModelParameterValidator();
         validationUtils.validateWordlists();
         validationUtils.validateLogicalCorpora();
+        validationUtils.cleanup();
         ContainerStartupUtils.initServices(applicationContext);
     }
 

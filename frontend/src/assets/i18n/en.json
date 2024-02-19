@@ -322,7 +322,6 @@
 						"THETAS-THRESHOLD": "Thetas threshold",
 						"TOKEN-REGEX": "Token regular expression",
 						"NUMBER-OF-ITERATIONS-INF": "# of iterations",
-						"LABELS": "Labels",
 						"HIDEN-SIZES": "Hidden layers",
 						"ACTIVATION": "Activation function",
 						"ACTIVATION-OPTIONS": {
@@ -391,7 +390,6 @@
 						"THETAS-THRESHOLD": "Threshold for topic activation in a doc (sparsification)",
 						"TOKEN-REGEX": "Regular expression for token identification",
 						"NUMBER-OF-ITERATIONS-INF": "Number of iterations",
-						"LABELS": "Lists of labels to assign to topics",
 						"HIDEN-SIZES": "Size of the hidden layers",
 						"ACTIVATION": "Activation function to be used, chosen from 'softplus', 'relu', 'sigmoid', 'leakyrelu', 'rrelu', 'elu', 'selu' or 'tanh'",
 						"DROPOUT": "Percentage of neurons to drop out",

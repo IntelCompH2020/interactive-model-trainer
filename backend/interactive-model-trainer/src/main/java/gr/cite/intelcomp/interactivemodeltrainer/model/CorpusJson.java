@@ -3,6 +3,8 @@ package gr.cite.intelcomp.interactivemodeltrainer.model;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 
+import java.util.UUID;
+
 public class CorpusJson {
 
     public static final String _name = "name";

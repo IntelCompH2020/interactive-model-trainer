@@ -34,6 +34,7 @@ export interface CorpusItemPersist {
 }
 
 export interface LogicalCorpusPersist {
+  id: Guid;
   name: string;
   description: string;
   visibility: CorpusVisibility;

@@ -113,11 +113,11 @@
 			</span>
 		</div> -->
 		<!-- <a *ngIf="authService.hasPermission(authService.permissionEnum.ViewNotificationEventRulePage)" mat-menu-item routerLink="/notification-event-rules">{{'APP.NAVIGATION.NOTIFICATION-EVENT-RULES' | translate}}</a> -->
-	<div class="col-auto">
+	<!-- <div class="col-auto">
 		<mat-form-field *ngIf="isAuthenticated()" class="search-input pb-0" appearance="outline">
 			<input type="text" [placeholder]="'APP.NAVIGATION.SEARCH' | translate" matInput >
 		</mat-form-field>
-	</div>
+	</div> -->
 	<div class="col"></div>
 	<div *ngIf="isAuthenticated() && areConsentsNeedAttention()" class="col-auto">
 		<button mat-icon-button matTooltip="{{'APP.NAVIGATION.CONSENT-ATTENTION' | translate}}"
@@ -207,8 +207,8 @@
 		<mat-menu #menu="matMenu"> 
 			<!-- <button mat-menu-item *ngIf="authService.hasPermission(authService.permissionEnum.ViewUserProfilePage)"
 			routerLink="/user-profile" [queryParams]="getUserProfileQueryParams()"><mat-icon>person</mat-icon>{{'APP.NAVIGATION.VIEW-PROFILE' | translate}}</button> -->
-			<button mat-menu-item><mat-icon>settings</mat-icon>{{'APP.NAVIGATION.SETTINGS' | translate}}</button>
-			<button mat-menu-item><mat-icon>message</mat-icon>{{'APP.NAVIGATION.NOTIFICATIONS' | translate}}</button>
+			<!-- <button mat-menu-item><mat-icon>settings</mat-icon>{{'APP.NAVIGATION.SETTINGS' | translate}}</button> -->
+			<!-- <button mat-menu-item><mat-icon>message</mat-icon>{{'APP.NAVIGATION.NOTIFICATIONS' | translate}}</button> -->
 			<button mat-menu-item (click)="logout()"><mat-icon>exit_to_app</mat-icon>{{'APP.NAVIGATION.LOGOUT' | translate}}</button>
 		</mat-menu>
 	</div>

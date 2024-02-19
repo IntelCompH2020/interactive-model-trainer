@@ -28,10 +28,10 @@ public class LogicalCorpusJson extends CorpusJson {
     public LogicalCorpusJson(LogicalCorpus corpus, String parquetFolder) {
         super(corpus);
 
+        this.setId(corpus.getId());
         this.setCreator(corpus.getCreator());
         this.setValid_for(corpus.getValid_for());
         this.setDtsets(enrichDatasets((ArrayList<LocalDataset>) corpus.getDtsets(), parquetFolder));
-//        this.setCreation_date(corpus.getCreation_date());
     }
 
     private static ArrayList<LocalDataset> enrichDatasets(ArrayList<LocalDataset> datasets, String parquetFolder) {
@@ -47,7 +47,7 @@ public class LogicalCorpusJson extends CorpusJson {
             d.setCategoryfld(dataset.getCategoryfld());
             d.setFilter(dataset.getFilter());
             return d;
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     public UUID getId() {

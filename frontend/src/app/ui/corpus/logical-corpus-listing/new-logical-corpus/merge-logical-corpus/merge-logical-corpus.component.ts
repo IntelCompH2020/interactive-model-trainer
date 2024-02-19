@@ -23,6 +23,7 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
   }
 
   mergedFieldsData: LogicalCorpusPersist = {
+    id: null,
     name: null,
     description: null,
     visibility: CorpusVisibility.Public,
@@ -37,9 +38,10 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
   }
 
   private setCorpusData(): void {
+    this.mergedFieldsData.id = this.data.id;
     this.mergedFieldsData.name = this.data.name;
     this.mergedFieldsData.description = this.data.description;
-    this.mergedFieldsData.visibility = this.data.visibility;
+    this.mergedFieldsData.visibility = this.data.visibility == undefined ? CorpusVisibility.Public : this.data.visibility;
     this.mergedFieldsData.valid_for = this.data.validFor;
     let datasets: LocalDataset[] = [];
     for (let field of this.data.corpora) {

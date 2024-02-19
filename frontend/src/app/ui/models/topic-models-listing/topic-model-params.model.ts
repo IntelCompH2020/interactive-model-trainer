@@ -118,15 +118,6 @@ export function malletParams(advanced: boolean): ModelParam[] {
         step: 1
       }
     },
-    {
-      name: 'labels',
-      realName: 'labels',
-      displayName: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.PARAMETERS.LABELS',
-      type: 'string',
-      default: "wiki_categories.json",
-      tooltip: 'APP.MODELS-COMPONENT.TOPIC-MODELS-LISTING-COMPONENT.NEW-TOPIC-MODEL-DIALOG.PARAMETERS-TOOLTIPS.LABELS',
-      validation: {}
-    },
   ];
 }
 

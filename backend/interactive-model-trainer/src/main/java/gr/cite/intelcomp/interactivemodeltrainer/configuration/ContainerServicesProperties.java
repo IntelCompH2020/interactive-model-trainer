@@ -135,6 +135,10 @@ public class ContainerServicesProperties {
         return services.get("manageCorpus");
     }
 
+    public DockerServiceConfiguration getModelsService() {
+        return services.get("manageModels");
+    }
+
     public DockerServiceConfiguration getTopicTrainingService() {
         return services.get("training");
     }

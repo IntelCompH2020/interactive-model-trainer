@@ -142,4 +142,29 @@ public class ValidationUtils {
         }, 0, 1000L * 60 * 30);
     }
 
+    public void cleanup() {
+        logger.info("Cleaning residual temporary files.");
+        cleanupFolder(containerServicesProperties.getWordlistService().getTempFolder());
+        cleanupFolder(containerServicesProperties.getCorpusService().getTempFolder());
+        cleanupFolder(containerServicesProperties.getModelsService().getTempFolder());
+        cleanupFolder(containerServicesProperties.getTopicTrainingService().getTempFolder());
+        cleanupFolder(containerServicesProperties.getDomainTrainingService().getTempFolder());
+        logger.info("Cleanup of temporary files completed.");
+    }
+
+    private void cleanupFolder(String path) {
+        File folder = new File(path);
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files == null) return;
+            for (File file : files) {
+                if (!file.isDirectory())
+                    if (!file.delete())
+                        logger.error("Failed to delete temp file {}", file.getAbsolutePath());
+            }
+        } else {
+            logger.warn("Configured temporary file path '{}' does not exist. Review the temporary files path configuration.", folder);
+        }
+    }
+
 }
