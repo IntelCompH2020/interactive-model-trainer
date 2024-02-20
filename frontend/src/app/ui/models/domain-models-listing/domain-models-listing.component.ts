@@ -65,6 +65,14 @@ export class DomainModelsListingComponent extends BaseListingComponent<DomainMod
 	onDocumentSelect = new EventEmitter<Document>();
 	private _domainModelSelected: DomainModel = null;
 	private _documentSelected: Document = null;
+
+	get limit(): number {
+    return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
+  }
+
+  get count(): number {
+    return this.totalElements;
+  }
 	
 	documents: BehaviorSubject<Document[]> = new BehaviorSubject([]); 
 	documentLookup: DocumentLookup = new DocumentLookup();
