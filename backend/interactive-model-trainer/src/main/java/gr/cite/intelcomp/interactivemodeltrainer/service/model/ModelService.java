@@ -20,7 +20,7 @@ public abstract class ModelService<M extends Model, L extends Lookup> {
         this.dockerService = dockerService;
     }
 
-    public abstract List<M> getAll(L lookup) throws IOException, InterruptedException, ApiException;
+    public abstract List<? extends M> getAll(L lookup) throws IOException, InterruptedException, ApiException;
 
     public void copy(ModelType modelType, String name) throws InterruptedException, IOException, ApiException {
         dockerService.copyModel(modelType, name);

@@ -6,9 +6,11 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelEntity;
+import gr.cite.intelcomp.interactivemodeltrainer.data.TopicModelListingEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.topic.TopicEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
+import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModelListing;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.TopicBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.model.builder.TopicModelBuilder;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.Topic;
@@ -51,10 +53,10 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TopicModel> getAll(TopicModelLookup lookup) throws IOException, InterruptedException, ApiException {
+    public List<TopicModelListing> getAll(TopicModelLookup lookup) throws IOException, InterruptedException, ApiException {
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         lookup.setModelType(ModelType.TOPIC);
-        List<TopicModelEntity> data = (List<TopicModelEntity>) dockerService.listModels(lookup, users);
+        List<TopicModelListingEntity> data = (List<TopicModelListingEntity>) dockerService.listModels(lookup, users);
         if (lookup.getOrder() == null || lookup.getOrder().isEmpty() || lookup.getOrder().getItems() == null || lookup.getOrder().getItems().isEmpty()) {
             return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data, users);
         }
@@ -80,13 +82,13 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
     }
 
     @SuppressWarnings("unchecked")
-    public List<TopicModel> getModel(String name) throws IOException, InterruptedException, ApiException {
+    public List<TopicModelListing> getModel(String name) throws IOException, InterruptedException, ApiException {
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
         ModelLookup lookup = new ModelLookup();
         lookup.setModelType(ModelType.TOPIC);
         lookup.setProject(new BaseFieldSet("name", "type", "params"));
         List<? extends ModelEntity> data = dockerService.getModel(lookup, name);
-        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelEntity>) data, users);
+        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelListingEntity>) data, users);
     }
 
     public List<Topic> getAllTopics(String name, TopicLookup lookup) throws IOException, InterruptedException, ApiException {

@@ -1,7 +1,7 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ModelVisibility } from '@app/core/enum/model-visibility.enum';
-import { Topic, TopicModel, TopicSimilarity } from '@app/core/model/model/topic-model.model';
+import { Topic, TopicModel, TopicModelListing, TopicModelTreeStatus, TopicSimilarity } from '@app/core/model/model/topic-model.model';
 import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicLookup } from '@app/core/query/topic.lookup';
 import { RenamePersist } from '@app/ui/rename-dialog/rename-editor.model';
@@ -22,21 +22,20 @@ export class TopicModelService {
 		private installationConfiguration: InstallationConfigurationService,
 		private http: BaseHttpService) { }
 
-	query(q: TopicModelLookup): Observable<QueryResult<TopicModel>> {
+	query(q: TopicModelLookup): Observable<QueryResult<TopicModelListing>> {
 		const url = `${this.apiBase}/all`;
 
 		return this.http
-			.post<QueryResult<TopicModel>>(url, q).pipe(
+			.post<QueryResult<TopicModelListing>>(url, q).pipe(
 				catchError((error: any) => throwError(error)),
 				tap((result) => {
 					let models = result.items;
-					let parents: Set<string> = new Set();
 					for (let model of models) model.treeStatus = 'disabled'
 					for (let model of models) {
-						if (model.hierarchyLevel === 1) parents.add(model.TrDtSet);
-					}
-					for (let model of models) {
-						if (parents.has(model.name)) model.treeStatus = 'collapsed'
+						if (model.submodels && model.submodels.length >= 1) {
+							model.treeStatus = 'collapsed';
+							models.push(...model.submodels.map(item => { return { ...item, submodels: [], treeStatus: "disabled" as TopicModelTreeStatus } }));
+						}
 					}
 				}));
 	}

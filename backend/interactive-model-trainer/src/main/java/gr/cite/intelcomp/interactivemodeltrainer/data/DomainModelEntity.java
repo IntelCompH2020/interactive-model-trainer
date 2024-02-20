@@ -1,15 +1,13 @@
 package gr.cite.intelcomp.interactivemodeltrainer.data;
 
-import jakarta.persistence.Column;
+public class DomainModelEntity extends ModelEntity {
 
-public class DomainModelEntity extends ModelEntity{
-
-    @Column(name = "corpus")
     private String corpus;
+
     public static final String _corpus = "TrDtSet";
 
-    @Column(name = "tag")
     private String tag;
+
     public static final String _tag = "tag";
 
     public String getCorpus() {

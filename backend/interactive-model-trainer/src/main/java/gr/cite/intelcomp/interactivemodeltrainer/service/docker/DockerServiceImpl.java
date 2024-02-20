@@ -305,7 +305,7 @@ public class DockerServiceImpl implements DockerService {
         return result;
     }
 
-    private List<TopicModelEntity> applyTopicModelLookup(List<TopicModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
+    private List<TopicModelListingEntity> applyTopicModelLookup(List<TopicModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
         List<TopicModelEntity> result = new ArrayList<>(data);
 
         result = result.stream().filter(entity -> {
@@ -373,20 +373,48 @@ public class DockerServiceImpl implements DockerService {
             }
         }
 
+        List<TopicModelListingEntity> collectedModels = result.stream()
+                .filter(entity -> entity.getHierarchyLevel() == 0)
+                .toList()
+                .stream()
+                .map(DockerServiceImpl::topicModelListingFromModel)
+                .collect(Collectors.toList());
+        List<TopicModelEntity> collectedSubmodels = result.stream()
+                .filter(entity -> entity.getHierarchyLevel() > 0)
+                .toList();
+
         if (lookup.getPage() != null) {
-            List<TopicModelEntity> collectedModels = result.stream().filter(entity -> entity.getHierarchyLevel() == 0).collect(Collectors.toList());
-            List<TopicModelEntity> collectedSubmodels = result.stream().filter(entity -> entity.getHierarchyLevel() > 0).toList();
             collectedModels = collectedModels.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), collectedModels.size()));
-            for (TopicModelEntity submodel : collectedSubmodels) {
-                String corpus = submodel.getCorpus()
-                        .replaceAll("^(.*)/", "")
-                        .replace("Subcorpus created from ", "")
-                        .replace(".json", "");
-                if (collectedModels.stream().anyMatch(entity -> entity.getName().equals(corpus)))
-                    collectedModels.add(submodel);
-            }
-            return collectedModels;
         }
+
+        for (TopicModelEntity submodel : collectedSubmodels) {
+            String corpus = submodel.getCorpus()
+                    .replaceAll("^(.*)/", "")
+                    .replace("Subcorpus created from ", "")
+                    .replace(".json", "");
+            collectedModels.forEach(entity -> {
+                if (entity.getName().equals(corpus))
+                    entity.getSubmodels().add(submodel);
+            });
+
+        }
+        return collectedModels;
+    }
+
+    private static TopicModelListingEntity topicModelListingFromModel(TopicModelEntity entity) {
+        TopicModelListingEntity result = new TopicModelListingEntity();
+        result.setId(entity.getId());
+        result.setCorpus(entity.getCorpus());
+        result.setCreator(entity.getCreator());
+        result.setDescription(entity.getDescription());
+        result.setHierarchyLevel(entity.getHierarchyLevel());
+        result.setParams(entity.getParams());
+        result.setTrainer(entity.getTrainer());
+        result.setLocation(entity.getLocation());
+        result.setName(entity.getName());
+        result.setCreation_date(entity.getCreation_date());
+        result.setVisibility(entity.getVisibility());
+        result.setSubmodels(new ArrayList<>());
         return result;
     }
 

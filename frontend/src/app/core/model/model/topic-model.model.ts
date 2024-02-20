@@ -55,8 +55,15 @@ export interface TopicModel extends BaseEntity {
   thr?: number;
 	htm?: string;
 
-  treeStatus?: 'collapsed' | 'expanded' | 'disabled';
+  treeStatus?: TopicModelTreeStatus;
 }
+
+export type TopicModelTreeStatus = 'collapsed' | 'expanded' | 'disabled';
+
+export interface TopicModelListing extends TopicModel {
+  submodels: TopicModel[];
+}
+
 export interface TopicModelPersist extends BaseEntityPersist {
   name: string;
   description: string;

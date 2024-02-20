@@ -3,6 +3,7 @@ package gr.cite.intelcomp.interactivemodeltrainer.web.controllers;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ModelType;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModel;
+import gr.cite.intelcomp.interactivemodeltrainer.model.TopicModelListing;
 import gr.cite.intelcomp.interactivemodeltrainer.model.persist.trainingtaskrequest.TrainingTaskRequestPersist;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.*;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
@@ -53,20 +54,20 @@ public class TopicModelController {
 
     @PostMapping("all")
     @Transactional
-    public QueryResult<TopicModel> GetAll(@RequestBody TopicModelLookup lookup) {
-        return extractQueryResultWithCountWhen(l -> {
+    public QueryResult<TopicModelListing> GetAll(@RequestBody TopicModelLookup lookup) {
+        return extractQueryResultWithCount(l -> {
             try {
                 return topicModelService.getAll(l);
             } catch (IOException | InterruptedException | ApiException e) {
                 throw new RuntimeException(e);
             }
-        }, lookup, topicModel -> topicModel.getHierarchyLevel() == 0);
+        }, lookup);
     }
 
     @GetMapping("{name}")
     @Transactional
-    public QueryResult<TopicModel> GetSingle(@PathVariable(name = "name") String name) throws InterruptedException, IOException, ApiException {
-        List<TopicModel> models = topicModelService.getModel(name);
+    public QueryResult<TopicModelListing> GetSingle(@PathVariable(name = "name") String name) throws InterruptedException, IOException, ApiException {
+        List<TopicModelListing> models = topicModelService.getModel(name);
         return new QueryResult<>(models, models.size());
     }
 

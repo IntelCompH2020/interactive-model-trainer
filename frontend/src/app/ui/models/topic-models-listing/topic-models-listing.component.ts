@@ -6,7 +6,7 @@ import { IsActive } from '@app/core/enum/is-active.enum';
 import { TopicModelSubtype } from '@app/core/enum/topic-model-subtype.enum';
 import { TopicModelType } from '@app/core/enum/topic-model.-type.enum';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
-import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
+import { Topic, TopicModelListing } from '@app/core/model/model/topic-model.model';
 import { TopicModelLookup } from '@app/core/query/topic-model.lookup';
 import { TopicLookup } from '@app/core/query/topic.lookup';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
@@ -45,7 +45,7 @@ import { RunningTasksService } from '@app/core/services/http/running-tasks.servi
   templateUrl: './topic-models-listing.component.html',
   styleUrls: ['./topic-models-listing.component.css']
 })
-export class TopicModelsListingComponent extends BaseListingComponent<TopicModel, TopicModelLookup> implements OnInit {
+export class TopicModelsListingComponent extends BaseListingComponent<TopicModelListing, TopicModelLookup> implements OnInit {
   userSettingsKey: UserSettingsKey;
 
   filterEditorConfiguration: FilterEditorConfiguration;
@@ -53,11 +53,11 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
   likeFilterFormGroup: FormGroup;
 
   @Output()
-  onTopicModelSelect = new EventEmitter<TopicModel>();
+  onTopicModelSelect = new EventEmitter<TopicModelListing>();
   @Output()
   onTopicSelect = new EventEmitter<Topic>();
   private _topicSelected: Topic = null;
-  private _topicModelSelected: TopicModel = null;
+  private _topicModelSelected: TopicModelListing = null;
 
   get topicSelected(): Topic {
     return this._topicSelected;
@@ -73,26 +73,29 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   get limit(): number {
     return Math.max(this.gridRows.length, this.ITEMS_PER_PAGE);
-    // return this.ITEMS_PER_PAGE;
   }
 
   get count(): number {
-    return this.countOverride;
+    return this.totalElements + this.childRows;
   }
 
-  selectedModel: BehaviorSubject<TopicModel> = new BehaviorSubject(undefined);
+  get displayCount(): number {
+    return this.totalElements;
+  }
+
+  selectedModel: BehaviorSubject<TopicModelListing> = new BehaviorSubject(undefined);
   topicLookup: TopicLookup = new TopicLookup();
 
   SelectionType = SelectionType;
 
-  countOverride: number = 0;
+  childRows: number = 0;
   expandedRowsCount: number = 0;
 
   defaultSort = ["-creation_date"];
 
   @ViewChild('listing') listingComponent: ListingComponent;
 
-  protected loadListing(): Observable<QueryResult<TopicModel>> {
+  protected loadListing(): Observable<QueryResult<TopicModelListing>> {
     return this.topicModelService.query(this.lookup);
   }
 
@@ -101,21 +104,22 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     lookup.metadata = { countAll: true };
     lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
     lookup.isActive = [IsActive.Active];
-    lookup.order = { items: ['-' + nameof<TopicModel>(x => x.creation_date)] };
+    lookup.order = { items: ['-' + nameof<TopicModelListing>(x => x.creation_date)] };
     this.updateOrderUiFields(lookup.order);
 
     lookup.project = {
       fields: [
-        nameof<TopicModel>(x => x.id),
-        nameof<TopicModel>(x => x.name),
-        nameof<TopicModel>(x => x.description),
-        nameof<TopicModel>(x => x.creator),
-        nameof<TopicModel>(x => x.location),
-        nameof<TopicModel>(x => x.type),
-        nameof<TopicModel>(x => x.hierarchyLevel),
-        nameof<TopicModel>(x => x.visibility),
-        nameof<TopicModel>(x => x.creation_date),
-        nameof<TopicModel>(x => x.TrDtSet)
+        nameof<TopicModelListing>(x => x.id),
+        nameof<TopicModelListing>(x => x.name),
+        nameof<TopicModelListing>(x => x.description),
+        nameof<TopicModelListing>(x => x.creator),
+        nameof<TopicModelListing>(x => x.location),
+        nameof<TopicModelListing>(x => x.type),
+        nameof<TopicModelListing>(x => x.hierarchyLevel),
+        nameof<TopicModelListing>(x => x.visibility),
+        nameof<TopicModelListing>(x => x.creation_date),
+        nameof<TopicModelListing>(x => x.TrDtSet),
+        nameof<TopicModelListing>(x => x.submodels)
       ]
     };
 
@@ -124,7 +128,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
   protected setupColumns() {
     this.gridColumns.push(...[{
-      prop: nameof<TopicModel>(x => x.name),
+      prop: nameof<TopicModelListing>(x => x.name),
       sortable: true,
       resizeable: true,
       alwaysShown: true,
@@ -133,39 +137,39 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       languageName: 'APP.MODELS-COMPONENT.NAME'
     },
     {
-      prop: nameof<TopicModel>(x => x.description),
+      prop: nameof<TopicModelListing>(x => x.description),
       sortable: false,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.DESCRIPTION'
     },
     {
-      prop: nameof<TopicModel>(x => x.type),
+      prop: nameof<TopicModelListing>(x => x.type),
       pipe: this.pipeService.getPipe<DataTableTopicModelTypeFormatPipe>(DataTableTopicModelTypeFormatPipe),
       sortable: true,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.TYPE'
     },
     {
-      prop: nameof<TopicModel>(x => x.creation_date),
+      prop: nameof<TopicModelListing>(x => x.creation_date),
       pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short'),
       sortable: true,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.CREATION-DATE'
     },
     {
-      prop: nameof<TopicModel>(x => x.creator),
+      prop: nameof<TopicModelListing>(x => x.creator),
       sortable: true,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.CREATOR',
     },
     {
-      prop: nameof<TopicModel>(x => x.TrDtSet),
+      prop: nameof<TopicModelListing>(x => x.TrDtSet),
       sortable: false,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.CORPUS'
     },
     {
-      prop: nameof<TopicModel>(x => x.location),
+      prop: nameof<TopicModelListing>(x => x.location),
       sortable: false,
       resizeable: true,
       languageName: 'APP.MODELS-COMPONENT.LOCATION'
@@ -203,16 +207,18 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
 
     this.latestLoadedResults$.subscribe(results => {
       if (!results?.items?.length) return;
-      this.countOverride = results.countOverride;
+      results.items.forEach(item => {
+        if (item.submodels && item.submodels.length > 0) this.childRows += item.submodels.length;
+      })
     });
 
     setTimeout(() => {
       this.setupVisibleColumns([
-        nameof<TopicModel>(x => x.name),
-        nameof<TopicModel>(x => x.description),
-        nameof<TopicModel>(x => x.type),
-        nameof<TopicModel>(x => x.creation_date),
-        nameof<TopicModel>(x => x.TrDtSet)
+        nameof<TopicModelListing>(x => x.name),
+        nameof<TopicModelListing>(x => x.description),
+        nameof<TopicModelListing>(x => x.type),
+        nameof<TopicModelListing>(x => x.creation_date),
+        nameof<TopicModelListing>(x => x.TrDtSet)
       ]);
     }, 0);
   }
@@ -267,7 +273,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     if (callback) callback();
   }
 
-  public edit(model: TopicModel, updateAll: boolean = false): void {
+  public edit(model: TopicModelListing, updateAll: boolean = false): void {
     if (updateAll) {
       this.dialog.open(ModelPatchComponent,
         {
@@ -313,7 +319,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     }
   }
 
-  public copy(model: TopicModel): void {
+  public copy(model: TopicModelListing): void {
     this.topicModelService.copy(model.name).subscribe(
       _response => this.refresh(
         () => this.snackbars.successfulOperation(true)
@@ -321,7 +327,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     );
   }
 
-  public editTopic(model: TopicModel, topic: Topic, callback: () => void): void {
+  public editTopic(model: TopicModelListing, topic: Topic, callback: () => void): void {
     this.dialog.open(RenameTopicComponent, {
       width: '25rem',
       maxWidth: "90vw",
@@ -345,7 +351,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       });
   }
 
-  public fuseTopics(model: TopicModel, callback: (state: boolean) => void): void {
+  public fuseTopics(model: TopicModelListing, callback: (state: boolean) => void): void {
     this.dialog.open(TopicSelectionComponent, {
       width: '25rem',
       maxWidth: "90vw",
@@ -374,7 +380,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       });
   }
 
-  public deleteTopics(model: TopicModel, callback: () => void): void {
+  public deleteTopics(model: TopicModelListing, callback: () => void): void {
     this.dialog.open(TopicSelectionComponent, {
       width: '25rem',
       maxWidth: "90vw",
@@ -407,7 +413,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       });
   }
 
-  public deleteTopic(model: TopicModel, topic: Topic, callback: () => void): void {
+  public deleteTopic(model: TopicModelListing, topic: Topic, callback: () => void): void {
     this.dialog.open(ConfirmationDialogComponent,
       {
         data: {
@@ -439,7 +445,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       })
   }
 
-  public sortTopics(model: TopicModel, callback: (state: boolean) => void): void {
+  public sortTopics(model: TopicModelListing, callback: (state: boolean) => void): void {
     this.topicModelService.sortTopics(model.name).subscribe(() => {
       callback(true);
     }, error => {
@@ -448,7 +454,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     });
   }
 
-  public resetModel(model: TopicModel, callback: (state: boolean) => void): void {
+  public resetModel(model: TopicModelListing, callback: (state: boolean) => void): void {
     this.topicModelService.reset(model.name).subscribe((_task) => {
       callback(true);
     }, error => {
@@ -457,7 +463,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     });
   }
 
-  public showSimilar(model: TopicModel): void {
+  public showSimilar(model: TopicModelListing): void {
     this.dialog.open(TopicSimilaritiesComponent, {
       width: '25rem',
       maxWidth: "90vw",
@@ -474,7 +480,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
       .subscribe(() => { });
   }
 
-  public setLabels(model: TopicModel, callback: () => void): void {
+  public setLabels(model: TopicModelListing, callback: () => void): void {
     this.dialog.open(TopicLabelsComponent, {
       width: '80rem',
       maxWidth: "90vw",
@@ -557,7 +563,7 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
   }
 
   onRowActivated($event: RowActivateEvent) {
-    const selectedModel: TopicModel = $event.row as TopicModel;
+    const selectedModel: TopicModelListing = $event.row as TopicModelListing;
     if ($event.type === 'click') {
       if (this._topicModelSelected && selectedModel.name === this._topicModelSelected.name) return;
       this.onTopicModelSelect.emit(selectedModel);

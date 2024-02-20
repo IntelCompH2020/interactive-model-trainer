@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { AppEnumUtils } from '@app/core/formatting/enum-utils.service';
 import { Document, DomainModel } from '@app/core/model/model/domain-model.model';
-import { Topic, TopicModel } from '@app/core/model/model/topic-model.model';
+import { Topic, TopicModelListing } from '@app/core/model/model/topic-model.model';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
 import { TopicModelService } from '@app/core/services/http/topic-model.service';
 import { SnackBarCommonNotificationsService } from '@app/core/services/ui/snackbar-notifications.service';
@@ -29,7 +29,7 @@ import { ModelTaskDetailsComponent } from './model-task-details/model-task-detai
 })
 export class ModelsComponent extends BaseComponent implements OnInit {
 
-  modelSelected: TopicModel | DomainModel;
+  modelSelected: TopicModelListing | DomainModel;
   topicSelected: Topic;
   documentSelected: Document;
 
@@ -203,26 +203,26 @@ export class ModelsComponent extends BaseComponent implements OnInit {
         }
 
         this.onRenameItem = () => {
-          castedActiveComponent.edit(this.modelSelected as TopicModel);
+          castedActiveComponent.edit(this.modelSelected as TopicModelListing);
         }
 
         this.onUpdateItem = () => {
-          castedActiveComponent.edit(this.modelSelected as TopicModel, true);
+          castedActiveComponent.edit(this.modelSelected as TopicModelListing, true);
         }
 
         this.onCopyItem = () => {
-          castedActiveComponent.copy(this.modelSelected as TopicModel);
+          castedActiveComponent.copy(this.modelSelected as TopicModelListing);
         }
 
         this.onRenameTopic = () => {
           this._curatingTopicModel = true;
-          castedActiveComponent.editTopic(this.modelSelected as TopicModel, this.topicSelected as Topic, () => {
+          castedActiveComponent.editTopic(this.modelSelected as TopicModelListing, this.topicSelected as Topic, () => {
             this._curatingTopicModel = false;
           });
         }
 
         this.onFuseTopics = () => {
-          castedActiveComponent.fuseTopics(this.modelSelected as TopicModel, (state) => {
+          castedActiveComponent.fuseTopics(this.modelSelected as TopicModelListing, (state) => {
             if (state) this.snackbars.operationStarted();
             else this.snackbars.notSuccessfulOperation();
           });
@@ -230,39 +230,39 @@ export class ModelsComponent extends BaseComponent implements OnInit {
 
         this.onDeleteTopics = () => {
           this._curatingTopicModel = true;
-          castedActiveComponent.deleteTopics(this.modelSelected as TopicModel, () => {
+          castedActiveComponent.deleteTopics(this.modelSelected as TopicModelListing, () => {
             this._curatingTopicModel = false;
           });
         }
 
         this.onDeleteTopic = () => {
           this._curatingTopicModel = true;
-          castedActiveComponent.deleteTopic(this.modelSelected as TopicModel, this.topicSelected as Topic, () => {
+          castedActiveComponent.deleteTopic(this.modelSelected as TopicModelListing, this.topicSelected as Topic, () => {
             this._curatingTopicModel = false;
           });
         }
 
         this.onSortTopics = () => {
-          castedActiveComponent.sortTopics(this.modelSelected as TopicModel, (state) => {
+          castedActiveComponent.sortTopics(this.modelSelected as TopicModelListing, (state) => {
             if (state) this.snackbars.operationStarted();
             else this.snackbars.notSuccessfulOperation();
           });
         }
 
         this.onResetItem = () => {
-          castedActiveComponent.resetModel(this.modelSelected as TopicModel, (state) => {
+          castedActiveComponent.resetModel(this.modelSelected as TopicModelListing, (state) => {
             if (state) this.snackbars.operationStarted();
             else this.snackbars.notSuccessfulOperation();
           });
         }
 
         this.onShowSimilarTopics = () => {
-          castedActiveComponent.showSimilar(this.modelSelected as TopicModel);
+          castedActiveComponent.showSimilar(this.modelSelected as TopicModelListing);
         }
 
         this.onSetTopicLabels = () => {
           this._curatingTopicModel = true;
-          castedActiveComponent.setLabels(this.modelSelected as TopicModel, () => {
+          castedActiveComponent.setLabels(this.modelSelected as TopicModelListing, () => {
             this._curatingTopicModel = false;
           });
         }
@@ -400,8 +400,8 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   }
 
   showPyLDAvis(): void {
-    if ((this.modelSelected as TopicModel).hierarchyLevel === 1) {
-      const parentName: string = (this.modelSelected as TopicModel).TrDtSet;
+    if ((this.modelSelected as TopicModelListing).hierarchyLevel === 1) {
+      const parentName: string = (this.modelSelected as TopicModelListing).TrDtSet;
       this.topicModelService.pyLDAvisHierarchicalUrl(parentName, this.modelSelected.name).subscribe(url => {
         this.dialog.open(PyLDAComponent,
           {
@@ -479,7 +479,7 @@ export class ModelsComponent extends BaseComponent implements OnInit {
     this.runningTasksQueueService.loadRunningTasks(RunningTaskType.curating);
   }
 
-  private _buildTopicModelDetails(model: TopicModel): DetailsItem[] {
+  private _buildTopicModelDetails(model: TopicModelListing): DetailsItem[] {
     return [
       {
         label: 'APP.MODELS-COMPONENT.NAME',

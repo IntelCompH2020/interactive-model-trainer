@@ -2,12 +2,10 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.Column;
+public class TopicModelEntity extends ModelEntity {
 
-public class TopicModelEntity extends ModelEntity{
-
-    @Column(name = "corpus")
     private String corpus;
+
     public static final String _corpus = "TrDtSet";
 
     @JsonProperty("TrDtSet")
@@ -19,4 +17,5 @@ public class TopicModelEntity extends ModelEntity{
     public void setCorpus(String corpus) {
         this.corpus = corpus;
     }
+
 }

@@ -2,8 +2,8 @@ package gr.cite.intelcomp.interactivemodeltrainer.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
+import jakarta.persistence.MappedSuperclass;
 
-import jakarta.persistence.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -11,46 +11,44 @@ import java.util.UUID;
 @MappedSuperclass
 public class ModelEntity {
 
-    @Id
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
+
     public final static String _id = "id";
 
-    @Column(name = "name", length = 100, nullable = false)
     private String name;
+
     public final static String _name = "name";
 
-    @Column(name = "description")
     private String description;
+
     public static final String _description = "description";
 
-    @Column(name = "visibility", length = 100)
-    @Enumerated(EnumType.STRING)
     private Visibility visibility;
+
     public final static String _visibility = "visibility";
 
-    @Column(name = "trainer")
     private String trainer;
+
     public static final String _trainer = "type";
 
-    @Column(name = "params")
     private Map<String, Object> params;
+
     public static final String _params = "params";
 
-    @Column(name = "creator")
     private String creator;
+
     public static final String _creator = "creator";
 
-    @Column(name = "location")
     private String location;
+
     public static final String _location = "location";
 
-    @Column(name = "creation_date", nullable = false)
     private Date creation_date;
+
     public final static String _creation_date = "creation_date";
 
-    @Column(name = "hierarchy_level", nullable = false)
     private Integer hierarchyLevel;
+
     public static final String _hierarchy_level = "hierarchyLevel";
 
     public UUID getId() {
@@ -104,7 +102,8 @@ public class ModelEntity {
     }
 
     public String getCreator() {
-        if (creator != null) return creator.trim();
+        if (creator != null)
+            return creator.trim();
         return null;
     }
 

@@ -176,7 +176,6 @@ export class NewLogicalCorpusComponent extends BaseComponent implements OnInit {
   }
 
   mergeCorpus(): void {
-    console.log(this.formGroup.value);
     this.dialog.open(MergeLogicalCorpusComponent, {
       width: "50rem",
       maxWidth: "90vw",
