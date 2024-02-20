@@ -206,10 +206,11 @@ export class TopicModelsListingComponent extends BaseListingComponent<TopicModel
     this._buildFilterEditorConfiguration();
 
     this.latestLoadedResults$.subscribe(results => {
+      this.childRows = 0;
       if (!results?.items?.length) return;
       results.items.forEach(item => {
         if (item.submodels && item.submodels.length > 0) this.childRows += item.submodels.length;
-      })
+      });
     });
 
     setTimeout(() => {
