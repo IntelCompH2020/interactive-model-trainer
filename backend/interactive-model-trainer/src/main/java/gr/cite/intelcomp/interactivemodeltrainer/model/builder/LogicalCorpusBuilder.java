@@ -50,12 +50,6 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
         if (data == null) return models;
         for (LogicalCorpusEntity d : data) {
             if (CorpusType.LOGICAL != d.getType()) continue;
-            if (Visibility.Private == d.getVisibility()) {
-                if (!userScope.isSet()) continue;
-                if (d.getCreator() != null
-                        && !d.getCreator().equals("-")
-                        && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
-            }
             LogicalCorpus m = new LogicalCorpus();
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._id)))
                 m.setId(d.getId());

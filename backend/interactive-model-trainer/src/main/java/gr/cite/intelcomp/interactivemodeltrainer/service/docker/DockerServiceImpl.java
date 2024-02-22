@@ -299,6 +299,13 @@ public class DockerServiceImpl implements DockerService {
             }
         }
 
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        result = result.stream().filter(d ->
+                d.getCreator() != null
+                && !d.getCreator().equals("-")
+                && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString()))
+                .collect(Collectors.toList());
+
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }

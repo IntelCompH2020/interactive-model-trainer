@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
 @ValidTrainingParameter(parameter = "MalletTM.num_threads")
 @ValidTrainingParameter(parameter = "MalletTM.token_regexp")
 @ValidTrainingParameter(parameter = "MalletTM.num_iterations_inf")
-@ValidTrainingParameter(parameter = "MalletTM.labels")
+//@ValidTrainingParameter(parameter = "MalletTM.labels")
 
 @ValidTrainingParameter(parameter = "ProdLDA.model_type")
 @ValidTrainingParameter(parameter = "ProdLDA.num_epochs")
