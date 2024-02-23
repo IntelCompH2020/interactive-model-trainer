@@ -16,12 +16,10 @@
         <td>{{dataset.titlefld}}</td>
         <td>Title</td>
     </tr>
-    <ng-container *ngIf="dataset.textfld">
-        <tr *ngFor="let textfld of dataset.textfld">
-            <td>{{textfld}}</td>
-            <td>Text</td>
-        </tr>
-    </ng-container>
+    <tr *ngIf="dataset.textfld">
+        <td>{{dataset.textfld}}</td>
+        <td>Text</td>
+    </tr>
     <ng-container *ngIf="dataset.lemmasfld">
         <tr *ngFor="let lemmasfld of dataset.lemmasfld">
             <td>{{lemmasfld}}</td>

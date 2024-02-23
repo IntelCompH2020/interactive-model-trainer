@@ -47,7 +47,7 @@ export interface LocalDataset {
   source?: string;
   idfld?: string;
   titlefld?: string;
-  textfld?: string[];
+  textfld?: string;
   lemmasfld?: string[];
   embeddingsfld?: string;
   categoryfld?: string;

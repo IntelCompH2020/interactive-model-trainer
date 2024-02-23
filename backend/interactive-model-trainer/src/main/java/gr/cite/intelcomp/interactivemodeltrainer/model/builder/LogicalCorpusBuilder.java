@@ -2,8 +2,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CorpusType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
-import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.LogicalCorpusEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
@@ -22,7 +20,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -40,16 +37,18 @@ public class LogicalCorpusBuilder extends BaseBuilder<LogicalCorpus, LogicalCorp
     public List<LogicalCorpus> build(FieldSet fields, List<LogicalCorpusEntity> data) throws MyApplicationException {
         this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
-        if (fields == null || fields.isEmpty()) return new ArrayList<>();
+        if (fields == null || fields.isEmpty())
+            return new ArrayList<>();
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
-        UserScope userScope = applicationContext.getBean(UserScope.class);
 
         List<LogicalCorpus> models = new ArrayList<>(100);
 
-        if (data == null) return models;
+        if (data == null)
+            return models;
         for (LogicalCorpusEntity d : data) {
-            if (CorpusType.LOGICAL != d.getType()) continue;
+            if (CorpusType.LOGICAL != d.getType())
+                continue;
             LogicalCorpus m = new LogicalCorpus();
             if (fields.hasField(this.asIndexer(LogicalCorpusJson._id)))
                 m.setId(d.getId());

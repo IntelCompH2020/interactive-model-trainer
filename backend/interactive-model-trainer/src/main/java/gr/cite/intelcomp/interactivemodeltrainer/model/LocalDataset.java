@@ -11,7 +11,7 @@ public class LocalDataset {
     private String source;
     private String idfld;
     private String titlefld;
-    private ArrayList<String> textfld;
+    private String textfld;
     private ArrayList<String> lemmasfld;
     private String embeddingsfld;
     private String categoryfld;
@@ -50,11 +50,11 @@ public class LocalDataset {
         this.titlefld = titlefld;
     }
 
-    public ArrayList<String> getTextfld() {
+    public String getTextfld() {
         return textfld;
     }
 
-    public void setTextfld(ArrayList<String> textfld) {
+    public void setTextfld(String textfld) {
         this.textfld = textfld;
     }
 

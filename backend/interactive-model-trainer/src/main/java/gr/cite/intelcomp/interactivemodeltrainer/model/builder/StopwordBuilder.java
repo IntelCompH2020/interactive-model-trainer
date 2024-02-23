@@ -1,8 +1,6 @@
 package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.WordlistType;
-import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.WordListEntity;
@@ -21,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -39,22 +36,17 @@ public class StopwordBuilder extends BaseBuilder<Stopword, WordListEntity> imple
     public List<Stopword> build(FieldSet fields, List<WordListEntity> data) throws MyApplicationException {
         this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
-        if (fields == null || fields.isEmpty()) return new ArrayList<>();
+        if (fields == null || fields.isEmpty())
+            return new ArrayList<>();
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
-        UserScope userScope = applicationContext.getBean(UserScope.class);
 
         List<Stopword> models = new ArrayList<>(100);
 
-        if (data == null) return models;
+        if (data == null)
+            return models;
         for (WordListEntity d : data) {
             if (d.getValid_for() == WordlistType.stopwords) {
-                if (Visibility.Private == d.getVisibility()) {
-                    if (!userScope.isSet()) continue;
-                    if (d.getCreator() != null
-                            && !d.getCreator().equals("-")
-                            && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
-                }
                 Stopword m = new Stopword();
                 if (fields.hasField(this.asIndexer(WordListJson._id)))
                     m.setId(d.getId());

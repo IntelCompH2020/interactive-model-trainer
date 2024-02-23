@@ -216,7 +216,7 @@ export function availableFieldTypes(): any[] {
         { value: null, label: "Select type", multiSelect: true },
         { value: "id", label: "Id", multiSelect: false },
         { value: "title", label: "Title", multiSelect: false },
-        { value: "text", label: "Text", multiSelect: true },
+        { value: "text", label: "Text", multiSelect: false },
         { value: "lemmas", label: "Lemmas", multiSelect: true },
         { value: "embeddings", label: "Embeddings", multiSelect: false },
         { value: "category", label: "Category", multiSelect: false },

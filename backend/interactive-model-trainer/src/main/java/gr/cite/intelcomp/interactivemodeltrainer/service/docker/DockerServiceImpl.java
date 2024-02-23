@@ -51,14 +51,23 @@ import static gr.cite.intelcomp.interactivemodeltrainer.model.builder.BaseBuilde
 public class DockerServiceImpl implements DockerService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DockerServiceImpl.class));
+
     private final ObjectMapper mapper;
+
     private final JsonHandlingService jsonHandlingService;
+
     private final ContainerServicesProperties containerServicesProperties;
+
     private final ContainerManagementService dockerExecutionService;
+
     private final DomainClassificationParametersService domainClassificationParametersService;
+
     private final CacheLibrary cacheLibrary;
+
     private final CheckTasksSchedulerEventConfig checkTasksSchedulerEventConfig;
+
     private final ApplicationContext applicationContext;
+
     private final UserScope userScope;
 
     @Autowired
@@ -98,13 +107,16 @@ public class DockerServiceImpl implements DockerService {
     }
 
     private void checkResult(String result) {
-        if (result != null && result.trim().endsWith("0")) logger.debug("Operation failed");
+        if (result != null && result.trim().endsWith("0"))
+            logger.debug("Operation failed");
     }
 
     private String getUserId() {
         UUID user = this.userScope.getUserIdSafe();
-        if (user != null) return user.toString();
-        else return "-";
+        if (user != null)
+            return user.toString();
+        else
+            return "-";
     }
 
     private @NotNull @Unmodifiable List<String> getUserIdsFromUsername(String username) {
@@ -112,8 +124,10 @@ public class DockerServiceImpl implements DockerService {
         UserEntity user = userQuery
                 .usernames(username)
                 .first();
-        if (user != null) return List.of(user.getId().toString(), user.getSubjectId());
-        else return List.of("-");
+        if (user != null)
+            return List.of(user.getId().toString(), user.getSubjectId());
+        else
+            return List.of("-");
     }
 
     private @NotNull @Unmodifiable List<String> getUserIdsFromId(String id) {
@@ -121,13 +135,30 @@ public class DockerServiceImpl implements DockerService {
         UserEntity user = userQuery
                 .ids(UUID.fromString(id))
                 .first();
-        if (user != null) return List.of(user.getId().toString(), user.getSubjectId());
-        else return List.of("-");
+        if (user != null)
+            return List.of(user.getId().toString(), user.getSubjectId());
+        else
+            return List.of("-");
     }
 
     private List<WordListEntity> applyWordlistLookup(List<WordListEntity> data, @NotNull WordListLookup lookup) {
         List<WordListEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
+
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        result = result.stream().filter(d -> {
+            if (d.getVisibility() == Visibility.Public)
+                return true;
+            else if (d.getVisibility() == Visibility.Private) {
+                if (!userScope.isSet())
+                    return false;
+                if (d.getCreator() == null || d.getCreator().equals("-"))
+                    return true;
+                return extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString());
+            }
+            return false;
+        }).collect(Collectors.toList());
+
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
@@ -166,7 +197,8 @@ public class DockerServiceImpl implements DockerService {
                 else if (orderItem.equals("creation_date"))
                     result = result.stream().sorted(byCreationDate.reversed()).toList();
             } else {
-                if (orderItem.equals("name")) result = result.stream().sorted(byNme).toList();
+                if (orderItem.equals("name"))
+                    result = result.stream().sorted(byNme).toList();
                 else if (orderItem.equals("creation_date"))
                     result = result.stream().sorted(byCreationDate).toList();
             }
@@ -243,6 +275,21 @@ public class DockerServiceImpl implements DockerService {
     private List<LogicalCorpusEntity> applyLogicalCorpusLookup(List<LogicalCorpusEntity> data, @NotNull CorpusLookup lookup) {
         List<LogicalCorpusEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
+
+        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
+        result = result.stream().filter(d -> {
+            if (d.getVisibility() == Visibility.Public)
+                return true;
+            else if (d.getVisibility() == Visibility.Private) {
+                if (!userScope.isSet())
+                    return false;
+                if (d.getCreator() == null || d.getCreator().equals("-"))
+                    return true;
+                return extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString());
+            }
+            return false;
+        }).collect(Collectors.toList());
+
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
@@ -299,13 +346,6 @@ public class DockerServiceImpl implements DockerService {
             }
         }
 
-        List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
-        result = result.stream().filter(d ->
-                d.getCreator() != null
-                && !d.getCreator().equals("-")
-                && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString()))
-                .collect(Collectors.toList());
-
         if (lookup.getPage() != null) {
             result = result.subList(lookup.getPage().getOffset(), Math.min(lookup.getPage().getOffset() + lookup.getPage().getSize(), result.size()));
         }
@@ -314,18 +354,21 @@ public class DockerServiceImpl implements DockerService {
 
     private List<TopicModelListingEntity> applyTopicModelLookup(List<TopicModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
         List<TopicModelEntity> result = new ArrayList<>(data);
-
-        result = result.stream().filter(entity -> {
-            if (Visibility.Public == entity.getVisibility()) return true;
-            else {
-                if (!userScope.isSet()) return false;
-                else return entity.getCreator() != null
-                        && !entity.getCreator().equals("-")
-                        && extractId(entity.getCreator(), users).equals(userScope.getUserIdSafe().toString());
-            }
-        }).toList();
-
         String currentUser = getUserId();
+
+        result = result.stream().filter(d -> {
+            if (d.getVisibility() == Visibility.Public)
+                return true;
+            else if (d.getVisibility() == Visibility.Private) {
+                if (!userScope.isSet())
+                    return false;
+                if (d.getCreator() == null || d.getCreator().equals("-"))
+                    return true;
+                return extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString());
+            }
+            return false;
+        }).collect(Collectors.toList());
+
         if (lookup.getLike() != null) {
             result = result.stream().filter(e -> e.getName().toLowerCase().contains(lookup.getLike().trim())).toList();
         }
@@ -425,9 +468,23 @@ public class DockerServiceImpl implements DockerService {
         return result;
     }
 
-    private List<DomainModelEntity> applyDomainModelLookup(List<DomainModelEntity> data, @NotNull ModelLookup lookup) {
+    private List<DomainModelEntity> applyDomainModelLookup(List<DomainModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
         List<DomainModelEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
+
+        result = result.stream().filter(d -> {
+            if (d.getVisibility() == Visibility.Public)
+                return true;
+            else if (d.getVisibility() == Visibility.Private) {
+                if (!userScope.isSet())
+                    return false;
+                if (d.getCreator() == null || d.getCreator().equals("-"))
+                    return true;
+                return extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString());
+            }
+            return false;
+        }).collect(Collectors.toList());
+
         if (lookup.getLike() != null) {
             result = result
                     .stream()
@@ -562,7 +619,8 @@ public class DockerServiceImpl implements DockerService {
             Map<String, WordListEntity> wordLists = mapper.readValue(result, new TypeReference<>() {
             });
 
-            if (wordLists == null) return data;
+            if (wordLists == null)
+                return data;
             wordLists.forEach((key, value) -> {
                 value.setLocation(key);
                 data.add(value);
@@ -591,7 +649,8 @@ public class DockerServiceImpl implements DockerService {
 
                 Map<String, LogicalCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
                 });
-                if (corpus == null) return data;
+                if (corpus == null)
+                    return data;
                 corpus.forEach((key, value) -> {
                     value.setLocation(key);
                     data.add(value);
@@ -614,7 +673,8 @@ public class DockerServiceImpl implements DockerService {
 
                 Map<String, RawCorpusEntity> corpus = mapper.readValue(response, new TypeReference<>() {
                 });
-                if (corpus == null) return data;
+                if (corpus == null)
+                    return data;
                 data.addAll(corpus.values());
                 RawCorpusCachedEntity toCache = new RawCorpusCachedEntity();
                 toCache.setPayload(data);
@@ -645,7 +705,8 @@ public class DockerServiceImpl implements DockerService {
 
                 Map<String, DomainModelEntity> models = mapper.readValue(response, new TypeReference<>() {
                 });
-                if (models == null) return data;
+                if (models == null)
+                    return data;
                 models.forEach((key, value) -> {
                     value.setLocation(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + key);
                     data.add(value);
@@ -656,7 +717,7 @@ public class DockerServiceImpl implements DockerService {
             } else {
                 data.addAll(cached.getPayload());
             }
-            result.addAll(applyDomainModelLookup(data, lookup));
+            result.addAll(applyDomainModelLookup(data, lookup, users));
         } else if (ModelType.TOPIC == lookup.getModelType()) {
             List<TopicModelEntity> data = new ArrayList<>();
             TopicModelCachedEntity cached = (TopicModelCachedEntity) cacheLibrary.get(TopicModelCachedEntity.CODE);
@@ -668,7 +729,8 @@ public class DockerServiceImpl implements DockerService {
 
                 Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
                 });
-                if (models == null) return data;
+                if (models == null)
+                    return data;
                 models.forEach((key, value) -> {
                     value.setLocation(TM_MODELS_ROOT + key);
                     data.add(value);
@@ -702,7 +764,8 @@ public class DockerServiceImpl implements DockerService {
             Map<String, DomainModelEntity> models = mapper.readValue(response, new TypeReference<>() {
             });
             List<DomainModelEntity> data = new ArrayList<>();
-            if (models == null) return data;
+            if (models == null)
+                return data;
             models.forEach((key, value) -> {
                 value.setLocation(containerServicesProperties.getDomainTrainingService().getModelsInnerFolder(ContainerServicesProperties.ManageDomainModels.class) + "/" + key);
                 data.add(value);
@@ -713,7 +776,8 @@ public class DockerServiceImpl implements DockerService {
             Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
             });
             List<TopicModelEntity> data = new ArrayList<>();
-            if (models == null) return data;
+            if (models == null)
+                return data;
             models.forEach((key, value) -> {
                 value.setLocation(TM_MODELS_ROOT + key);
                 data.add(value);
@@ -860,7 +924,8 @@ public class DockerServiceImpl implements DockerService {
         String content = Files.readString(datasetMetaPath, Charset.defaultCharset());
         Map<String, Map<String, Object>> existingCorpora = jsonHandlingService.fromJson(Map.class, content);
         existingCorpora.forEach((key, value) -> {
-            if (value.get("name").equals(oldName) && value.get("source").equals(source)) value.put("name", newName);
+            if (value.get("name").equals(oldName) && value.get("source").equals(source))
+                value.put("name", newName);
         });
         Files.writeString(datasetMetaPath, jsonHandlingService.toJson(existingCorpora), Charset.defaultCharset());
         cacheLibrary.setDirtyByKey(RawCorpusCachedEntity.CODE);
@@ -964,7 +1029,8 @@ public class DockerServiceImpl implements DockerService {
 
             ArrayList<TopicEntity> topics = mapper.readValue(response, new TypeReference<>() {
             });
-            if (topics == null) return data;
+            if (topics == null)
+                return data;
             for (int i = 0; i < topics.size(); i++) {
                 topics.get(i).setId(i);
             }

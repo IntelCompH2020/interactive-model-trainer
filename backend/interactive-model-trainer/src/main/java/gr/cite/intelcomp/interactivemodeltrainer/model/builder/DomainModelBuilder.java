@@ -2,8 +2,6 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.builder;
 
 import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
 import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.common.enums.Visibility;
-import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
 import gr.cite.intelcomp.interactivemodeltrainer.convention.ConventionService;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DomainModelEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.UserEntity;
@@ -24,13 +22,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEntity> implements SortableByOwner<DomainModel, DomainModelEntity> {
 
     private final CacheLibrary cacheLibrary;
+
     private final ApplicationContext applicationContext;
 
     @Autowired
@@ -44,23 +42,18 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
     public List<DomainModel> build(FieldSet fields, List<DomainModelEntity> data) throws MyApplicationException {
         this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
-        if (fields == null || fields.isEmpty()) return new ArrayList<>();
+        if (fields == null || fields.isEmpty())
+            return new ArrayList<>();
 
         List<DomainModel> models = new ArrayList<>(100);
 
         List<UserEntity> users = applicationContext.getBean(UserQuery.class).collect();
-        UserScope userScope = applicationContext.getBean(UserScope.class);
 
-        if (data == null) return models;
+        if (data == null)
+            return models;
         for (DomainModelEntity d : data) {
-            if (Visibility.Private == d.getVisibility()) {
-                if (!userScope.isSet()) continue;
-                if (d.getCreator() != null
-                        && !d.getCreator().equals("-")
-                        && !extractId(d.getCreator(), users).equals(userScope.getUserIdSafe().toString())) continue;
-            }
-
-            if (modelIsTraining(d)) continue;
+            if (modelIsTraining(d))
+                continue;
 
             DomainModel m = new DomainModel();
             if (fields.hasField(this.asIndexer(DomainModelEntity._id)))

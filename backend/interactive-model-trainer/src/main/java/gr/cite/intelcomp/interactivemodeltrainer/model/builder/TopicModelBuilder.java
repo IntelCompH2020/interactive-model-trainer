@@ -45,14 +45,17 @@ public class TopicModelBuilder extends BaseBuilder<TopicModelListing, TopicModel
     public List<TopicModelListing> build(FieldSet fields, List<TopicModelListingEntity> data, List<UserEntity> users) throws MyApplicationException {
         this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
-        if (fields == null || fields.isEmpty()) return new ArrayList<>();
+        if (fields == null || fields.isEmpty())
+            return new ArrayList<>();
 
         List<TopicModelListing> models = new ArrayList<>(100);
 
-        if (data == null) return models;
+        if (data == null)
+            return models;
         for (TopicModelListingEntity d : data) {
 
-            if (modelIsTraining(d)) continue;
+            if (modelIsTraining(d))
+                continue;
 
             TopicModelListing m = new TopicModelListing();
             if (fields.hasField(this.asIndexer(TopicModelListingEntity._id)))

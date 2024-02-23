@@ -45,7 +45,6 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
     this.mergedFieldsData.valid_for = this.data.validFor;
     let datasets: LocalDataset[] = [];
     for (let field of this.data.corpora) {
-      let texts: string[] = [];
       let lemmas: string[] = [];
       let dataset: LocalDataset = {
         source: field.corpusSource,
@@ -54,12 +53,11 @@ export class MergeLogicalCorpusComponent extends BaseComponent implements OnInit
       for (let item of field.corpusSelections) {
         if (item.type === "id") dataset.idfld = item.name;
         else if (item.type === "title") dataset.titlefld = item.name;
-        else if (item.type === "text") texts.push(item.name);
+        else if (item.type === "text") dataset.textfld = item.name;
         else if (item.type === "lemmas") lemmas.push(item.name);
         else if (item.type === "embeddings") dataset.embeddingsfld = item.name;
         else if (item.type === "category") dataset.categoryfld = item.name;
       }
-      dataset.textfld = texts;
       dataset.lemmasfld = lemmas;
       datasets.push(dataset);
     }

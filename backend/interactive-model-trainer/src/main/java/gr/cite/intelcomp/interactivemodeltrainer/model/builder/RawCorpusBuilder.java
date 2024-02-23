@@ -33,13 +33,16 @@ public class RawCorpusBuilder extends BaseBuilder<RawCorpus, RawCorpusEntity> {
     public List<RawCorpus> build(FieldSet fields, List<RawCorpusEntity> data) throws MyApplicationException {
         this.logger.trace("building for {} items requesting {} fields", Optional.ofNullable(data).map(List::size).orElse(0), Optional.ofNullable(fields).map(FieldSet::getFields).map(Set::size).orElse(0));
         this.logger.trace(new DataLogEntry("requested fields", fields));
-        if (fields == null || fields.isEmpty()) return new ArrayList<>();
+        if (fields == null || fields.isEmpty())
+            return new ArrayList<>();
 
         List<RawCorpus> models = new ArrayList<>(100);
 
-        if (data == null) return models;
+        if (data == null)
+            return models;
         for (RawCorpusEntity d : data) {
-            if (CorpusType.RAW != d.getType()) continue;
+            if (CorpusType.RAW != d.getType())
+                continue;
             RawCorpus m = new RawCorpus();
             if (fields.hasField(this.asIndexer(RawCorpusJson._name)))
                 m.setName(d.getName());
