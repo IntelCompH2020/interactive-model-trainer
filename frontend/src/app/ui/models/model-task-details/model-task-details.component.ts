@@ -97,6 +97,10 @@ export class ModelTaskDetailsComponent implements OnInit {
     return (new Date(item.finishedAt).getTime() - new Date(item.startedAt).getTime()) / 1000;
   }
 
+  extractLabel(label: string) {
+    return label.split("::")[0];
+  }
+
   private _updateLogs(): void {
     this.logsHtml = "";
     let _logs = "";

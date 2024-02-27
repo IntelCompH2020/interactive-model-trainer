@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.*;
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.*;
@@ -144,7 +143,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setTask(task);
         item.setSubType(RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING);
         item.setUserId(userScope.getUserIdSafe());
-        item.setLabel(model.getName());
+        item.setLabel(String.join("::", model.getName(), model.getTag()));
         item.setFinished(false);
         item.setStartedAt(Instant.now());
         if (cache != null) {
@@ -189,7 +188,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setPayload(model);
         item.setTask(task);
         item.setUserId(userScope.getUserIdSafe());
-        item.setLabel(model.getName());
+        item.setLabel(String.join("::", model.getName(), model.getTag()));
         item.setFinished(false);
         item.setSubType(taskType);
         item.setStartedAt(Instant.now());
@@ -634,7 +633,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_FEEDBACK_LOG_FILE_NAME);
-        domainClassificationParametersService.generateLabelsFile(model.getName(), labels);
+        domainClassificationParametersService.generateLabelsFile(model.getName(), model.getTag(), labels);
         updateCuratingCache(parametersModel, requestId, RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL);
         return result;
     }

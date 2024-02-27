@@ -58,7 +58,7 @@ public class RunningTasksController {
     public ResponseEntity<byte[]> getPU_scores(@PathVariable(name = "task") String task, @PathVariable(name = "image") String image) {
         try {
             UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-            if (cache == null || cache.getPayload() == null || cache.getPayload().size() == 0) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            if (cache == null || cache.getPayload() == null || cache.getPayload().isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || !item.getSubType().equals(RunningTaskSubType.EVALUATE_DOMAIN_MODEL)) continue;
                 return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(item.getResponse().getPuScores().get(image));
@@ -74,7 +74,7 @@ public class RunningTasksController {
     public QueryResult<DocumentEntity> getSampledDocuments(@PathVariable(name = "task") String task) {
         try {
             UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-            if (cache == null || cache.getPayload() == null || cache.getPayload().size() == 0) return new QueryResult<>(List.of());
+            if (cache == null || cache.getPayload() == null || cache.getPayload().isEmpty()) return new QueryResult<>(List.of());
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || !item.getSubType().equals(RunningTaskSubType.SAMPLE_DOMAIN_MODEL)) continue;
                 return new QueryResult<>(item.getResponse().getDocuments());
@@ -90,7 +90,7 @@ public class RunningTasksController {
     public QueryResult<String> getLogs(@PathVariable(name = "task") String task) {
         try {
             UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-            if (cache == null || cache.getPayload() == null || cache.getPayload().size() == 0) return new QueryResult<>(List.of());
+            if (cache == null || cache.getPayload() == null || cache.getPayload().isEmpty()) return new QueryResult<>(List.of());
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || item.getResponse().getLogs() == null) continue;
                 return new QueryResult<>(item.getResponse().getLogs());

@@ -14,6 +14,8 @@ import gr.cite.intelcomp.interactivemodeltrainer.model.LogicalCorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpus;
 import gr.cite.intelcomp.interactivemodeltrainer.model.RawCorpusJson;
 import gr.cite.intelcomp.interactivemodeltrainer.model.WordListJson;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
+import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.topic.TopicSimilarity;
 import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.*;
@@ -42,6 +44,7 @@ import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageTopicModels.InnerPaths.TM_MODELS_ROOT;
@@ -356,6 +359,9 @@ public class DockerServiceImpl implements DockerService {
         List<TopicModelEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
 
+        result = result.stream().filter(d -> !modelIsTraining(d))
+                .collect(Collectors.toList());
+
         result = result.stream().filter(d -> {
             if (d.getVisibility() == Visibility.Public)
                 return true;
@@ -471,6 +477,9 @@ public class DockerServiceImpl implements DockerService {
     private List<DomainModelEntity> applyDomainModelLookup(List<DomainModelEntity> data, @NotNull ModelLookup lookup, List<UserEntity> users) {
         List<DomainModelEntity> result = new ArrayList<>(data);
         String currentUser = getUserId();
+
+        result = result.stream().filter(d -> !modelIsTraining(d))
+                .collect(Collectors.toList());
 
         result = result.stream().filter(d -> {
             if (d.getVisibility() == Visibility.Public)
@@ -748,6 +757,36 @@ public class DockerServiceImpl implements DockerService {
         }
 
         return result;
+    }
+
+    private boolean modelIsTraining(TopicModelEntity model) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+        if (cache != null && !cache.getPayload().isEmpty()) {
+            cache.getPayload().forEach((item) -> {
+                if (item.getType() == RunningTaskType.training &&
+                        !item.isFinished() &&
+                        (item.getSubType() == RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING || item.getSubType() == RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING) &&
+                        item.getLabel().equals(model.getName()))
+                    result.set(true);
+            });
+        }
+        return result.get();
+    }
+
+    private boolean modelIsTraining(DomainModelEntity model) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
+        if (cache != null && !cache.getPayload().isEmpty()) {
+            cache.getPayload().forEach((item) -> {
+                if (item.getType() == RunningTaskType.training &&
+                        !item.isFinished() &&
+                        item.getSubType() == RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING &&
+                        item.getLabel().equals(model.getName()))
+                    result.set(true);
+            });
+        }
+        return result.get();
     }
 
     @Override

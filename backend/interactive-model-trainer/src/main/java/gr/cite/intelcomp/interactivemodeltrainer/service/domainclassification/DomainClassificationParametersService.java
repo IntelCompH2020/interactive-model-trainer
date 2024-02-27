@@ -18,10 +18,10 @@ public abstract class DomainClassificationParametersService {
     public abstract void updateConfigurationFile(String name, String description, String tag, String visibility);
 
     public abstract void prepareLogFile(String modelName, String logFile);
-    public abstract void generateLabelsFile(String modelName, DomainLabelsSelectionJsonModel labels);
+    public abstract void generateLabelsFile(String modelName, String modelDomain, DomainLabelsSelectionJsonModel labels);
     public abstract List<String> getLogs(String modelName, String logFile);
-    public abstract Map<String, byte[]> getPU_scores(String modelName);
-    public abstract List<DocumentEntity> getSampledDocuments(String modelName);
+    public abstract Map<String, byte[]> getPU_scores(String modelName, String modelDomain);
+    public abstract List<DocumentEntity> getSampledDocuments(String modelName, String modelDomain);
 
     public abstract DomainClassificationParametersModel getConfigurationModel(String name);
 

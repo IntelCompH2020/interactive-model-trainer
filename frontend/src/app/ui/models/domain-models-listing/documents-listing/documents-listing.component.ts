@@ -22,6 +22,7 @@ import { debounceTime, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { Document, DomainModel } from '@app/core/model/model/domain-model.model';
 import { DomainModelService } from '@app/core/services/http/domain-model.service';
+import { count } from 'console';
 
 @Component({
   selector: 'app-documents-listing',
@@ -64,6 +65,14 @@ export class DocumentsListingComponent extends BaseListingComponent<Document, Do
   @ViewChild('listing') listingComponent: ListingComponent;
 
   protected loadListing(): Observable<QueryResult<Document>> {
+    if (this.lookup.like) {
+      let filteredDocuments: Document[] = [];
+      filteredDocuments = this.documents.filter(d => d.text.includes(this.lookup.like));
+      return of({
+        count: filteredDocuments.length,
+        items: filteredDocuments
+      });
+    }
     return of({
       count: this.documents.length,
       items: this.documents

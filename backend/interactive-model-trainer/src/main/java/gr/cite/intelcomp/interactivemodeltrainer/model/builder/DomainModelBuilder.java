@@ -52,9 +52,6 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
         if (data == null)
             return models;
         for (DomainModelEntity d : data) {
-            if (modelIsTraining(d))
-                continue;
-
             DomainModel m = new DomainModel();
             if (fields.hasField(this.asIndexer(DomainModelEntity._id)))
                 m.setId(d.getId());
@@ -67,11 +64,7 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
             if (fields.hasField(this.asIndexer(DomainModelEntity._visibility)))
                 m.setVisibility(d.getVisibility());
             if (fields.hasField(this.asIndexer(DomainModelEntity._corpus)))
-                m.setCorpus(
-                        d.getCorpus()
-                                .replaceAll("^(.*)/", "")
-                                .replace(".json", "")
-                );
+                m.setCorpus(extractCorpusName(d.getCorpus()));
             if (fields.hasField(this.asIndexer(DomainModelEntity._creator)))
                 m.setCreator(extractUsername(d.getCreator(), users));
             if (fields.hasField(this.asIndexer(DomainModelEntity._location)))
@@ -84,19 +77,9 @@ public class DomainModelBuilder extends BaseBuilder<DomainModel, DomainModelEnti
         return models;
     }
 
-    private boolean modelIsTraining(DomainModelEntity model) {
-        AtomicBoolean result = new AtomicBoolean(false);
-        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        if (cache != null && !cache.getPayload().isEmpty()) {
-            cache.getPayload().forEach((item) -> {
-                if (item.getType() == RunningTaskType.training &&
-                        !item.isFinished() &&
-                        item.getSubType() == RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING &&
-                        item.getLabel().equals(model.getName()))
-                    result.set(true);
-            });
-        }
-        return result.get();
+    private static String extractCorpusName(String from) {
+        return from.replaceAll("^(.*)/", "")
+                .replace(".json", "");
     }
 
     @Override

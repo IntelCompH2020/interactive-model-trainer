@@ -53,10 +53,6 @@ public class TopicModelBuilder extends BaseBuilder<TopicModelListing, TopicModel
         if (data == null)
             return models;
         for (TopicModelListingEntity d : data) {
-
-            if (modelIsTraining(d))
-                continue;
-
             TopicModelListing m = new TopicModelListing();
             if (fields.hasField(this.asIndexer(TopicModelListingEntity._id)))
                 m.setId(d.getId());
@@ -109,20 +105,6 @@ public class TopicModelBuilder extends BaseBuilder<TopicModelListing, TopicModel
         return from.replaceAll("^(.*)/", "")
                 .replace("Subcorpus created from ", "")
                 .replace(".json", "");
-    }
-
-    private boolean modelIsTraining(TopicModelEntity model) {
-        AtomicBoolean result = new AtomicBoolean(false);
-        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        if (cache != null && !cache.getPayload().isEmpty()) {
-            cache.getPayload().forEach((item) -> {
-                if (item.getType() == RunningTaskType.training &&
-                        (item.getSubType() == RunningTaskSubType.RUN_ROOT_TOPIC_TRAINING || item.getSubType() == RunningTaskSubType.RUN_HIERARCHICAL_TOPIC_TRAINING) &&
-                        item.getLabel().equals(model.getName()))
-                    result.set(true);
-            });
-        }
-        return result.get();
     }
 
     @Override

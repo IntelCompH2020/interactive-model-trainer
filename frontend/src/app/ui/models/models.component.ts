@@ -80,14 +80,14 @@ export class ModelsComponent extends BaseComponent implements OnInit {
   get curatingDomainModel(): boolean {
     if (this.isTopicModelListing) return false;
     else return this.runningTasksQueueService.curating.filter(item => {
-      return item.label === this.modelSelected.name;
+      return item.label.split('::')[0] === this.modelSelected.name;
     }).length === 1;
   }
   get curatingDomainModelFinished(): RunningTaskQueueItem[] {
     let result: RunningTaskQueueItem[] = [];
     if (this.isTopicModelListing) return undefined;
     else result = this.runningTasksQueueService.curatingFinished.filter(item => {
-      return this.runningTasksQueueService.isDomainModelTask(item) && item.label === this.modelSelected.name;
+      return this.runningTasksQueueService.isDomainModelTask(item) && item.label.split('::')[0] === this.modelSelected.name;
     });
     return result;
   }

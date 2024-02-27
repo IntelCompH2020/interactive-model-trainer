@@ -66,6 +66,6 @@
     [columns]="gridColumns" [visibleColumns]="visibleColumns" [limit]="limit" [count]="count" [defaultSort]="defaultSort"
     [externalSorting]="true" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)">
 </app-listing>
-<app-documents-listing [model]="selectedModel" [documents]="documents"
+<app-documents-listing [model]="selectedModel" [documents]="documents" (onDocumentLookup)="onDocumentLookup($event)"
     (onDocumentSelect)="onDocumentSelected($event)" (onFeedbackSubmitted)="onFeedbackSubmitted($event)">
 </app-documents-listing>
