@@ -217,12 +217,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         item.setFinished(true);
         item.setFinishedAt(Instant.now());
 
-        String[] labelParts = item.getLabel().split("::");
-        String modelName = labelParts[0];
-        String modelDomain = "DOMAIN-NOT-SET";
-        if (labelParts.length == 2) {
-            modelDomain = labelParts[1];
-        }
+        String modelName = item.getLabel();
         if (modelName == null) {
             logger.error("Cannot extract label from running task object. Updating cache failed.");
             return;
@@ -238,12 +233,12 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
-            response.setPuScores(domainClassificationParametersService.getPU_scores(modelName, modelDomain));
+            response.setPuScores(domainClassificationParametersService.getPU_scores(modelName));
             item.setResponse(response);
         } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
             response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME));
-            response.setDocuments(domainClassificationParametersService.getSampledDocuments(modelName, modelDomain));
+            response.setDocuments(domainClassificationParametersService.getSampledDocuments(modelName));
             item.setResponse(response);
         } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();

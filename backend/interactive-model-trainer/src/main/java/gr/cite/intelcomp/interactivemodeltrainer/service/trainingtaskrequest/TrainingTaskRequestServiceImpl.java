@@ -143,7 +143,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setTask(task);
         item.setSubType(RunningTaskSubType.RUN_ROOT_DOMAIN_TRAINING);
         item.setUserId(userScope.getUserIdSafe());
-        item.setLabel(String.join("::", model.getName(), model.getTag()));
+        item.setLabel(model.getName());
         item.setFinished(false);
         item.setStartedAt(Instant.now());
         if (cache != null) {
@@ -188,7 +188,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         item.setPayload(model);
         item.setTask(task);
         item.setUserId(userScope.getUserIdSafe());
-        item.setLabel(String.join("::", model.getName(), model.getTag()));
+        item.setLabel(model.getName());
         item.setFinished(false);
         item.setSubType(taskType);
         item.setStartedAt(Instant.now());
@@ -633,7 +633,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         result.setId(requestId);
 
         domainClassificationParametersService.prepareLogFile(model.getName(), DC_MODEL_FEEDBACK_LOG_FILE_NAME);
-        domainClassificationParametersService.generateLabelsFile(model.getName(), model.getTag(), labels);
+        domainClassificationParametersService.generateLabelsFile(model.getName(), labels);
         updateCuratingCache(parametersModel, requestId, RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL);
         return result;
     }

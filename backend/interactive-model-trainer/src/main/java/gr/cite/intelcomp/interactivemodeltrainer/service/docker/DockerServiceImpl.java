@@ -1033,7 +1033,7 @@ public class DockerServiceImpl implements DockerService {
         }
         command.add(name);
 
-        String projectName = domainClassificationParametersService.getConfigurationModel(name).getTag();
+        String projectName = domainClassificationParametersService.getConfigurationModel(name).getName();
 
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_DELETE, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
@@ -1043,7 +1043,7 @@ public class DockerServiceImpl implements DockerService {
             cacheLibrary.remove(TopicCachedEntity.CODE + name);
         } else {
             String root = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class);
-            URI pathToDelete = Path.of(root, projectName + "_classification", "models", name).toUri();
+            URI pathToDelete = Path.of(root, projectName + "_classification").toUri();
             File directory = new File(pathToDelete);
             if (directory.exists()) {
                 FileUtils.deleteDirectory(directory);

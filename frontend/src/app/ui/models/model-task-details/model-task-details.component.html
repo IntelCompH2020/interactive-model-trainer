@@ -41,13 +41,13 @@
   </div>
   <div *ngIf="PUscoresVisible" class="row mt-2">
     <div class="col-4">
-      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + extractLabel(selectedItem.label) + '_PUscores.png'">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores.png'">
     </div>
     <div class="col-4">
-      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + extractLabel(selectedItem.label) + '_PUscores_log.png'">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores_log.png'">
     </div>
     <div class="col-4">
-      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + extractLabel(selectedItem.label) + '_PUscores_hist.png'">
+      <img [src]="config.appServiceAddress + 'api/tasks/' + selectedItem.task + '/pu-scores/' + selectedItem.label + '_PUscores_hist.png'">
     </div>
   </div>
   <div *ngIf="logsHtml" class="row mt-2">

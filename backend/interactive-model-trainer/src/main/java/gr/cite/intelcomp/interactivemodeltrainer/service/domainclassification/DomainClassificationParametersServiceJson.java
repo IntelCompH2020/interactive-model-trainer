@@ -117,9 +117,9 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
     }
 
     @Override
-    public void generateLabelsFile(String modelName, String modelDomain, DomainLabelsSelectionJsonModel labels) {
+    public void generateLabelsFile(String modelName, DomainLabelsSelectionJsonModel labels) {
         try {
-            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelDomain);
+            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelName);
             Path filePath = Path.of(documentsFolder, DC_MODEL_SELECTED_LABELS_FILE_NAME(modelName));
             Map<String, Integer> newLabels = new LinkedHashMap<>();
             labels.getLabels().forEach((key, value) -> {
@@ -150,10 +150,10 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
     }
 
     @Override
-    public Map<String, byte[]> getPU_scores(String modelName, String modelDomain) {
+    public Map<String, byte[]> getPU_scores(String modelName) {
         Map<String, byte[]> result = new HashMap<>();
         try {
-            String outputFolder = containerServicesProperties.getDomainTrainingService().getOutputFolder(modelDomain);
+            String outputFolder = containerServicesProperties.getDomainTrainingService().getOutputFolder(modelName);
             result.put(modelName + "_PUscores.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores.png")));
             result.put(modelName + "_PUscores_log.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_log.png")));
             result.put(modelName + "_PUscores_hist.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_hist.png")));
@@ -164,9 +164,9 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
     }
 
     @Override
-    public List<DocumentEntity> getSampledDocuments(String modelName, String modelDomain) {
+    public List<DocumentEntity> getSampledDocuments(String modelName) {
         try {
-            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelDomain);
+            String documentsFolder = containerServicesProperties.getDomainTrainingService().getDocumentsFolder(modelName);
             Path filePath = Path.of(documentsFolder, DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME(modelName));
             String json = FileUtils.readFileToString(filePath.toFile(), Charset.defaultCharset());
             DocumentJsonModel documentModel = jsonHandlingService.fromJson(DocumentJsonModel.class, json);
