@@ -188,7 +188,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("AL.")) params.put(key.replace("AL.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getTag(), request.getTask(), params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), request.getName(), request.getTask(), params));
         logger.debug("COMMANDS -> {}", commands);
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, "execution.log");
@@ -221,7 +221,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("classifier.")) params.put(key.replace("classifier.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getTag(), "on_retrain", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getName(), "on_retrain", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_RETRAIN_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
@@ -250,7 +250,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
         Objects.requireNonNull(eventData.getRequest());
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getTag(), "on_classify", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getName(), "on_classify", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_CLASSIFY_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
@@ -282,7 +282,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("evaluator.")) params.put(key.replace("evaluator.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getTag(), "on_evaluate", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getName(), "on_evaluate", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_EVALUATE_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
@@ -314,7 +314,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
             if (key.startsWith("sampler.") && val != null) params.put(key.replace("sampler.", ""), val);
         });
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getTag(), "on_sample", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getName(), "on_sample", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_SAMPLE_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
@@ -343,7 +343,7 @@ public class RunDomainTrainingScheduledEventHandlerImpl implements RunDomainTrai
         RunDomainTrainingScheduledEventData eventData = jsonHandlingService.fromJsonSafe(RunDomainTrainingScheduledEventData.class, event.getData());
         Objects.requireNonNull(eventData.getRequest());
 
-        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getTag(), "on_save_feedback", params));
+        String commands = String.join(" ", ContainerServicesProperties.ManageDomainModels.TASK_CMD(request.getName(), eventData.getRequest().getName(), "on_save_feedback", params));
         paramMap.put("COMMANDS", commands);
         String logFile = trainingTaskRequest.getConfig().replace(DC_MODEL_CONFIG_FILE_NAME, DC_MODEL_FEEDBACK_LOG_FILE_NAME);
         paramMap.put("LOG_FILE", logFile);
