@@ -812,9 +812,9 @@ public class DockerServiceImpl implements DockerService {
 
             result.addAll(data);
         } else if (ModelType.TOPIC == lookup.getModelType()) {
-            Map<String, TopicModelEntity> models = mapper.readValue(response, new TypeReference<>() {
+            Map<String, TopicModelListingEntity> models = mapper.readValue(response, new TypeReference<>() {
             });
-            List<TopicModelEntity> data = new ArrayList<>();
+            List<TopicModelListingEntity> data = new ArrayList<>();
             if (models == null)
                 return data;
             models.forEach((key, value) -> {
@@ -988,6 +988,19 @@ public class DockerServiceImpl implements DockerService {
         String result = this.dockerExecutionService.execCommand(CommandType.MODEL_RENAME, command, this.dockerExecutionService.ensureAvailableService(DockerService.MANAGE_MODELS));
 
         checkResult(result);
+
+        if (ModelType.DOMAIN == modelType) {
+            String root = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class);
+            root = root.replace("DCmodels-metadata", "dc-models");
+            URI oldPath = Path.of(root, oldName + "_classification").toUri();
+            URI newPath = Path.of(root, newName + "_classification").toUri();
+            File oldDirectory = new File(oldPath);
+            File newDirectory = new File(newPath);
+            if (!oldDirectory.renameTo(newDirectory)) {
+                logger.error("Could not rename domain model folder {}", oldPath.getPath());
+            }
+        }
+
         if (ModelType.TOPIC == modelType) {
             cacheLibrary.setDirtyByKey(TopicModelCachedEntity.CODE);
         } else {
@@ -1043,6 +1056,7 @@ public class DockerServiceImpl implements DockerService {
             cacheLibrary.remove(TopicCachedEntity.CODE + name);
         } else {
             String root = containerServicesProperties.getDomainTrainingService().getModelsFolder(ContainerServicesProperties.ManageDomainModels.class);
+            root = root.replace("DCmodels-metadata", "dc-models");
             URI pathToDelete = Path.of(root, projectName + "_classification").toUri();
             File directory = new File(pathToDelete);
             if (directory.exists()) {

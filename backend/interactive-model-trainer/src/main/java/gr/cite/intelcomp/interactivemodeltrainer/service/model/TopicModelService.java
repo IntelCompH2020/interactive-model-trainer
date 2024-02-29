@@ -87,8 +87,8 @@ public class TopicModelService extends ModelService<TopicModel, TopicModelLookup
         ModelLookup lookup = new ModelLookup();
         lookup.setModelType(ModelType.TOPIC);
         lookup.setProject(new BaseFieldSet("name", "type", "params"));
-        List<? extends ModelEntity> data = dockerService.getModel(lookup, name);
-        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), (List<TopicModelListingEntity>) data, users);
+        List<TopicModelListingEntity> data = (List<TopicModelListingEntity>) dockerService.getModel(lookup, name);
+        return builderFactory.builder(TopicModelBuilder.class).build(lookup.getProject(), data, users);
     }
 
     public List<Topic> getAllTopics(String name, TopicLookup lookup) throws IOException, InterruptedException, ApiException {
