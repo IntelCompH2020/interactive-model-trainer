@@ -63,7 +63,7 @@ public class SecurityConfiguration {
 								.requestMatchers("/api/topic-model/*/*/pyLDAvis.html").anonymous()
 								.requestMatchers("/api/topic-model/*/*/d3.js").anonymous()
 								.requestMatchers("/api/topic-model/*/*/ldavis.v3.0.0.js").anonymous()
-								.requestMatchers("/api/tasks/*/pu-scores/**").anonymous()
+								.requestMatchers("/api/tasks/*/pu-scores/*.png").anonymous()
 								.requestMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated())
 				.sessionManagement( sessionManagementConfigurer-> sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
 				.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));

@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { AppEnumUtils } from "@app/core/formatting/enum-utils.service";
+import { RunningTasksService } from "@app/core/services/http/running-tasks.service";
 import { RunningTaskQueueItem, RunningTaskSubType } from "@app/core/services/ui/running-tasks-queue.service";
 import { InstallationConfigurationService } from "@common/installation-configuration/installation-configuration.service";
 
@@ -17,6 +18,7 @@ export class ModelTaskDetailsComponent implements OnInit {
   logsHtml: SafeHtml;
   private _selectedItem: RunningTaskQueueItem;
   PUscoresVisible: boolean = false;
+  PUscoresList: string[] = [];
   private _closingPayload: any = null;
   private _clearedItems: RunningTaskQueueItem[] = [];
 
@@ -56,6 +58,7 @@ export class ModelTaskDetailsComponent implements OnInit {
     private sanitizer: DomSanitizer,
     protected enumUtils: AppEnumUtils,
     protected config: InstallationConfigurationService,
+    private tasksService: RunningTasksService,
     @Inject(MAT_DIALOG_DATA) private data: RunningTaskQueueItem[]
   ) { }
 
@@ -67,6 +70,7 @@ export class ModelTaskDetailsComponent implements OnInit {
 
   selectItem(item: RunningTaskQueueItem): void {
     this.PUscoresVisible = false;
+    this.PUscoresList = [];
     this._selectedItem = item;
   }
 
@@ -78,7 +82,17 @@ export class ModelTaskDetailsComponent implements OnInit {
   showPUscores(item: RunningTaskQueueItem): void {
     this.selectItem(item);
     this._clearLogs();
-    this.PUscoresVisible = true;
+    this.tasksService.getPuScoresList(item.task).subscribe(images => {
+      if (images) {
+        this.PUscoresList = images.items;
+        this.PUscoresVisible = true;
+      }
+    });
+  }
+
+  buildImageUrl(image: string) {
+    const url = this.config.appServiceAddress + 'api/tasks/' + this.selectedItem.task + '/pu-scores/' + image;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   }
 
   loadDocuments(item: RunningTaskQueueItem): void {

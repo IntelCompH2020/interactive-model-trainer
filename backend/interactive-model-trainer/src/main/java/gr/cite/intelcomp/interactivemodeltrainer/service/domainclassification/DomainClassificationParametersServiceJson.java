@@ -154,9 +154,18 @@ public class DomainClassificationParametersServiceJson extends DomainClassificat
         Map<String, byte[]> result = new HashMap<>();
         try {
             String outputFolder = containerServicesProperties.getDomainTrainingService().getOutputFolder(modelName);
-            result.put(modelName + "_PUscores.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores.png")));
-            result.put(modelName + "_PUscores_log.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_log.png")));
-            result.put(modelName + "_PUscores_hist.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_hist.png")));
+            File outputFolderFile = new File(outputFolder);
+            File[] outputImages = outputFolderFile.listFiles();
+            if (outputImages == null)
+                return result;
+            for (File image : outputImages) {
+                if (image.isDirectory() || !image.getPath().endsWith(".png"))
+                    continue;
+                result.put(image.getName(), FileUtils.readFileToByteArray(image));
+            }
+//            result.put(modelName + "_PUscores.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores.png")));
+//            result.put(modelName + "_PUscores_log.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_log.png")));
+//            result.put(modelName + "_PUscores_hist.png", FileUtils.readFileToByteArray(new File(outputFolder + "/" + modelName + "_PUscores_hist.png")));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
