@@ -109,7 +109,7 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
                 RunningTaskResponseFull response = new RunningTaskResponseFull();
                 response.setLogs(cacheItem.getResponse().getLogs());
                 response.setDocuments(cacheItem.getResponse().getDocuments());
-                response.setPuScores(cacheItem.getResponse().getPuScores());
+//                response.setPuScores(cacheItem.getResponse().getPuScores());
                 item.setResponse(response);
             }
         }

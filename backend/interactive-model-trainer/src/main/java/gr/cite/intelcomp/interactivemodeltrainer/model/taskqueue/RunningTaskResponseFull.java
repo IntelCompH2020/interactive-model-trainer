@@ -4,6 +4,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.DocumentEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class RunningTaskResponseFull {
 
@@ -11,7 +12,7 @@ public class RunningTaskResponseFull {
 
     private List<String> logs;
 
-    private Map<String, byte[]> puScores;
+    private Set<String> puScores;
 
     private List<DocumentEntity> documents;
 
@@ -23,11 +24,11 @@ public class RunningTaskResponseFull {
         this.logs = logs;
     }
 
-    public Map<String, byte[]> getPuScores() {
+    public Set<String> getPuScores() {
         return puScores;
     }
 
-    public void setPuScores(Map<String, byte[]> puScores) {
+    public void setPuScores(Set<String> puScores) {
         this.puScores = puScores;
     }
 

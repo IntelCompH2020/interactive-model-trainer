@@ -1,5 +1,8 @@
 services:
   services:
+    executionsOutputLibrary:
+      volumeConfiguration:
+        executions_output_folder: ${DOCKER_WORKSPACE}\executions
     manageLists:
       volumeConfiguration:
         wordlists_folder: ${DOCKER_WORKSPACE}\wordlist_docker\wordlists

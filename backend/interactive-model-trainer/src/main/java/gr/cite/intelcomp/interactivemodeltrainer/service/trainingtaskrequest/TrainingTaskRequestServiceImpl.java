@@ -28,6 +28,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.Train
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
+import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionOutputService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.topicmodeling.TopicModelingParametersService;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -35,14 +36,12 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
+import jakarta.persistence.EntityManager;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
-
-import jakarta.persistence.EntityManager;
-
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -63,18 +62,29 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TrainingTaskRequestServiceImpl.class));
 
     private final ScheduledEventManageService scheduledEventManageService;
+
     private final UserScope userScope;
+
     private final EntityManager entityManager;
+
     private final TopicModelingParametersService topicModelingParametersService;
+
     private final DomainClassificationParametersService domainClassificationParametersService;
+
     private final JsonHandlingService jsonHandlingService;
+
     private final CacheLibrary cacheLibrary;
+
     private final ContainerManagementService dockerExecutionService;
+
     private final ContainerServicesProperties containerServicesProperties;
+
     private final ObjectMapper objectMapper;
 
+    private final ExecutionOutputService executionOutputService;
+
     @Autowired
-    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, CacheLibrary cacheLibrary, ContainerManagementService dockerExecutionService, ContainerServicesProperties containerServicesProperties, ObjectMapper objectMapper) {
+    public TrainingTaskRequestServiceImpl(ScheduledEventManageService scheduledEventManageService, UserScope userScope, EntityManager entityManager, TopicModelingParametersService topicModelingParametersService, DomainClassificationParametersService domainClassificationParametersService, JsonHandlingService jsonHandlingService, CacheLibrary cacheLibrary, ContainerManagementService dockerExecutionService, ContainerServicesProperties containerServicesProperties, ObjectMapper objectMapper, ExecutionOutputService executionOutputService) {
         this.scheduledEventManageService = scheduledEventManageService;
         this.userScope = userScope;
         this.entityManager = entityManager;
@@ -85,6 +95,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
         this.dockerExecutionService = dockerExecutionService;
         this.containerServicesProperties = containerServicesProperties;
         this.objectMapper = objectMapper;
+        this.executionOutputService = executionOutputService;
     }
 
     private void updateTrainingCache(TopicModelingParametersModel model, UUID task) {
@@ -660,7 +671,10 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
             cache.getPayload().stream()
                     .filter(i -> i.isFinished() && i.getTask().equals(task) && i.getUserId().equals(userScope.getUserIdSafe()))
                     .findFirst()
-                    .ifPresent(item -> cache.getPayload().remove(item));
+                    .ifPresent(item -> {
+                        executionOutputService.clearTaskOutput(task, item.getLabel());
+                        cache.getPayload().remove(item);
+                    });
         }
     }
 
@@ -695,7 +709,10 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
             cache.getPayload().stream()
                     .filter(i -> i.getType() == type && i.isFinished() && i.getUserId().equals(userScope.getUserIdSafe()))
                     .toList()
-                    .forEach(item -> cache.getPayload().remove(item));
+                    .forEach(item -> {
+                        executionOutputService.clearTaskOutput(item.getTask(), item.getLabel());
+                        cache.getPayload().remove(item);
+                    });
             cacheLibrary.update(cache);
         }
     }

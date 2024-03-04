@@ -127,6 +127,10 @@ public class ContainerServicesProperties {
         return services;
     }
 
+    public DockerServiceConfiguration getExecutionsOutputLibrary() {
+        return services.get("executionsOutputLibrary");
+    }
+
     public DockerServiceConfiguration getWordlistService() {
         return services.get("manageLists");
     }
@@ -171,6 +175,12 @@ public class ContainerServicesProperties {
         public String getTempFolder() {
             if (volumeConfiguration == null || volumeConfiguration.get("temp_folder") == null) return null;
             return volumeConfiguration.get("temp_folder");
+        }
+
+        public String getExecutionsOutputFolder() {
+            if (volumeConfiguration == null) return null;
+            if (volumeConfiguration.get("executions_output_folder") != null) return volumeConfiguration.get("executions_output_folder");
+            return null;
         }
 
         public String getWordlistsFolder() {

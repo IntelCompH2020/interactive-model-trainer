@@ -29,7 +29,8 @@ docker:
       image: mng-mdls-tasks
       volumeConfiguration:
         volume_binding: ${DOCKER_WORKSPACE}\models_docker\TMmodels:/data/TMmodels,
-          ${DOCKER_WORKSPACE}\models_docker\temp:/data/temp
+          ${DOCKER_WORKSPACE}\models_docker\temp:/data/temp,
+          ${DOCKER_WORKSPACE}\executions:/data/executions
     trainDomainModels:
       image: domainclassification
       volumeConfiguration:
@@ -37,4 +38,5 @@ docker:
           ${DOCKER_WORKSPACE}\models_docker\DCmodels-metadata:/data/DCmodels-metadata,
           ${DOCKER_WORKSPACE}\models_docker\DCmodels-zero-shot:/data/DCmodels-zero-shot,
           ${DOCKER_WORKSPACE}\wordlist_docker\wordlists:/data/wordlists,
-          ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets
+          ${DOCKER_WORKSPACE}\corpus_docker\datasets:/data/datasets,
+          ${DOCKER_WORKSPACE}\executions:/data/executions

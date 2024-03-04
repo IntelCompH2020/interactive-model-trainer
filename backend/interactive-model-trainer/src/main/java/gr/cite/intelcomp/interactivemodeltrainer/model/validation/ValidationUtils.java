@@ -21,6 +21,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.CACHE_DUMP_FILE_NAME;
+
 @Component
 public class ValidationUtils {
 
@@ -156,8 +158,11 @@ public class ValidationUtils {
         File folder = new File(path);
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
-            if (files == null) return;
+            if (files == null)
+                return;
             for (File file : files) {
+                if (file.getName().equals(CACHE_DUMP_FILE_NAME))
+                    continue;
                 if (!file.isDirectory())
                     if (!file.delete())
                         logger.error("Failed to delete temp file {}", file.getAbsolutePath());

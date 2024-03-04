@@ -7,7 +7,7 @@ event-scheduler:
       checkIntervalInSeconds: 20
       cacheOptions:
         validPeriodInSeconds: 60
-        taskResponseCacheRetentionInHours: 48
+        taskResponseCacheRetentionInHours: -1
     check-for-imports:
       enabled: true
       checkIntervalInSeconds: 60

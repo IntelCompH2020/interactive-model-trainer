@@ -10,6 +10,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.common.enums.JobStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.ScheduledEventType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.TrainingTaskRequestStatus;
+import gr.cite.intelcomp.interactivemodeltrainer.data.DocumentEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.ScheduledEventEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.data.TrainingTaskRequestEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.manage.ScheduledEventManageService;
@@ -26,19 +27,20 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.ScheduledEventQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.TrainingTaskRequestQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
+import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionOutputService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
 import gr.cite.tools.logging.LoggerService;
+import jakarta.persistence.EntityManager;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import jakarta.persistence.EntityManager;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,25 +51,35 @@ import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerS
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledEventHandler {
+
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(CheckTasksScheduledEventHandlerImpl.class));
+
     protected final ApplicationContext applicationContext;
+
     private final CheckTasksSchedulerEventConfig config;
+
     private final JsonHandlingService jsonHandlingService;
+
     private final TrainingTaskRequestService trainingTaskRequestService;
+
     private final DomainClassificationParametersService domainClassificationParametersService;
+
     private final CacheLibrary cacheLibrary;
+
+    private final ExecutionOutputService executionOutputService;
 
     public CheckTasksScheduledEventHandlerImpl(
             ApplicationContext applicationContext,
             CheckTasksSchedulerEventConfig config,
             JsonHandlingService jsonHandlingService,
-            TrainingTaskRequestService trainingTaskRequestService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary) {
+            TrainingTaskRequestService trainingTaskRequestService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary, ExecutionOutputService executionOutputService) {
         this.applicationContext = applicationContext;
         this.config = config;
         this.jsonHandlingService = jsonHandlingService;
         this.trainingTaskRequestService = trainingTaskRequestService;
         this.domainClassificationParametersService = domainClassificationParametersService;
         this.cacheLibrary = cacheLibrary;
+        this.executionOutputService = executionOutputService;
     }
 
     @Override
@@ -120,7 +132,8 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private void removeEvent(UUID event, EntityManager entityManager) {
         logger.trace("Removing previously run check event from the database");
         ScheduledEventManageService scheduledEventManageService = applicationContext.getBean(ScheduledEventManageService.class);
-        if (event != null) scheduledEventManageService.deleteAsync(event, entityManager);
+        if (event != null)
+            scheduledEventManageService.deleteAsync(event, entityManager);
     }
 
     private void createNewEvent(ScheduledEventEntity scheduledEvent, EntityManager entityManager) {
@@ -129,7 +142,8 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         if (scheduledEventQuery
                 .eventTypes(ScheduledEventType.CHECK_RUNNING_TASKS)
                 .status(ScheduledEventStatus.PENDING)
-                .count() > 0) return;
+                .count() > 0)
+            return;
         CheckTasksScheduledEventData data = new CheckTasksScheduledEventData(scheduledEvent.getId());
         ScheduledEventPublishData publishData = new ScheduledEventPublishData();
         publishData.setData(jsonHandlingService.toJsonSafe(data));
@@ -145,7 +159,8 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
     private void run(TrainingTaskRequestEntity trainingTaskRequest, EntityManager entityManager) throws Exception {
         ContainerManagementService containerManagementService = applicationContext.getBean(ContainerManagementService.class);
         JobStatus jobStatus = containerManagementService.getJobStatus(trainingTaskRequest.getJobId());
-        if (jobStatus == JobStatus.RUNNING) return;
+        if (jobStatus == JobStatus.RUNNING)
+            return;
         if (jobStatus == JobStatus.FINISHED) {
             trainingTaskRequest.setStatus(TrainingTaskRequestStatus.COMPLETED);
             if (trainingTaskRequest.getConfig().split(",").length >= 2) {
@@ -205,7 +220,8 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
 
     private void updateCache(UUID task) {
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        if (cache == null || cache.getPayload() == null) return;
+        if (cache == null || cache.getPayload() == null)
+            return;
         Optional<RunningTaskQueueItem> itemOptional = cache.getPayload()
                 .stream()
                 .filter(i -> i.getTask().equals(task))
@@ -224,30 +240,47 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
         }
         if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
-            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME));
+            List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME);
+            response.setLogs(logs);
             item.setResponse(response);
+            executionOutputService.setLogs(task, modelName, logs);
         } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
-            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME));
+            List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME);
+            response.setLogs(logs);
             item.setResponse(response);
+            executionOutputService.setLogs(task, modelName, logs);
         } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
-            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME));
-            response.setPuScores(domainClassificationParametersService.getPU_scores(modelName));
+            List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME);
+            Map<String, byte[]> diagrams = domainClassificationParametersService.getPU_scores(modelName);
+            response.setLogs(logs);
+            response.setPuScores(diagrams.keySet());
             item.setResponse(response);
+            executionOutputService.setLogs(task, modelName, logs);
+            executionOutputService.setPuScores(task, modelName, diagrams);
         } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
-            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME));
-            response.setDocuments(domainClassificationParametersService.getSampledDocuments(modelName));
+            List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME);
+            List<DocumentEntity> documents = domainClassificationParametersService.getSampledDocuments(modelName);
+            response.setLogs(logs);
+            response.setDocuments(documents);
             item.setResponse(response);
+            executionOutputService.setLogs(task, modelName, logs);
+            executionOutputService.setSampledDocuments(task, modelName, documents);
         } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL == item.getSubType()) {
             RunningTaskResponse response = new RunningTaskResponse();
-            response.setLogs(domainClassificationParametersService.getLogs(modelName, DC_MODEL_FEEDBACK_LOG_FILE_NAME));
+            List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_FEEDBACK_LOG_FILE_NAME);
+            response.setLogs(logs);
             item.setResponse(response);
+            executionOutputService.setLogs(task, modelName, logs);
         }
     }
 
     private void removeOldCache() {
+        Integer cacheRetention = config.get().getCacheOptions().getTaskResponseCacheRetentionInHours();
+        if (cacheRetention == null || cacheRetention == -1)
+            return;
         UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
         if (cache != null && cache.getPayload() != null) {
             List<RunningTaskQueueItem> finishedItems = cache.getPayload()
@@ -256,7 +289,7 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
                     .toList();
             for (RunningTaskQueueItem item : finishedItems) {
                 boolean isOld = item.getFinishedAt().isBefore(
-                        Instant.now().minus(config.get().getCacheOptions().getTaskResponseCacheRetentionInHours(), ChronoUnit.HOURS)
+                        Instant.now().minus(cacheRetention, ChronoUnit.HOURS)
                 );
                 if (isOld)
                     cache.getPayload().remove(item);

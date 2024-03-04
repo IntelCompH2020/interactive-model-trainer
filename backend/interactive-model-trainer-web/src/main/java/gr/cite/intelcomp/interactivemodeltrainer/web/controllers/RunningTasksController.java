@@ -8,6 +8,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.data.DocumentEntity;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
+import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionOutputService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.trainingtaskrequest.TrainingTaskRequestService;
 import gr.cite.intelcomp.interactivemodeltrainer.web.model.QueryResult;
 import gr.cite.tools.logging.LoggerService;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,11 +34,14 @@ public class RunningTasksController {
 
     private final TrainingTaskRequestService trainingTaskRequestService;
 
+    private final ExecutionOutputService executionOutputService;
+
     private final CacheLibrary cacheLibrary;
 
     @Autowired
-    public RunningTasksController(TrainingTaskRequestService trainingTaskRequestService, CacheLibrary cacheLibrary) {
+    public RunningTasksController(TrainingTaskRequestService trainingTaskRequestService, ExecutionOutputService executionOutputService, CacheLibrary cacheLibrary) {
         this.trainingTaskRequestService = trainingTaskRequestService;
+        this.executionOutputService = executionOutputService;
         this.cacheLibrary = cacheLibrary;
     }
 
@@ -68,7 +71,7 @@ public class RunningTasksController {
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || !item.getSubType().equals(RunningTaskSubType.EVALUATE_DOMAIN_MODEL))
                     continue;
-                return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(item.getResponse().getPuScores().get(image));
+                return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(executionOutputService.getPuScore(UUID.fromString(task), item.getLabel(), image));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -86,11 +89,8 @@ public class RunningTasksController {
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || !item.getSubType().equals(RunningTaskSubType.EVALUATE_DOMAIN_MODEL))
                     continue;
-                ArrayList<String> images = new ArrayList<>();
-                item.getResponse().getPuScores().forEach((key, val) -> {
-                    images.add(key);
-                });
-                return new QueryResult<String>(images);
+                ArrayList<String> images = new ArrayList<>(executionOutputService.getAllPuScores(UUID.fromString(task), item.getLabel()));
+                return new QueryResult<>(images);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -108,7 +108,7 @@ public class RunningTasksController {
             for (RunningTaskQueueItem item : cache.getPayload()) {
                 if (!item.getTask().toString().equals(task) || !item.getSubType().equals(RunningTaskSubType.SAMPLE_DOMAIN_MODEL))
                     continue;
-                return new QueryResult<>(item.getResponse().getDocuments());
+                return new QueryResult<>(executionOutputService.getSampledDocuments(UUID.fromString(task), item.getLabel()));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -124,9 +124,9 @@ public class RunningTasksController {
             if (cache == null || cache.getPayload() == null || cache.getPayload().isEmpty())
                 return new QueryResult<>(List.of());
             for (RunningTaskQueueItem item : cache.getPayload()) {
-                if (!item.getTask().toString().equals(task) || item.getResponse().getLogs() == null)
+                if (!item.getTask().toString().equals(task) || item.getLabel() == null)
                     continue;
-                return new QueryResult<>(item.getResponse().getLogs());
+                return new QueryResult<>(executionOutputService.getLogs(UUID.fromString(task), item.getLabel()));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

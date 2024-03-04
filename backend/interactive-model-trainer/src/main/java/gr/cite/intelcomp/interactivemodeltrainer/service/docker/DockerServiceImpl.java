@@ -21,6 +21,7 @@ import gr.cite.intelcomp.interactivemodeltrainer.query.UserQuery;
 import gr.cite.intelcomp.interactivemodeltrainer.query.lookup.*;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.ContainerManagementService;
 import gr.cite.intelcomp.interactivemodeltrainer.service.domainclassification.DomainClassificationParametersService;
+import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionOutputService;
 import gr.cite.tools.logging.LoggerService;
 import io.kubernetes.client.openapi.ApiException;
 import jakarta.annotation.PreDestroy;
@@ -73,8 +74,10 @@ public class DockerServiceImpl implements DockerService {
 
     private final UserScope userScope;
 
+    private final ExecutionOutputService executionOutputService;
+
     @Autowired
-    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ObjectMapper mapper, ContainerManagementService dockerExecutionService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary, CheckTasksSchedulerEventConfig checkTasksSchedulerEventConfig, ApplicationContext applicationContext) {
+    public DockerServiceImpl(JsonHandlingService jsonHandlingService, ContainerServicesProperties containerServicesProperties, ObjectMapper mapper, ContainerManagementService dockerExecutionService, DomainClassificationParametersService domainClassificationParametersService, CacheLibrary cacheLibrary, CheckTasksSchedulerEventConfig checkTasksSchedulerEventConfig, ApplicationContext applicationContext, ExecutionOutputService executionOutputService) {
         this.jsonHandlingService = jsonHandlingService;
         this.containerServicesProperties = containerServicesProperties;
         this.mapper = mapper;
@@ -84,6 +87,7 @@ public class DockerServiceImpl implements DockerService {
         this.checkTasksSchedulerEventConfig = checkTasksSchedulerEventConfig;
         this.applicationContext = applicationContext;
         this.userScope = applicationContext.getBean(UserScope.class);
+        this.executionOutputService = executionOutputService;
         this.mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS"));
     }
 
@@ -999,6 +1003,7 @@ public class DockerServiceImpl implements DockerService {
             if (!oldDirectory.renameTo(newDirectory)) {
                 logger.error("Could not rename domain model folder {}", oldPath.getPath());
             }
+            executionOutputService.renameOutputsForModel(oldName, newName);
         }
 
         if (ModelType.TOPIC == modelType) {
@@ -1061,6 +1066,7 @@ public class DockerServiceImpl implements DockerService {
             File directory = new File(pathToDelete);
             if (directory.exists()) {
                 FileUtils.deleteDirectory(directory);
+                executionOutputService.clearOutputsForModel(name);
             } else {
                 logger.debug("No model folder on path '{}' found for deletion. Skipping...", pathToDelete.getPath());
             }

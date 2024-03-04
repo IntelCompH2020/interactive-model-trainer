@@ -26,9 +26,7 @@ export class ModelTaskDetailsComponent implements OnInit {
     return this._selectedItem;
   }
   
-  get logs(): string[] {
-    return this._selectedItem?.response['logs'];
-  }
+  private logs: string[];
 
   get items(): RunningTaskQueueItem[] {
     return this.data;
@@ -75,15 +73,21 @@ export class ModelTaskDetailsComponent implements OnInit {
   }
 
   showLogs(item: RunningTaskQueueItem): void {
-    this.selectItem(item);
-    this._updateLogs();
+    this.tasksService.getLogs(item.task).subscribe(log => {
+      if (log) {
+        this.selectItem(item);
+        this._clearLogs();
+        this.logs = log.items;
+        this._updateLogs();
+      }
+    });
   }
   
   showPUscores(item: RunningTaskQueueItem): void {
-    this.selectItem(item);
-    this._clearLogs();
     this.tasksService.getPuScoresList(item.task).subscribe(images => {
       if (images) {
+        this.selectItem(item);
+        this._clearLogs();
         this.PUscoresList = images.items;
         this.PUscoresVisible = true;
       }

@@ -68,6 +68,14 @@ export class RunningTasksService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	getLogs(task: string): Observable<QueryResult<string>> {
+		const url = `${this.apiBase}/${task}/logs`;
+
+		return this.http
+			.get<QueryResult<string>>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	clearAllFinishedTasks(type: RunningTaskType): Observable<void> {
 		const url = `${this.apiBase}/${type}/clear-all`;
 
