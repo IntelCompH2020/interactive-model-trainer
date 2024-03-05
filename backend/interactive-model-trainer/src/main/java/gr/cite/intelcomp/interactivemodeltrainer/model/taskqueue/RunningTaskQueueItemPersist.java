@@ -3,17 +3,24 @@ package gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue;
 import java.time.Instant;
 import java.util.UUID;
 
-public class RunningTaskQueueItemFull {
+public class RunningTaskQueueItemPersist {
 
     private String label;
+
     private boolean finished;
+
     private Object payload;
+
     private UUID task;
+
     private RunningTaskType type;
+
     private RunningTaskSubType subType;
+
     private Instant startedAt;
+
     private Instant finishedAt;
-    private RunningTaskResponseFull response;
+
     private UUID userId;
 
     public String getLabel() {
@@ -78,14 +85,6 @@ public class RunningTaskQueueItemFull {
 
     public void setFinishedAt(Instant finishedAt) {
         this.finishedAt = finishedAt;
-    }
-
-    public RunningTaskResponseFull getResponse() {
-        return response;
-    }
-
-    public void setResponse(RunningTaskResponseFull response) {
-        this.response = response;
     }
 
     public UUID getUserId() {

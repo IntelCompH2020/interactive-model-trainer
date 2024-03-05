@@ -160,7 +160,7 @@ public class ContainerServicesProperties {
         public static final String TRAIN_TOPIC_MODELS_SERVICE_NAME = "trainModels";
         public static final String TOPIC_MODEL_TASKS_SERVICE_NAME = "modelTasks";
         public static final String TRAIN_DOMAIN_MODELS_SERVICE_NAME = "trainDomainModels";
-        public static final String CACHE_DUMP_FILE_NAME = "user-tasks-shutdown-dump.json";
+        public static final String CACHE_DUMP_FILE_NAME = "current-user-tasks.json";
 
         private HashMap<String, String> volumeConfiguration;
 

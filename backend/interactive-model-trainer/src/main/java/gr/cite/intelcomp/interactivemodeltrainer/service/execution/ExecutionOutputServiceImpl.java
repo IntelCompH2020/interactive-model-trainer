@@ -3,14 +3,19 @@ package gr.cite.intelcomp.interactivemodeltrainer.service.execution;
 import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.data.DocumentEntity;
+import gr.cite.tools.logging.LoggerService;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.ManageDomainModels.InnerPaths.DC_MODEL_SAMPLED_DOCUMENTS_FILE_NAME;
@@ -18,11 +23,15 @@ import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerS
 @Service
 public class ExecutionOutputServiceImpl implements ExecutionOutputService {
 
+    private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ExecutionOutputServiceImpl.class));
+
     private final ContainerServicesProperties containerServicesProperties;
 
     private final JsonHandlingService jsonHandlingService;
 
-    public ExecutionOutputServiceImpl(ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService) {
+    public ExecutionOutputServiceImpl(
+            ContainerServicesProperties containerServicesProperties,
+            JsonHandlingService jsonHandlingService) {
         this.containerServicesProperties = containerServicesProperties;
         this.jsonHandlingService = jsonHandlingService;
     }
@@ -34,6 +43,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
         try {
             FileUtils.writeLines(logFile, logs);
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -46,6 +56,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
         try {
             logs = FileUtils.readLines(logFile, Charset.defaultCharset());
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
         return logs;
@@ -59,6 +70,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
             try {
                 FileUtils.writeByteArrayToFile(diagramFile, val, false);
             } catch (IOException e) {
+                logger.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         });
@@ -72,6 +84,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
         try {
             diagram = FileUtils.readFileToByteArray(diagramFile);
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
         return diagram;
@@ -85,6 +98,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
             Collection<File> diagrams = FileUtils.listFiles(rootDirectory, new String[]{"png"}, false);
             return diagrams.stream().map(File::getName).collect(Collectors.toList());
         } else {
+            logger.error("PuScores directory not found.");
             throw new RuntimeException("PuScores directory not found.");
         }
     }
@@ -96,6 +110,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
         try {
             FileUtils.write(documentsFile, jsonHandlingService.toJson(documents), Charset.defaultCharset());
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -109,6 +124,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
             String json = FileUtils.readFileToString(documentsFile, Charset.defaultCharset());
             documents = List.of(jsonHandlingService.fromJson(DocumentEntity[].class, json));
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
         return documents;
@@ -122,6 +138,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
             try {
                 FileUtils.deleteDirectory(outputsFolder);
             } catch (IOException e) {
+                logger.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         }
@@ -135,6 +152,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
             try {
                 FileUtils.deleteDirectory(outputsFolder);
             } catch (IOException e) {
+                logger.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         }
@@ -148,6 +166,7 @@ public class ExecutionOutputServiceImpl implements ExecutionOutputService {
         File newFolder = new File(newPath.toUri());
         if (oldFolder.isDirectory()) {
             if (!oldFolder.renameTo(newFolder)) {
+                logger.error("Not able to rename folder " + oldPath);
                 throw new RuntimeException("Not able to rename folder " + oldPath);
             }
         }

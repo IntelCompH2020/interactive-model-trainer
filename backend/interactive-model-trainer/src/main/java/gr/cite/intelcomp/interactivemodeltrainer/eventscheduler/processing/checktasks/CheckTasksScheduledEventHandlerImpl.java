@@ -19,7 +19,6 @@ import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.Event
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.checktasks.config.CheckTasksSchedulerEventConfig;
 import gr.cite.intelcomp.interactivemodeltrainer.eventscheduler.processing.preparehierarchicaltraining.PrepareHierarchicalTrainingEventData;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
-import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskResponse;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskSubType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskType;
 import gr.cite.intelcomp.interactivemodeltrainer.model.trainingtaskrequest.TrainingTaskRequest;
@@ -239,40 +238,23 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
             return;
         }
         if (RunningTaskSubType.RETRAIN_DOMAIN_MODEL == item.getSubType()) {
-            RunningTaskResponse response = new RunningTaskResponse();
             List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_RETRAIN_LOG_FILE_NAME);
-            response.setLogs(logs);
-            item.setResponse(response);
             executionOutputService.setLogs(task, modelName, logs);
         } else if (RunningTaskSubType.CLASSIFY_DOMAIN_MODEL == item.getSubType()) {
-            RunningTaskResponse response = new RunningTaskResponse();
             List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_CLASSIFY_LOG_FILE_NAME);
-            response.setLogs(logs);
-            item.setResponse(response);
             executionOutputService.setLogs(task, modelName, logs);
         } else if (RunningTaskSubType.EVALUATE_DOMAIN_MODEL == item.getSubType()) {
-            RunningTaskResponse response = new RunningTaskResponse();
             List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_EVALUATE_LOG_FILE_NAME);
             Map<String, byte[]> diagrams = domainClassificationParametersService.getPU_scores(modelName);
-            response.setLogs(logs);
-            response.setPuScores(diagrams.keySet());
-            item.setResponse(response);
             executionOutputService.setLogs(task, modelName, logs);
             executionOutputService.setPuScores(task, modelName, diagrams);
         } else if (RunningTaskSubType.SAMPLE_DOMAIN_MODEL == item.getSubType()) {
-            RunningTaskResponse response = new RunningTaskResponse();
             List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_SAMPLE_LOG_FILE_NAME);
             List<DocumentEntity> documents = domainClassificationParametersService.getSampledDocuments(modelName);
-            response.setLogs(logs);
-            response.setDocuments(documents);
-            item.setResponse(response);
             executionOutputService.setLogs(task, modelName, logs);
             executionOutputService.setSampledDocuments(task, modelName, documents);
         } else if (RunningTaskSubType.GIVE_FEEDBACK_DOMAIN_MODEL == item.getSubType()) {
-            RunningTaskResponse response = new RunningTaskResponse();
             List<String> logs = domainClassificationParametersService.getLogs(modelName, DC_MODEL_FEEDBACK_LOG_FILE_NAME);
-            response.setLogs(logs);
-            item.setResponse(response);
             executionOutputService.setLogs(task, modelName, logs);
         }
     }
@@ -291,8 +273,10 @@ public class CheckTasksScheduledEventHandlerImpl implements CheckTasksScheduledE
                 boolean isOld = item.getFinishedAt().isBefore(
                         Instant.now().minus(cacheRetention, ChronoUnit.HOURS)
                 );
-                if (isOld)
+                if (isOld) {
                     cache.getPayload().remove(item);
+                    cacheLibrary.persistUserTasksOutput();
+                }
             }
         }
     }

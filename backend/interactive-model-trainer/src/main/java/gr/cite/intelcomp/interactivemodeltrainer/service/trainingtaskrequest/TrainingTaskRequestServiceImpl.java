@@ -674,6 +674,7 @@ public class TrainingTaskRequestServiceImpl implements TrainingTaskRequestServic
                     .ifPresent(item -> {
                         executionOutputService.clearTaskOutput(task, item.getLabel());
                         cache.getPayload().remove(item);
+                        cacheLibrary.persistUserTasksOutput();
                     });
         }
     }

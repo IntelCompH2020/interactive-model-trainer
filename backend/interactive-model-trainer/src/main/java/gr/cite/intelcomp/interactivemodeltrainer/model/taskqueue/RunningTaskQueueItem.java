@@ -8,15 +8,21 @@ import java.util.UUID;
 public abstract class RunningTaskQueueItem {
 
     private String label;
+
     private boolean finished;
+
     private Object payload;
+
     private UUID task;
+
     private RunningTaskType type;
+
     private RunningTaskSubType subType;
+
     private Instant startedAt;
+
     private Instant finishedAt;
-    private RunningTaskResponse response;
-    @JsonIgnore
+
     private UUID userId;
 
     protected RunningTaskQueueItem(RunningTaskType runningTaskType) {
@@ -88,14 +94,6 @@ public abstract class RunningTaskQueueItem {
         this.finishedAt = finishedAt;
     }
 
-    public RunningTaskResponse getResponse() {
-        return response;
-    }
-
-    public void setResponse(RunningTaskResponse response) {
-        this.response = response;
-    }
-
     public UUID getUserId() {
         return userId;
     }
@@ -106,8 +104,10 @@ public abstract class RunningTaskQueueItem {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         RunningTaskQueueItem that = (RunningTaskQueueItem) o;
 

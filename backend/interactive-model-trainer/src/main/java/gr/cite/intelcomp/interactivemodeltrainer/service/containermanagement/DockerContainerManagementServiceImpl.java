@@ -1,6 +1,5 @@
 package gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -13,25 +12,17 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import gr.cite.intelcomp.interactivemodeltrainer.cache.CacheLibrary;
-import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntity;
-import gr.cite.intelcomp.interactivemodeltrainer.cache.UserTasksCacheEntityFull;
-import gr.cite.intelcomp.interactivemodeltrainer.common.JsonHandlingService;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.CommandType;
 import gr.cite.intelcomp.interactivemodeltrainer.common.enums.JobStatus;
 import gr.cite.intelcomp.interactivemodeltrainer.common.scope.user.UserScope;
-import gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties;
 import gr.cite.intelcomp.interactivemodeltrainer.configuration.DockerProperties;
-import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItem;
-import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskQueueItemFull;
-import gr.cite.intelcomp.interactivemodeltrainer.model.taskqueue.RunningTaskResponseFull;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ContainerKey;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.DockerContainerKeyImpl;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionContainerParams;
 import gr.cite.intelcomp.interactivemodeltrainer.service.containermanagement.models.ExecutionParams;
 import gr.cite.intelcomp.interactivemodeltrainer.service.execution.ExecutionService;
 import gr.cite.tools.logging.LoggerService;
-import org.apache.commons.io.FileUtils;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,17 +31,8 @@ import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
 
-import jakarta.annotation.PreDestroy;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static gr.cite.intelcomp.interactivemodeltrainer.configuration.ContainerServicesProperties.DockerServiceConfiguration.CACHE_DUMP_FILE_NAME;
 
 @Service
 @ConditionalOnProperty(prefix = "docker", name = "enabled", havingValue = "true")
@@ -59,22 +41,18 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DockerContainerManagementServiceImpl.class));
 
     private final DockerProperties dockerProperties;
-    private final DockerClient dockerClient;
-    private final HashMap<String, String> syncContainerIds;
-    private final CacheLibrary cacheLibrary;
-    private final ContainerServicesProperties containerServicesProperties;
-    private final JsonHandlingService jsonHandlingService;
-    private final ObjectMapper objectMapper;
 
+    private final DockerClient dockerClient;
+
+    private final HashMap<String, String> syncContainerIds;
 
     @Autowired
-    public DockerContainerManagementServiceImpl(DockerProperties dockerProperties, UserScope userScope, ExecutionService executionService, CacheLibrary cacheLibrary, ContainerServicesProperties containerServicesProperties, JsonHandlingService jsonHandlingService, ObjectMapper objectMapper) {
+    public DockerContainerManagementServiceImpl(
+            DockerProperties dockerProperties,
+            UserScope userScope,
+            ExecutionService executionService) {
         super(userScope, executionService);
         this.dockerProperties = dockerProperties;
-        this.cacheLibrary = cacheLibrary;
-        this.containerServicesProperties = containerServicesProperties;
-        this.jsonHandlingService = jsonHandlingService;
-        this.objectMapper = objectMapper;
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig
                 .createDefaultConfigBuilder()
                 .withDockerHost(this.dockerProperties.getHost())
@@ -95,34 +73,6 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
             this.removeContainer(new DockerContainerKeyImpl(executionId));
         }
         syncContainerIds.clear();
-        logger.info("Dumping user tasks cache to a file...");
-        UserTasksCacheEntity cache = (UserTasksCacheEntity) cacheLibrary.get(UserTasksCacheEntity.CODE);
-        UserTasksCacheEntityFull cacheToWrite = objectMapper.convertValue(cache, UserTasksCacheEntityFull.class);
-        for (RunningTaskQueueItemFull item : cacheToWrite.getPayload()) {
-            Optional<RunningTaskQueueItem> cacheItemOptional = cache.getPayload()
-                    .stream()
-                    .filter(i -> i.getTask().equals(item.getTask()))
-                    .findFirst();
-            if (cacheItemOptional.isPresent()) {
-                RunningTaskQueueItem cacheItem = cacheItemOptional.get();
-                item.setUserId(cacheItem.getUserId());
-                RunningTaskResponseFull response = new RunningTaskResponseFull();
-                response.setLogs(cacheItem.getResponse().getLogs());
-                response.setDocuments(cacheItem.getResponse().getDocuments());
-//                response.setPuScores(cacheItem.getResponse().getPuScores());
-                item.setResponse(response);
-            }
-        }
-        File file = new File(Path.of(
-                containerServicesProperties.getTopicTrainingService().getTempFolder(),
-                CACHE_DUMP_FILE_NAME
-        ).toUri());
-        try {
-            FileUtils.write(file, jsonHandlingService.toJson(cacheToWrite), Charset.defaultCharset());
-        } catch (IOException e) {
-            logger.error("Unable to dump current user tasks to file.");
-            logger.error(e.getMessage(), e);
-        }
     }
 
     @Override
@@ -145,7 +95,8 @@ public class DockerContainerManagementServiceImpl extends ContainerManagementSer
 
         if (executionParams.getContainersParams() != null) {
             for (ExecutionContainerParams executionContainerParams : executionParams.getContainersParams()) {
-                if (executionContainerParams.getEnvMapping() == null) continue;
+                if (executionContainerParams.getEnvMapping() == null)
+                    continue;
                 ArrayList<String> params = new ArrayList<>();
                 for (String envName : executionParams.getEnvMapping().keySet()) {
                     params.add(envName + "=" + executionParams.getEnvMapping().get(envName));
